@@ -26,13 +26,13 @@ export const paymentsController = {
   },
 
   async listVerificationQueue(request: Request, response: Response) {
-    const queue = await paymentsService.listVerificationQueue(request.query);
+    const queue = await paymentsService.listVerificationQueue(request.auth!.user, request.query);
     response.status(200).json({ queue });
   },
 
   async decidePaymentProof(request: Request, response: Response) {
     const paymentProof = await paymentsService.decidePaymentProof(
-      request.auth!.userId,
+      request.auth!.user,
       String(request.params.paymentProofId),
       request.body,
       getRequestMetadata(request),
@@ -47,7 +47,7 @@ export const paymentsController = {
     });
 
     const incomeRecord = await paymentsService.createIncomeRecord(
-      request.auth!.userId,
+      request.auth!.user,
       parsedRequest.body,
       request.file,
       getRequestMetadata(request),
@@ -57,12 +57,16 @@ export const paymentsController = {
   },
 
   async listIncomeRecords(request: Request, response: Response) {
-    const incomeRecords = await paymentsService.listIncomeRecords(request.query);
+    const incomeRecords = await paymentsService.listIncomeRecords(
+      request.auth!.user,
+      request.query,
+    );
     response.status(200).json({ incomeRecords });
   },
 
   async getIncomeRecordById(request: Request, response: Response) {
     const incomeRecord = await paymentsService.getIncomeRecordById(
+      request.auth!.user,
       String(request.params.incomeRecordId),
     );
 

@@ -166,6 +166,10 @@ export const registrationsService = {
   },
 
   async listEventRegistrations(viewer: AuthenticatedUser, eventId: string) {
+    if (!hasInternalRegistrationAccess(viewer.roles)) {
+      throw new AppError(403, "You are not allowed to view event registrations.");
+    }
+
     const event = await eventsRepository.findById(eventId);
 
     if (!event) {

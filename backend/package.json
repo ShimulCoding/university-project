@@ -6,6 +6,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
+    "verify:flows": "tsx scripts/verify-events-payments-slice.ts",
+    "seed:demo:flows": "tsx scripts/seed-events-payments-demo.ts",
     "prisma:validate": "prisma validate",
     "prisma:format": "prisma format",
     "prisma:generate": "prisma generate",

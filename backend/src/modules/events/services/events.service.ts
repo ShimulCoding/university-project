@@ -1,6 +1,8 @@
 import { EventStatus } from "@prisma/client";
 
+import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { hasEventManagementAccess } from "../../../utils/role-checks";
 import { slugify } from "../../../utils/slugify";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
@@ -82,6 +84,12 @@ function assertValidStatusTransition(currentStatus: EventStatus, nextStatus: Eve
   }
 }
 
+function assertEventManagementPermissions(viewer: AuthenticatedUser) {
+  if (!hasEventManagementAccess(viewer.roles)) {
+    throw new AppError(403, "You are not allowed to manage events.");
+  }
+}
+
 export const eventsService = {
   async listPublicEvents(filters: EventListFilters) {
     assertPublicStatusFilter(filters.status);
@@ -100,12 +108,16 @@ export const eventsService = {
     return mapPublicEvent(event);
   },
 
-  async listManageEvents(filters: EventListFilters) {
+  async listManageEvents(viewer: AuthenticatedUser, filters: EventListFilters) {
+    assertEventManagementPermissions(viewer);
+
     const events = await eventsRepository.listManage(filters);
     return events.map(mapManageEvent);
   },
 
-  async getManageEvent(eventLookupKey: string) {
+  async getManageEvent(viewer: AuthenticatedUser, eventLookupKey: string) {
+    assertEventManagementPermissions(viewer);
+
     const event = await eventsRepository.findByLookupKey(eventLookupKey);
 
     if (!event) {
@@ -115,7 +127,9 @@ export const eventsService = {
     return mapManageEvent(event);
   },
 
-  async createEvent(actorId: string, input: CreateEventInput, auditMetadata?: AuditMetadata) {
+  async createEvent(actor: AuthenticatedUser, input: CreateEventInput, auditMetadata?: AuditMetadata) {
+    assertEventManagementPermissions(actor);
+
     const nextStatus = input.status ?? EventStatus.DRAFT;
     const slug = slugify(input.slug ?? input.title);
 
@@ -135,11 +149,11 @@ export const eventsService = {
       startsAt: input.startsAt,
       endsAt: input.endsAt,
       capacity: input.capacity,
-      createdById: actorId,
+      createdById: actor.id,
     });
 
     await auditService.record({
-      actorId,
+      actorId: actor.id,
       action: "events.create",
       entityType: "Event",
       entityId: event.id,
@@ -155,11 +169,13 @@ export const eventsService = {
   },
 
   async updateEvent(
-    actorId: string,
+    actor: AuthenticatedUser,
     eventLookupKey: string,
     input: UpdateEventInput,
     auditMetadata?: AuditMetadata,
   ) {
+    assertEventManagementPermissions(actor);
+
     const event = await eventsRepository.findByLookupKey(eventLookupKey);
 
     if (!event) {
@@ -195,7 +211,7 @@ export const eventsService = {
     });
 
     await auditService.record({
-      actorId,
+      actorId: actor.id,
       action: "events.update",
       entityType: "Event",
       entityId: updatedEvent.id,

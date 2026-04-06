@@ -88,6 +88,12 @@ async function cleanupStoredUpload(upload: StoredUpload | undefined) {
   }
 }
 
+function assertFinancePermissions(viewer: AuthenticatedUser) {
+  if (!hasFinanceAccess(viewer.roles)) {
+    throw new AppError(403, "You are not allowed to manage finance verification or income records.");
+  }
+}
+
 export const paymentsService = {
   async submitPaymentProof(
     actor: AuthenticatedUser,
@@ -196,17 +202,21 @@ export const paymentsService = {
     }
   },
 
-  async listVerificationQueue(filters: PaymentVerificationQueueFilters) {
+  async listVerificationQueue(viewer: AuthenticatedUser, filters: PaymentVerificationQueueFilters) {
+    assertFinancePermissions(viewer);
+
     const queue = await paymentsRepository.listPendingVerificationQueue(filters);
     return queue.map(mapPaymentVerificationQueueItem);
   },
 
   async decidePaymentProof(
-    actorId: string,
+    actor: AuthenticatedUser,
     paymentProofId: string,
     input: PaymentProofDecisionInput,
     auditMetadata?: AuditMetadata,
   ) {
+    assertFinancePermissions(actor);
+
     const paymentProof = await paymentsRepository.findPaymentProofById(paymentProofId);
 
     if (!paymentProof) {
@@ -234,7 +244,7 @@ export const paymentsService = {
           state: proofState,
           reviewedAt: new Date(),
           reviewerRemark,
-          reviewedById: actorId,
+          reviewedById: actor.id,
         },
         tx,
       );
@@ -255,7 +265,7 @@ export const paymentsService = {
     });
 
     await auditService.record({
-      actorId,
+      actorId: actor.id,
       action: "payments.proof.review",
       entityType: "PaymentProof",
       entityId: reviewedPaymentProof.id,
@@ -273,11 +283,13 @@ export const paymentsService = {
   },
 
   async createIncomeRecord(
-    actorId: string,
+    actor: AuthenticatedUser,
     input: CreateIncomeRecordInput,
     file: Express.Multer.File | undefined,
     auditMetadata?: AuditMetadata,
   ) {
+    assertFinancePermissions(actor);
+
     const event = await eventsRepository.findById(input.eventId);
 
     if (!event) {
@@ -294,7 +306,7 @@ export const paymentsService = {
 
     try {
       const incomeRecord = await prisma.$transaction(async (tx) => {
-        const createdIncomeRecord = await paymentsRepository.createIncomeRecord(actorId, {
+        const createdIncomeRecord = await paymentsRepository.createIncomeRecord(actor.id, {
           ...input,
           referenceText,
         }, tx);
@@ -308,7 +320,7 @@ export const paymentsService = {
               storedName: storedUpload.storedName,
               relativePath: storedUpload.relativePath,
               sizeBytes: BigInt(storedUpload.sizeBytes),
-              uploadedById: actorId,
+              uploadedById: actor.id,
               incomeRecordId: createdIncomeRecord.id,
             },
             tx,
@@ -328,7 +340,7 @@ export const paymentsService = {
       });
 
       await auditService.record({
-        actorId,
+        actorId: actor.id,
         action: "income.create",
         entityType: "IncomeRecord",
         entityId: incomeRecord.id,
@@ -348,12 +360,16 @@ export const paymentsService = {
     }
   },
 
-  async listIncomeRecords(filters: IncomeRecordFilters) {
+  async listIncomeRecords(viewer: AuthenticatedUser, filters: IncomeRecordFilters) {
+    assertFinancePermissions(viewer);
+
     const incomeRecords = await paymentsRepository.listIncomeRecords(filters);
     return incomeRecords.map(mapIncomeRecord);
   },
 
-  async getIncomeRecordById(incomeRecordId: string) {
+  async getIncomeRecordById(viewer: AuthenticatedUser, incomeRecordId: string) {
+    assertFinancePermissions(viewer);
+
     const incomeRecord = await paymentsRepository.findIncomeRecordById(incomeRecordId);
 
     if (!incomeRecord) {

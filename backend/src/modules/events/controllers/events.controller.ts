@@ -15,18 +15,21 @@ export const eventsController = {
   },
 
   async listManageEvents(request: Request, response: Response) {
-    const events = await eventsService.listManageEvents(request.query);
+    const events = await eventsService.listManageEvents(request.auth!.user, request.query);
     response.status(200).json({ events });
   },
 
   async getManageEvent(request: Request, response: Response) {
-    const event = await eventsService.getManageEvent(String(request.params.eventLookupKey));
+    const event = await eventsService.getManageEvent(
+      request.auth!.user,
+      String(request.params.eventLookupKey),
+    );
     response.status(200).json({ event });
   },
 
   async createEvent(request: Request, response: Response) {
     const event = await eventsService.createEvent(
-      request.auth!.userId,
+      request.auth!.user,
       request.body,
       getRequestMetadata(request),
     );
@@ -36,7 +39,7 @@ export const eventsController = {
 
   async updateEvent(request: Request, response: Response) {
     const event = await eventsService.updateEvent(
-      request.auth!.userId,
+      request.auth!.user,
       String(request.params.eventLookupKey),
       request.body,
       getRequestMetadata(request),

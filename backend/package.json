@@ -10,6 +10,7 @@
     "prisma:format": "prisma format",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:seed": "tsx prisma/seed.ts",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {

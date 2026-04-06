@@ -1,10 +1,195 @@
+import {
+  ApprovalDecisionType,
+  ApprovalEntityType,
+  RequestState,
+} from "@prisma/client";
+
+import { prisma } from "../../../config/prisma";
+import type { AuthenticatedUser } from "../../../types/auth";
+import { AppError } from "../../../utils/app-error";
+import { hasApproverAccess } from "../../../utils/role-checks";
+import type { AuditMetadata } from "../../audit/types/audit.types";
+import { auditService } from "../../audit/services/audit.service";
+import { mapApprovalQueueItem } from "../approvals.mappers";
+import { approvalsRepository } from "../repositories/approvals.repository";
+import {
+  mapBudgetRequest,
+  mapExpenseRequest,
+} from "../../requests/requests.mappers";
+import type { ApprovalDecisionInput, ApprovalQueueFilters } from "../types/approvals.types";
+
+function assertApproverPermissions(viewer: AuthenticatedUser) {
+  if (!hasApproverAccess(viewer.roles)) {
+    throw new AppError(403, "You are not allowed to review approval requests.");
+  }
+}
+
+function assertPendingApprovalState(state: RequestState) {
+  if (state !== RequestState.SUBMITTED && state !== RequestState.PENDING_REVIEW) {
+    throw new AppError(409, "Only submitted requests can receive approval decisions.");
+  }
+}
+
+function mapDecisionToRequestState(decision: ApprovalDecisionType) {
+  switch (decision) {
+    case ApprovalDecisionType.APPROVED:
+      return RequestState.APPROVED;
+    case ApprovalDecisionType.REJECTED:
+      return RequestState.REJECTED;
+    case ApprovalDecisionType.RETURNED:
+      return RequestState.RETURNED;
+  }
+}
+
+function sanitizeOptionalText(value: string | undefined) {
+  const trimmedValue = value?.trim();
+  return trimmedValue ? trimmedValue : undefined;
+}
+
 export const approvalsService = {
-  getOverview() {
+  async listApprovalQueue(actor: AuthenticatedUser, filters: ApprovalQueueFilters) {
+    assertApproverPermissions(actor);
+
+    const queueItems: Array<ReturnType<typeof mapApprovalQueueItem>> = [];
+
+    if (!filters.entityType || filters.entityType === ApprovalEntityType.BUDGET_REQUEST) {
+      const budgetRequests = await approvalsRepository.listPendingBudgetRequests(filters);
+      queueItems.push(
+        ...budgetRequests.map((request) =>
+          mapApprovalQueueItem(ApprovalEntityType.BUDGET_REQUEST, request),
+        ),
+      );
+    }
+
+    if (!filters.entityType || filters.entityType === ApprovalEntityType.EXPENSE_REQUEST) {
+      const expenseRequests = await approvalsRepository.listPendingExpenseRequests(filters);
+      queueItems.push(
+        ...expenseRequests.map((request) =>
+          mapApprovalQueueItem(ApprovalEntityType.EXPENSE_REQUEST, request),
+        ),
+      );
+    }
+
+    return queueItems.sort(
+      (left, right) => left.createdAt.getTime() - right.createdAt.getTime(),
+    );
+  },
+
+  async decide(
+    actor: AuthenticatedUser,
+    entityType: ApprovalEntityType,
+    entityId: string,
+    input: ApprovalDecisionInput,
+    auditMetadata?: AuditMetadata,
+  ) {
+    assertApproverPermissions(actor);
+
+    const comment = sanitizeOptionalText(input.comment);
+
+    if (entityType === ApprovalEntityType.BUDGET_REQUEST) {
+      const request = await approvalsRepository.findBudgetRequestById(entityId);
+
+      if (!request) {
+        throw new AppError(404, "Budget request not found.");
+      }
+
+      assertPendingApprovalState(request.state);
+
+      if (request.requestedById === actor.id) {
+        throw new AppError(409, "Self-approval is not allowed for budget requests.");
+      }
+
+      const updatedRequest = await prisma.$transaction(async (tx) => {
+        await approvalsRepository.createApprovalDecision(
+          {
+            entityType,
+            decision: input.decision,
+            comment,
+            actorId: actor.id,
+            budgetRequestId: entityId,
+          },
+          tx,
+        );
+
+        return approvalsRepository.updateBudgetRequestState(
+          entityId,
+          mapDecisionToRequestState(input.decision),
+          tx,
+        );
+      });
+
+      await auditService.record({
+        actorId: actor.id,
+        action: "approvals.decide",
+        entityType: "BudgetRequest",
+        entityId: updatedRequest.id,
+        summary: `${input.decision} budget request for ${updatedRequest.event.title}`,
+        context: {
+          approvalEntityType: entityType,
+          decision: input.decision,
+          previousState: request.state,
+          nextState: updatedRequest.state,
+          comment: comment ?? null,
+        },
+        ...auditMetadata,
+      });
+
+      return {
+        entityType,
+        request: mapBudgetRequest(updatedRequest),
+      };
+    }
+
+    const request = await approvalsRepository.findExpenseRequestById(entityId);
+
+    if (!request) {
+      throw new AppError(404, "Expense request not found.");
+    }
+
+    assertPendingApprovalState(request.state);
+
+    if (request.requestedById === actor.id) {
+      throw new AppError(409, "Self-approval is not allowed for expense requests.");
+    }
+
+    const updatedRequest = await prisma.$transaction(async (tx) => {
+      await approvalsRepository.createApprovalDecision(
+        {
+          entityType,
+          decision: input.decision,
+          comment,
+          actorId: actor.id,
+          expenseRequestId: entityId,
+        },
+        tx,
+      );
+
+      return approvalsRepository.updateExpenseRequestState(
+        entityId,
+        mapDecisionToRequestState(input.decision),
+        tx,
+      );
+    });
+
+    await auditService.record({
+      actorId: actor.id,
+      action: "approvals.decide",
+      entityType: "ExpenseRequest",
+      entityId: updatedRequest.id,
+      summary: `${input.decision} expense request for ${updatedRequest.event.title}`,
+      context: {
+        approvalEntityType: entityType,
+        decision: input.decision,
+        previousState: request.state,
+        nextState: updatedRequest.state,
+        comment: comment ?? null,
+      },
+      ...auditMetadata,
+    });
+
     return {
-      module: "approvals",
-      status: "scaffolded",
-      responsibilities: ["approve", "reject", "return", "approval decision history"],
+      entityType,
+      request: mapExpenseRequest(updatedRequest),
     };
   },
 };
-

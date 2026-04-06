@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import type { NextFunction, Request, Response } from "express";
+import { MulterError } from "multer";
 import { ZodError } from "zod";
 
 export function errorHandler(
@@ -24,6 +25,16 @@ export function errorHandler(
         error.code === "P2002"
           ? "A record with this value already exists."
           : "Database request failed.",
+    });
+    return;
+  }
+
+  if (error instanceof MulterError) {
+    response.status(error.code === "LIMIT_FILE_SIZE" ? 400 : 422).json({
+      message:
+        error.code === "LIMIT_FILE_SIZE"
+          ? "Uploaded file exceeds the allowed size."
+          : "File upload failed.",
     });
     return;
   }

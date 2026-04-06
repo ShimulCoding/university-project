@@ -1,10 +1,39 @@
 import type { Request, Response } from "express";
 
+import { getRequestMetadata } from "../../../utils/request-metadata";
 import { registrationsService } from "../services/registrations.service";
 
 export const registrationsController = {
-  getOverview(_request: Request, response: Response) {
-    response.status(200).json(registrationsService.getOverview());
+  async createRegistration(request: Request, response: Response) {
+    const registration = await registrationsService.createRegistration(
+      request.auth!.user,
+      request.body,
+      getRequestMetadata(request),
+    );
+
+    response.status(201).json({ registration });
+  },
+
+  async listMyRegistrations(request: Request, response: Response) {
+    const registrations = await registrationsService.listMyRegistrations(request.auth!.userId);
+    response.status(200).json({ registrations });
+  },
+
+  async getRegistrationById(request: Request, response: Response) {
+    const registration = await registrationsService.getRegistrationById(
+      request.auth!.user,
+      String(request.params.registrationId),
+    );
+
+    response.status(200).json({ registration });
+  },
+
+  async listEventRegistrations(request: Request, response: Response) {
+    const registrations = await registrationsService.listEventRegistrations(
+      request.auth!.user,
+      String(request.params.eventId),
+    );
+
+    response.status(200).json({ registrations });
   },
 };
-

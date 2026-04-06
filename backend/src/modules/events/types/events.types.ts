@@ -1,0 +1,2 @@
+export type EventsModuleStatus = "scaffolded";
+

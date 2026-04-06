@@ -122,43 +122,45 @@ enum PublicSummaryStatus {
 }
 
 model User {
-  id                              String                @id @default(cuid())
-  fullName                        String
-  email                           String                @unique
-  passwordHash                    String
-  status                          AccountStatus         @default(ACTIVE)
-  createdAt                       DateTime              @default(now())
-  updatedAt                       DateTime              @updatedAt
-  roles                           UserRole[]
-  refreshTokens                   RefreshToken[]
-  registrations                   Registration[]        @relation("RegistrationParticipant")
-  createdEvents                   Event[]               @relation("EventCreator")
-  paymentProofReviews             PaymentProof[]        @relation("PaymentProofReviewer")
-  budgetsCreated                  Budget[]              @relation("BudgetCreator")
-  budgetRequests                  BudgetRequest[]       @relation("BudgetRequestRequester")
-  expenseRequests                 ExpenseRequest[]      @relation("ExpenseRequestRequester")
-  expenseRecords                  ExpenseRecord[]       @relation("ExpenseRecordRecorder")
-  incomeRecordsRecorded           IncomeRecord[]        @relation("IncomeRecordRecorder")
-  incomeRecordsVerified           IncomeRecord[]        @relation("IncomeRecordVerifier")
-  approvalDecisions               ApprovalDecision[]
-  complaintsSubmitted             Complaint[]           @relation("ComplaintSubmitter")
-  complaintRoutings               ComplaintRouting[]    @relation("ComplaintRouter")
-  reconciliationReportsGenerated  ReconciliationReport[] @relation("ReconciliationGenerator")
-  reconciliationReportsReviewed   ReconciliationReport[] @relation("ReconciliationReviewer")
-  publicSummariesPublished        PublicSummarySnapshot[] @relation("PublicSummaryPublisher")
-  documentsUploaded               SupportingDocument[]
-  auditLogs                       AuditLog[]            @relation("AuditActor")
-  roleAssignmentsCreated          UserRole[]            @relation("RoleAssigner")
+  id                             String                  @id @default(cuid())
+  fullName                       String
+  email                          String                  @unique
+  passwordHash                   String
+  status                         AccountStatus           @default(ACTIVE)
+  lastLoginAt                    DateTime?
+  createdAt                      DateTime                @default(now())
+  updatedAt                      DateTime                @updatedAt
+  roles                          UserRole[]
+  refreshTokens                  RefreshToken[]
+  registrations                  Registration[]          @relation("RegistrationParticipant")
+  createdEvents                  Event[]                 @relation("EventCreator")
+  paymentProofReviews            PaymentProof[]          @relation("PaymentProofReviewer")
+  budgetsCreated                 Budget[]                @relation("BudgetCreator")
+  budgetRequests                 BudgetRequest[]         @relation("BudgetRequestRequester")
+  expenseRequests                ExpenseRequest[]        @relation("ExpenseRequestRequester")
+  expenseRecords                 ExpenseRecord[]         @relation("ExpenseRecordRecorder")
+  incomeRecordsRecorded          IncomeRecord[]          @relation("IncomeRecordRecorder")
+  incomeRecordsVerified          IncomeRecord[]          @relation("IncomeRecordVerifier")
+  approvalDecisions              ApprovalDecision[]
+  complaintsSubmitted            Complaint[]             @relation("ComplaintSubmitter")
+  complaintRoutings              ComplaintRouting[]      @relation("ComplaintRouter")
+  reconciliationReportsGenerated ReconciliationReport[]  @relation("ReconciliationGenerator")
+  reconciliationReportsReviewed  ReconciliationReport[]  @relation("ReconciliationReviewer")
+  publicSummariesPublished       PublicSummarySnapshot[] @relation("PublicSummaryPublisher")
+  documentsUploaded              SupportingDocument[]
+  auditLogs                      AuditLog[]              @relation("AuditActor")
+  roleAssignmentsCreated         UserRole[]              @relation("RoleAssigner")
 }
 
 model Role {
-  id                   String             @id @default(cuid())
-  code                 RoleCode           @unique
-  name                 String
-  description          String?
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
-  userRoles            UserRole[]
+  id                    String             @id @default(cuid())
+  code                  RoleCode           @unique
+  name                  String             @unique
+  description           String?
+  isSystem              Boolean            @default(true)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  userRoles             UserRole[]
   complaintRoutingsFrom ComplaintRouting[] @relation("ComplaintRoutingFromRole")
   complaintRoutingsTo   ComplaintRouting[] @relation("ComplaintRoutingToRole")
 }
@@ -183,28 +185,31 @@ model RefreshToken {
   userId     String
   tokenHash  String    @unique
   expiresAt  DateTime
-  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
   revokedAt  DateTime?
+  userAgent  String?
+  ipAddress  String?
+  createdAt  DateTime  @default(now())
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model Event {
-  id                     String                 @id @default(cuid())
+  id                     String                  @id @default(cuid())
   title                  String
-  slug                   String                 @unique
+  slug                   String                  @unique
   description            String?
-  status                 EventStatus            @default(DRAFT)
+  status                 EventStatus             @default(DRAFT)
   registrationOpensAt    DateTime?
   registrationClosesAt   DateTime?
   startsAt               DateTime?
   endsAt                 DateTime?
   capacity               Int?
   createdById            String?
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime               @updatedAt
-  createdBy              User?                  @relation("EventCreator", fields: [createdById], references: [id])
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  createdBy              User?                   @relation("EventCreator", fields: [createdById], references: [id])
   registrations          Registration[]
   budgets                Budget[]
   budgetRequests         BudgetRequest[]
@@ -217,38 +222,39 @@ model Event {
 }
 
 model Registration {
-  id              String                   @id @default(cuid())
-  eventId         String
-  participantId   String?
-  participantName String
-  studentId       String
-  email           String
-  phone           String?
-  registrationCode String                  @unique
-  paymentState    RegistrationPaymentState @default(PAYMENT_PENDING)
-  createdAt       DateTime                 @default(now())
-  updatedAt       DateTime                 @updatedAt
-  event           Event                    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  participant     User?                    @relation("RegistrationParticipant", fields: [participantId], references: [id])
-  paymentProofs   PaymentProof[]
+  id               String                   @id @default(cuid())
+  eventId          String
+  participantId    String?
+  participantName  String
+  studentId        String
+  email            String
+  phone            String?
+  registrationCode String                   @unique
+  paymentState     RegistrationPaymentState @default(PAYMENT_PENDING)
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  event            Event                    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  participant      User?                    @relation("RegistrationParticipant", fields: [participantId], references: [id])
+  paymentProofs    PaymentProof[]
 
+  @@unique([eventId, studentId])
   @@index([eventId])
 }
 
 model PaymentProof {
-  id                   String             @id @default(cuid())
+  id                   String               @id @default(cuid())
   registrationId       String
   externalChannel      String
   transactionReference String?
   referenceText        String?
-  amount               Decimal?           @db.Decimal(12, 2)
-  state                PaymentProofState  @default(PENDING_VERIFICATION)
-  submittedAt          DateTime           @default(now())
+  amount               Decimal?             @db.Decimal(12, 2)
+  state                PaymentProofState    @default(PENDING_VERIFICATION)
+  submittedAt          DateTime             @default(now())
   reviewedAt           DateTime?
   reviewerRemark       String?
   reviewedById         String?
-  registration         Registration       @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  reviewedBy           User?              @relation("PaymentProofReviewer", fields: [reviewedById], references: [id])
+  registration         Registration         @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  reviewedBy           User?                @relation("PaymentProofReviewer", fields: [reviewedById], references: [id])
   documents            SupportingDocument[] @relation("PaymentProofDocuments")
 
   @@index([registrationId])
@@ -274,13 +280,13 @@ model Budget {
 }
 
 model BudgetItem {
-  id       String   @id @default(cuid())
+  id       String  @id @default(cuid())
   budgetId String
   category String
   label    String
-  amount   Decimal  @db.Decimal(12, 2)
+  amount   Decimal @db.Decimal(12, 2)
   notes    String?
-  budget   Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budget   Budget  @relation(fields: [budgetId], references: [id], onDelete: Cascade)
 
   @@index([budgetId])
 }
@@ -344,49 +350,53 @@ model ExpenseRecord {
 }
 
 model IncomeRecord {
-  id            String           @id @default(cuid())
+  id            String               @id @default(cuid())
   eventId       String
   sourceType    IncomeSourceType
   sourceLabel   String
-  amount        Decimal          @db.Decimal(12, 2)
+  amount        Decimal              @db.Decimal(12, 2)
   referenceText String?
   collectedAt   DateTime?
   recordedById  String?
   verifiedById  String?
-  state         IncomeState      @default(RECORDED)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  event         Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  recordedBy    User?            @relation("IncomeRecordRecorder", fields: [recordedById], references: [id])
-  verifiedBy    User?            @relation("IncomeRecordVerifier", fields: [verifiedById], references: [id])
+  state         IncomeState          @default(RECORDED)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  event         Event                @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  recordedBy    User?                @relation("IncomeRecordRecorder", fields: [recordedById], references: [id])
+  verifiedBy    User?                @relation("IncomeRecordVerifier", fields: [verifiedById], references: [id])
+  documents     SupportingDocument[] @relation("IncomeRecordDocuments")
 
   @@index([eventId])
 }
 
 model SupportingDocument {
-  id              String           @id @default(cuid())
-  category        DocumentCategory
-  storageDisk     StorageDisk      @default(LOCAL)
-  originalName    String
-  mimeType        String
-  storedName      String
-  relativePath    String
-  sizeBytes       BigInt
-  uploadedById    String?
-  paymentProofId  String?
-  budgetRequestId String?
+  id               String           @id @default(cuid())
+  category         DocumentCategory
+  storageDisk      StorageDisk      @default(LOCAL)
+  originalName     String
+  mimeType         String
+  storedName       String
+  relativePath     String
+  sizeBytes        BigInt
+  uploadedById     String?
+  paymentProofId   String?
+  incomeRecordId   String?
+  budgetRequestId  String?
   expenseRequestId String?
-  expenseRecordId String?
-  complaintId     String?
-  createdAt       DateTime         @default(now())
-  uploadedBy      User?            @relation(fields: [uploadedById], references: [id])
-  paymentProof    PaymentProof?    @relation("PaymentProofDocuments", fields: [paymentProofId], references: [id], onDelete: Cascade)
-  budgetRequest   BudgetRequest?   @relation("BudgetRequestDocuments", fields: [budgetRequestId], references: [id], onDelete: Cascade)
-  expenseRequest  ExpenseRequest?  @relation("ExpenseRequestDocuments", fields: [expenseRequestId], references: [id], onDelete: Cascade)
-  expenseRecord   ExpenseRecord?   @relation("ExpenseRecordDocuments", fields: [expenseRecordId], references: [id], onDelete: Cascade)
-  complaint       Complaint?       @relation("ComplaintDocuments", fields: [complaintId], references: [id], onDelete: Cascade)
+  expenseRecordId  String?
+  complaintId      String?
+  createdAt        DateTime         @default(now())
+  uploadedBy       User?            @relation(fields: [uploadedById], references: [id])
+  paymentProof     PaymentProof?    @relation("PaymentProofDocuments", fields: [paymentProofId], references: [id], onDelete: Cascade)
+  incomeRecord     IncomeRecord?    @relation("IncomeRecordDocuments", fields: [incomeRecordId], references: [id], onDelete: Cascade)
+  budgetRequest    BudgetRequest?   @relation("BudgetRequestDocuments", fields: [budgetRequestId], references: [id], onDelete: Cascade)
+  expenseRequest   ExpenseRequest?  @relation("ExpenseRequestDocuments", fields: [expenseRequestId], references: [id], onDelete: Cascade)
+  expenseRecord    ExpenseRecord?   @relation("ExpenseRecordDocuments", fields: [expenseRecordId], references: [id], onDelete: Cascade)
+  complaint        Complaint?       @relation("ComplaintDocuments", fields: [complaintId], references: [id], onDelete: Cascade)
 
   @@index([paymentProofId])
+  @@index([incomeRecordId])
   @@index([budgetRequestId])
   @@index([expenseRequestId])
   @@index([expenseRecordId])
@@ -394,105 +404,110 @@ model SupportingDocument {
 }
 
 model ApprovalDecision {
-  id              String               @id @default(cuid())
-  entityType      ApprovalEntityType
-  decision        ApprovalDecisionType
-  comment         String?
-  actorId         String
-  budgetRequestId String?
+  id               String               @id @default(cuid())
+  entityType       ApprovalEntityType
+  decision         ApprovalDecisionType
+  comment          String?
+  actorId          String
+  budgetRequestId  String?
   expenseRequestId String?
-  createdAt       DateTime             @default(now())
-  actor           User                 @relation(fields: [actorId], references: [id], onDelete: Cascade)
-  budgetRequest   BudgetRequest?       @relation("BudgetRequestApprovals", fields: [budgetRequestId], references: [id], onDelete: Cascade)
-  expenseRequest  ExpenseRequest?      @relation("ExpenseRequestApprovals", fields: [expenseRequestId], references: [id], onDelete: Cascade)
+  createdAt        DateTime             @default(now())
+  actor            User                 @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  budgetRequest    BudgetRequest?       @relation("BudgetRequestApprovals", fields: [budgetRequestId], references: [id], onDelete: Cascade)
+  expenseRequest   ExpenseRequest?      @relation("ExpenseRequestApprovals", fields: [expenseRequestId], references: [id], onDelete: Cascade)
 
   @@index([budgetRequestId])
   @@index([expenseRequestId])
 }
 
 model Complaint {
-  id           String               @id @default(cuid())
-  eventId      String?
+  id            String               @id @default(cuid())
+  eventId       String?
   submittedById String?
-  subject      String
-  description  String
-  state        ComplaintState       @default(SUBMITTED)
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
-  event        Event?               @relation(fields: [eventId], references: [id], onDelete: SetNull)
-  submittedBy  User?                @relation("ComplaintSubmitter", fields: [submittedById], references: [id])
-  documents    SupportingDocument[] @relation("ComplaintDocuments")
-  routings     ComplaintRouting[]
+  subject       String
+  description   String
+  state         ComplaintState       @default(SUBMITTED)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  event         Event?               @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  submittedBy   User?                @relation("ComplaintSubmitter", fields: [submittedById], references: [id])
+  documents     SupportingDocument[] @relation("ComplaintDocuments")
+  routings      ComplaintRouting[]
 
   @@index([eventId])
 }
 
 model ComplaintRouting {
-  id         String         @id @default(cuid())
+  id          String         @id @default(cuid())
   complaintId String
-  fromRoleId String?
-  toRoleId   String?
-  routedById String?
-  note       String?
-  state      ComplaintState
-  createdAt  DateTime       @default(now())
-  complaint  Complaint      @relation(fields: [complaintId], references: [id], onDelete: Cascade)
-  fromRole   Role?          @relation("ComplaintRoutingFromRole", fields: [fromRoleId], references: [id])
-  toRole     Role?          @relation("ComplaintRoutingToRole", fields: [toRoleId], references: [id])
-  routedBy   User?          @relation("ComplaintRouter", fields: [routedById], references: [id])
+  fromRoleId  String?
+  toRoleId    String?
+  routedById  String?
+  note        String?
+  state       ComplaintState
+  createdAt   DateTime       @default(now())
+  complaint   Complaint      @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  fromRole    Role?          @relation("ComplaintRoutingFromRole", fields: [fromRoleId], references: [id])
+  toRole      Role?          @relation("ComplaintRoutingToRole", fields: [toRoleId], references: [id])
+  routedBy    User?          @relation("ComplaintRouter", fields: [routedById], references: [id])
 
   @@index([complaintId])
 }
 
 model ReconciliationReport {
-  id                    String                 @id @default(cuid())
-  eventId               String
-  status                ReconciliationState    @default(DRAFT)
-  totalIncome           Decimal                @default(0) @db.Decimal(12, 2)
-  totalExpense          Decimal                @default(0) @db.Decimal(12, 2)
-  closingBalance        Decimal                @default(0) @db.Decimal(12, 2)
-  warnings              Json?
-  generatedById         String?
-  reviewedById          String?
-  createdAt             DateTime               @default(now())
-  finalizedAt           DateTime?
-  event                 Event                  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  generatedBy           User?                  @relation("ReconciliationGenerator", fields: [generatedById], references: [id])
-  reviewedBy            User?                  @relation("ReconciliationReviewer", fields: [reviewedById], references: [id])
+  id                     String                  @id @default(cuid())
+  eventId                String
+  status                 ReconciliationState     @default(DRAFT)
+  totalIncome            Decimal                 @default(0) @db.Decimal(12, 2)
+  totalExpense           Decimal                 @default(0) @db.Decimal(12, 2)
+  closingBalance         Decimal                 @default(0) @db.Decimal(12, 2)
+  warnings               Json?
+  generatedById          String?
+  reviewedById           String?
+  createdAt              DateTime                @default(now())
+  finalizedAt            DateTime?
+  event                  Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  generatedBy            User?                   @relation("ReconciliationGenerator", fields: [generatedById], references: [id])
+  reviewedBy             User?                   @relation("ReconciliationReviewer", fields: [reviewedById], references: [id])
   publicSummarySnapshots PublicSummarySnapshot[]
 
   @@index([eventId])
 }
 
 model PublicSummarySnapshot {
-  id                    String              @id @default(cuid())
-  eventId               String
+  id                     String               @id @default(cuid())
+  eventId                String
   reconciliationReportId String
-  status                PublicSummaryStatus @default(DRAFT)
-  publishedById         String?
-  publishedAt           DateTime?
-  totalCollected        Decimal             @db.Decimal(12, 2)
-  totalSpent            Decimal             @db.Decimal(12, 2)
-  closingBalance        Decimal             @db.Decimal(12, 2)
-  payload               Json?
-  event                 Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  reconciliationReport  ReconciliationReport @relation(fields: [reconciliationReportId], references: [id], onDelete: Cascade)
-  publishedBy           User?               @relation("PublicSummaryPublisher", fields: [publishedById], references: [id])
+  status                 PublicSummaryStatus  @default(DRAFT)
+  publishedById          String?
+  publishedAt            DateTime?
+  totalCollected         Decimal              @db.Decimal(12, 2)
+  totalSpent             Decimal              @db.Decimal(12, 2)
+  closingBalance         Decimal              @db.Decimal(12, 2)
+  payload                Json?
+  event                  Event                @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  reconciliationReport   ReconciliationReport @relation(fields: [reconciliationReportId], references: [id], onDelete: Cascade)
+  publishedBy            User?                @relation("PublicSummaryPublisher", fields: [publishedById], references: [id])
 
   @@index([eventId])
 }
 
 model AuditLog {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   actorId    String?
   action     String
   entityType String
   entityId   String
+  summary    String?
   context    Json?
-  createdAt  DateTime  @default(now())
-  actor      User?     @relation("AuditActor", fields: [actorId], references: [id])
+  ipAddress  String?
+  userAgent  String?
+  route      String?
+  method     String?
+  createdAt  DateTime @default(now())
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id])
 
   @@index([actorId])
+  @@index([createdAt])
   @@index([entityType, entityId])
 }
-

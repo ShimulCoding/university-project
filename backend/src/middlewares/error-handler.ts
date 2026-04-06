@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 
@@ -11,6 +12,18 @@ export function errorHandler(
     response.status(400).json({
       message: "Validation failed.",
       issues: error.flatten(),
+    });
+    return;
+  }
+
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    const statusCode = error.code === "P2002" ? 409 : 400;
+
+    response.status(statusCode).json({
+      message:
+        error.code === "P2002"
+          ? "A record with this value already exists."
+          : "Database request failed.",
     });
     return;
   }
@@ -33,4 +46,3 @@ export function errorHandler(
 
   response.status(statusCode).json({ message });
 }
-

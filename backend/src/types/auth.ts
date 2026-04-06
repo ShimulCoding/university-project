@@ -1,10 +1,10 @@
 import type { AccountStatus, RoleCode } from "@prisma/client";
 
-export type CreateUserInput = {
+export type AuthenticatedUser = {
+  id: string;
   fullName: string;
   email: string;
-  password: string;
-  status?: AccountStatus;
-  roleCodes?: RoleCode[];
+  status: AccountStatus;
+  roles: RoleCode[];
 };
 

@@ -30,13 +30,21 @@ function parsePayload(value: Prisma.JsonValue | null): PublicFinancialSummaryPay
     return null;
   }
 
-  const payload = value as PublicFinancialSummaryPayload;
+  const payload = value as Partial<PublicFinancialSummaryPayload>;
 
   if (payload.basis !== "FINALIZED_RECONCILIATION" || payload.summaryOnly !== true) {
     return null;
   }
 
-  return payload;
+  return {
+    basis: "FINALIZED_RECONCILIATION",
+    summaryOnly: true,
+    breakdown: {
+      registrationIncome: String(payload.breakdown?.registrationIncome ?? "0.00"),
+      manualIncome: String(payload.breakdown?.manualIncome ?? "0.00"),
+      settledExpense: String(payload.breakdown?.settledExpense ?? "0.00"),
+    },
+  };
 }
 
 export function mapPublicFinancialSummary(snapshot: PublicSummarySnapshotWithContext) {

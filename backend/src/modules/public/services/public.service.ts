@@ -14,7 +14,6 @@ import type { PublicFinancialSummaryPayload, PublicSummaryFilters } from "../typ
 const publishableEventStatuses: EventStatus[] = [
   EventStatus.COMPLETED,
   EventStatus.CLOSED,
-  EventStatus.ARCHIVED,
 ];
 
 function assertPublishPermissions(actor: AuthenticatedUser) {

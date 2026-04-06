@@ -56,4 +56,19 @@ export const auditRepository = {
       take: filters.limit,
     });
   },
+
+  findById(auditLogId: string, db: DbClient = prisma) {
+    return db.auditLog.findUnique({
+      where: { id: auditLogId },
+      include: {
+        actor: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+    });
+  },
 };

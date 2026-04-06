@@ -44,3 +44,38 @@ export function hasFinanceReadAccess(userRoles: RoleCode[]) {
 export function hasExpenseRecordManagementAccess(userRoles: RoleCode[]) {
   return hasFinanceAccess(userRoles);
 }
+
+export function hasComplaintReviewAccess(userRoles: RoleCode[]) {
+  return hasAnyRole(userRoles, [
+    RoleCode.SYSTEM_ADMIN,
+    RoleCode.COMPLAINT_REVIEW_AUTHORITY,
+    RoleCode.ORGANIZATIONAL_APPROVER,
+  ]);
+}
+
+export function hasReconciliationReadAccess(userRoles: RoleCode[]) {
+  return hasAnyRole(userRoles, [
+    RoleCode.SYSTEM_ADMIN,
+    RoleCode.FINANCIAL_CONTROLLER,
+    RoleCode.ORGANIZATIONAL_APPROVER,
+  ]);
+}
+
+export function hasReconciliationManagementAccess(userRoles: RoleCode[]) {
+  return hasAnyRole(userRoles, [RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]);
+}
+
+export function hasReconciliationFinalizeAccess(userRoles: RoleCode[]) {
+  return hasAnyRole(userRoles, [
+    RoleCode.SYSTEM_ADMIN,
+    RoleCode.ORGANIZATIONAL_APPROVER,
+  ]);
+}
+
+export function hasPublicSummaryPublishAccess(userRoles: RoleCode[]) {
+  return hasReconciliationFinalizeAccess(userRoles);
+}
+
+export function hasAuditReadAccess(userRoles: RoleCode[]) {
+  return hasAnyRole(userRoles, [RoleCode.SYSTEM_ADMIN]);
+}

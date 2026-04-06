@@ -7,12 +7,17 @@ import { authorize } from "../../../middlewares/authorize";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
 import { auditController } from "../controllers/audit.controller";
-import { listAuditLogsSchema } from "../validations/audit.validation";
+import { auditLogIdParamSchema, listAuditLogsSchema } from "../validations/audit.validation";
 
 const router = Router();
 
 router.use(authenticate, authorize(RoleCode.SYSTEM_ADMIN));
 
 router.get("/", validateRequest(listAuditLogsSchema), asyncHandler(auditController.listAuditLogs));
+router.get(
+  "/:auditLogId",
+  validateRequest(auditLogIdParamSchema),
+  asyncHandler(auditController.getAuditLogById),
+);
 
 export { router as auditRouter };

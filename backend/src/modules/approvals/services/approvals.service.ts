@@ -26,7 +26,7 @@ function assertApproverPermissions(viewer: AuthenticatedUser) {
 
 function assertPendingApprovalState(state: RequestState) {
   if (state !== RequestState.SUBMITTED && state !== RequestState.PENDING_REVIEW) {
-    throw new AppError(409, "Only submitted requests can receive approval decisions.");
+    throw new AppError(409, "Only pending requests can receive approval decisions.");
   }
 }
 

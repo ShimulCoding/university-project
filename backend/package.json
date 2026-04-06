@@ -7,6 +7,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "verify:flows": "tsx scripts/verify-events-payments-slice.ts",
+    "verify:finance": "tsx scripts/verify-finance-workflow-slice.ts",
     "seed:demo:flows": "tsx scripts/seed-events-payments-demo.ts",
     "prisma:validate": "prisma validate",
     "prisma:format": "prisma format",

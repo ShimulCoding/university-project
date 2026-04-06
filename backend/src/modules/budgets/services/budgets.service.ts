@@ -1,4 +1,4 @@
-import { BudgetState } from "@prisma/client";
+import { BudgetState, Prisma } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
@@ -40,7 +40,10 @@ function assertBudgetManagementPermissions(viewer: AuthenticatedUser) {
 }
 
 function calculateBudgetTotal(items: BudgetItemInput[]) {
-  const total = items.reduce((sum, item) => sum + Number(item.amount), 0);
+  const total = items.reduce(
+    (sum, item) => sum.plus(new Prisma.Decimal(item.amount)),
+    new Prisma.Decimal(0),
+  );
   return total.toFixed(2);
 }
 

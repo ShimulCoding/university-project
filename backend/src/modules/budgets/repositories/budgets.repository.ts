@@ -34,21 +34,29 @@ function buildBudgetWhere(filters: BudgetFilters): Prisma.BudgetWhereInput {
   return where;
 }
 
-function buildBudgetCreateData(data: CreateBudgetData): Prisma.BudgetUncheckedCreateInput {
+function buildBudgetCreateData(data: CreateBudgetData): Prisma.BudgetCreateInput {
   return {
-    eventId: data.eventId,
     version: data.version,
     state: data.state,
     totalAmount: data.totalAmount,
-    createdById: data.createdById,
     isActive: data.isActive ?? false,
+    event: {
+      connect: {
+        id: data.eventId,
+      },
+    },
+    createdBy: {
+      connect: {
+        id: data.createdById,
+      },
+    },
     ...(data.title !== undefined ? { title: data.title } : {}),
     items: {
       create: data.items.map((item) => ({
         category: item.category.trim(),
         label: item.label.trim(),
         amount: item.amount,
-        ...(item.notes ? { notes: item.notes } : {}),
+        ...(item.notes ? { notes: item.notes.trim() } : {}),
       })),
     },
   };

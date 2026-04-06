@@ -13,7 +13,10 @@ const moneyField = z.preprocess(
 
     return value;
   },
-  z.string().regex(/^\d+(\.\d{1,2})?$/, "Amount must be a valid monetary value."),
+  z
+    .string()
+    .regex(/^\d+(\.\d{1,2})?$/, "Amount must be a valid monetary value.")
+    .refine((value) => Number(value) > 0, "Amount must be greater than zero."),
 );
 
 const optionalBooleanField = z.preprocess(

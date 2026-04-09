@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, UserRoundPlus } from "lucide-react";
 
-import { ApiError } from "@/lib/api/shared";
+import { getApiErrorMessage } from "@/lib/api/shared";
 import { postJson } from "@/lib/api/client";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ type StudentAccessPanelProps = {
   description: string;
 };
 
+type StudentAccessFieldErrors = Partial<Record<"fullName" | "email" | "password", string>>;
+
 export function StudentAccessPanel({
   title,
   description,
@@ -27,6 +29,7 @@ export function StudentAccessPanel({
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<StudentAccessFieldErrors>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -38,21 +41,51 @@ export function StudentAccessPanel({
     [],
   );
 
+  const clearFieldError = (field: keyof StudentAccessFieldErrors) => {
+    setErrorMessage(null);
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: undefined,
+    }));
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const trimmedFullName = fullName.trim();
+    const normalizedEmail = email.trim();
+    const nextFieldErrors: StudentAccessFieldErrors = {};
+
+    if (mode === "register" && trimmedFullName.length < 3) {
+      nextFieldErrors.fullName = "Use at least 3 characters for your name.";
+    }
+
+    if (!normalizedEmail) {
+      nextFieldErrors.email = "Email is required.";
+    }
+
+    if (password.length < 8) {
+      nextFieldErrors.password = "Use at least 8 characters for your password.";
+    }
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setErrorMessage("Please correct the highlighted fields.");
+      return;
+    }
 
     try {
       setErrorMessage(null);
+      setFieldErrors({});
 
       if (mode === "register") {
         await postJson("/auth/register", {
-          fullName,
-          email,
+          fullName: trimmedFullName,
+          email: normalizedEmail,
           password,
         });
       } else {
         await postJson("/auth/login", {
-          email,
+          email: normalizedEmail,
           password,
         });
       }
@@ -61,9 +94,7 @@ export function StudentAccessPanel({
         router.refresh();
       });
     } catch (error) {
-      setErrorMessage(
-        error instanceof ApiError ? error.message : "Unable to start the student session.",
-      );
+      setErrorMessage(getApiErrorMessage(error, "Unable to start the student session."));
     }
   };
 
@@ -86,7 +117,11 @@ export function StudentAccessPanel({
       <CardContent className="space-y-6">
         <SegmentedControl
           value={mode}
-          onValueChange={(value) => setMode(value as "login" | "register")}
+          onValueChange={(value) => {
+            setMode(value as "login" | "register");
+            setErrorMessage(null);
+            setFieldErrors({});
+          }}
           options={options}
         />
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
@@ -95,11 +130,17 @@ export function StudentAccessPanel({
               className="md:col-span-2"
               label="Full name"
               description="This becomes the student-owned profile name for registrations and complaints."
+              error={fieldErrors.fullName}
             >
               <Input
                 value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
+                onChange={(event) => {
+                  clearFieldError("fullName");
+                  setFullName(event.target.value);
+                }}
                 placeholder="Enter your full name"
+                minLength={3}
+                aria-invalid={Boolean(fieldErrors.fullName)}
                 required
               />
             </Field>
@@ -108,12 +149,17 @@ export function StudentAccessPanel({
             className={mode === "register" ? "" : "md:col-span-2"}
             label="Email"
             description="Your backend session is attached to this email."
+            error={fieldErrors.email}
           >
             <Input
               type="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                clearFieldError("email");
+                setEmail(event.target.value);
+              }}
               placeholder="student@example.com"
+              aria-invalid={Boolean(fieldErrors.email)}
               required
             />
           </Field>
@@ -121,13 +167,18 @@ export function StudentAccessPanel({
             className={mode === "register" ? "" : "md:col-span-2"}
             label="Password"
             description="Use at least 8 characters."
+            error={fieldErrors.password}
           >
             <Input
               type="password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) => {
+                clearFieldError("password");
+                setPassword(event.target.value);
+              }}
               placeholder="Create a secure password"
               minLength={8}
+              aria-invalid={Boolean(fieldErrors.password)}
               required
             />
           </Field>

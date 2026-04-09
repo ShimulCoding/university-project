@@ -1,4 +1,5 @@
 import { AlertTriangle, ShieldCheck } from "lucide-react";
+import { notFound } from "next/navigation";
 
 import { getCurrentUser, getRegistration } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/shared";
@@ -106,6 +107,10 @@ export default async function PaymentProofPage({
       </PublicPageShell>
     );
   } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      notFound();
+    }
+
     return (
       <PublicPageShell>
         <main className="section-shell py-12 sm:py-16">

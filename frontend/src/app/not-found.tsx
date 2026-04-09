@@ -11,18 +11,18 @@ export default function NotFound() {
           <SearchSlash className="h-5 w-5" />
         </div>
         <h1 className="mt-6 text-3xl font-semibold text-foreground">
-          This route is outside the current platform surface
+          This page or record could not be found
         </h1>
         <p className="mt-4 text-sm leading-7 text-muted-foreground">
-          The frontend foundation currently includes a public landing layer and an
-          internal dashboard shell. This address has not been designed yet.
+          The address may be outdated, unpublished, outside your current access
+          boundary, or no longer available in the live transparency platform.
         </p>
         <div className="mt-6 flex gap-3">
           <Button asChild>
-            <Link href="/">Go to landing page</Link>
+            <Link href="/events">Browse events</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/dashboard">Open internal preview</Link>
+            <Link href="/financial-summaries">View published summaries</Link>
           </Button>
         </div>
       </div>

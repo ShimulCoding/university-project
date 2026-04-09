@@ -17,6 +17,22 @@ export class ApiError extends Error {
   }
 }
 
+export function getApiErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof ApiError) {
+    return error.issues?.formErrors?.[0] ?? error.message;
+  }
+
+  return fallback;
+}
+
+export function getApiFieldError(error: unknown, field: string) {
+  if (!(error instanceof ApiError)) {
+    return null;
+  }
+
+  return error.issues?.fieldErrors?.[field]?.[0] ?? null;
+}
+
 export function buildApiUrl(path: string, query?: Record<string, string | undefined>) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const url = new URL(`${apiBaseUrl}${normalizedPath}`);

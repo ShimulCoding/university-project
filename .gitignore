@@ -27,9 +27,15 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 !backend/uploads/payment-proofs/
 !backend/uploads/payment-proofs/.gitkeep
+backend/uploads/payment-proofs/*
+!backend/uploads/payment-proofs/.gitkeep
 !backend/uploads/supporting-documents/
 !backend/uploads/supporting-documents/.gitkeep
+backend/uploads/supporting-documents/*
+!backend/uploads/supporting-documents/.gitkeep
 !backend/uploads/complaint-evidence/
+!backend/uploads/complaint-evidence/.gitkeep
+backend/uploads/complaint-evidence/*
 !backend/uploads/complaint-evidence/.gitkeep
 
 backend/generated/

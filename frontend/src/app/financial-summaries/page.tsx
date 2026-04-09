@@ -1,10 +1,10 @@
-import { CheckCircle2, EyeOff } from "lucide-react";
+import { AlertTriangle, CheckCircle2, EyeOff, ShieldCheck } from "lucide-react";
 
-import {
-  disclosureBoundary,
-  publicationChecklist,
-  publishedSummaries,
-} from "@/features/foundation/data/demo-content";
+import { disclosureBoundary, publicationChecklist } from "@/features/foundation/data/demo-content";
+import { listPublicFinancialSummaries } from "@/lib/api/public";
+import { ApiError } from "@/lib/api/shared";
+import { formatMoney } from "@/lib/format";
+import { PublicSummaryCard } from "@/components/public/public-summary-card";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,89 +23,91 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { StatePanel } from "@/components/ui/state-panel";
 
-export default function FinancialSummariesPage() {
-  return (
-    <PublicPageShell>
-      <main className="section-shell py-12 sm:py-16">
-        <PageHeader
-          eyebrow="Published summaries"
-          title="Public-safe financial outcomes, not raw internal operations"
-          description="Published summaries are derived from finalized reconciliation and intentionally exclude evidence files, reviewer notes, and protected complaint detail."
-        />
+export const dynamic = "force-dynamic";
 
-        <div className="mt-10 grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_380px]">
-          <div className="space-y-6">
-            {publishedSummaries.map((summary) => (
-              <Card key={summary.slug}>
-                <CardHeader>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="success">Published</Badge>
-                    <Badge variant="neutral">{summary.publishedAt}</Badge>
-                  </div>
-                  <CardTitle className="mt-4 text-2xl">{summary.title}</CardTitle>
-                  <CardDescription>{summary.note}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
-                      <div className="data-kicker">Collected</div>
-                      <div className="mt-2 text-2xl font-semibold text-foreground">
-                        {summary.totals.collected}
-                      </div>
-                    </div>
-                    <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
-                      <div className="data-kicker">Spent</div>
-                      <div className="mt-2 text-2xl font-semibold text-foreground">
-                        {summary.totals.spent}
-                      </div>
-                    </div>
-                    <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
-                      <div className="data-kicker">Closing balance</div>
-                      <div className="mt-2 text-2xl font-semibold text-foreground">
-                        {summary.totals.closingBalance}
-                      </div>
-                    </div>
-                  </div>
+export default async function FinancialSummariesPage() {
+  try {
+    const summaries = await listPublicFinancialSummaries();
+    const totalCollected = summaries.reduce(
+      (sum, summary) => sum + Number(summary.totals.collected),
+      0,
+    );
 
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Summary line</TableHead>
-                        <TableHead>Amount</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell className="font-semibold text-foreground">
-                          Verified registration income
-                        </TableCell>
-                        <TableCell>{summary.breakdown.registrationIncome}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="font-semibold text-foreground">
-                          Manual income records
-                        </TableCell>
-                        <TableCell>{summary.breakdown.manualIncome}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="font-semibold text-foreground">
-                          Settled expense records
-                        </TableCell>
-                        <TableCell>{summary.breakdown.settledExpense}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </CardContent>
+    return (
+      <PublicPageShell>
+        <main className="section-shell py-12 sm:py-16">
+          <PageHeader
+            eyebrow="Published summaries"
+            title="Public-safe financial outcomes, not raw internal operations"
+            description="Published summaries come from the live backend and only expose totals and high-level breakdowns that have crossed the finalized publication boundary."
+          />
+
+          <div className="mt-8 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card tone="muted">
+                <div className="data-kicker">Published summaries</div>
+                <div className="mt-4 text-3xl font-semibold text-primary">{summaries.length}</div>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  Public snapshots currently available from finalized reconciliation.
+                </p>
               </Card>
-            ))}
+              <Card tone="muted">
+                <div className="data-kicker">Total disclosed collection</div>
+                <div className="mt-4 text-3xl font-semibold text-primary">
+                  {formatMoney(totalCollected)}
+                </div>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  Aggregated across published summary-only records.
+                </p>
+              </Card>
+              <Card tone="muted">
+                <div className="data-kicker">Disclosure rule</div>
+                <div className="mt-4 text-lg font-semibold text-primary">Summary only</div>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  Evidence, complaint detail, and reviewer notes remain outside this layer.
+                </p>
+              </Card>
+            </div>
+            <Card className="h-full">
+              <CardHeader>
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/10 bg-primary/5 text-primary">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <CardTitle className="mt-4 text-xl">Publication is a governed release, not a data dump</CardTitle>
+                <CardDescription>
+                  The public side is intentionally narrow: understandable totals,
+                  traceable timing, and confidence that unreconciled data has not leaked.
+                </CardDescription>
+              </CardHeader>
+            </Card>
           </div>
 
-          <div className="space-y-6">
+          {summaries.length === 0 ? (
+            <div className="mt-10">
+              <StatePanel
+                icon={CheckCircle2}
+                tone="empty"
+                title="No published financial summaries are available yet"
+                description="When an event completes reconciliation and crosses the release boundary, its public-safe summary will appear here."
+              />
+            </div>
+          ) : (
+            <div className="mt-10 grid gap-6 lg:grid-cols-2">
+              {summaries.map((summary) => (
+                <PublicSummaryCard key={summary.id} summary={summary} />
+              ))}
+            </div>
+          )}
+
+          <div className="mt-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
             <Card>
               <CardHeader>
                 <Badge variant="info">Release conditions</Badge>
-                <CardTitle className="mt-3 text-xl">A summary becomes public only after closure logic passes</CardTitle>
+                <CardTitle className="mt-3 text-xl">
+                  A summary becomes public only after closure logic passes
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 pt-0">
                 {publicationChecklist.map((item, index) => (
@@ -121,46 +123,73 @@ export default function FinancialSummariesPage() {
                 ))}
               </CardContent>
             </Card>
-            <Card tone="success">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-success" />
-                  <CardTitle className="text-xl">Included publicly</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                {disclosureBoundary.publicIncluded.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-[1.15rem] border border-success/15 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground"
-                  >
-                    {item}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
 
-            <Card tone="muted">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <EyeOff className="h-5 w-5 text-warning-foreground" />
-                  <CardTitle className="text-xl">Kept protected</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                {disclosureBoundary.publicExcluded.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-[1.15rem] border border-border/70 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground"
-                  >
-                    {item}
+            <div className="space-y-6">
+              <Card tone="success">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-success" />
+                    <CardTitle className="text-xl">Included publicly</CardTitle>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="space-y-3 pt-0">
+                  {disclosureBoundary.publicIncluded.map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-[1.15rem] border border-success/15 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground"
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card tone="muted">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <EyeOff className="h-5 w-5 text-warning-foreground" />
+                    <CardTitle className="text-xl">Kept protected</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3 pt-0">
+                  {disclosureBoundary.publicExcluded.map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-[1.15rem] border border-border/70 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground"
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
-      </main>
-    </PublicPageShell>
-  );
+        </main>
+      </PublicPageShell>
+    );
+  } catch (error) {
+    return (
+      <PublicPageShell>
+        <main className="section-shell py-12 sm:py-16">
+          <PageHeader
+            eyebrow="Published summaries"
+            title="Public summaries are temporarily unavailable"
+            description="This page depends on live publish-safe backend data. If that data cannot be reached, the failure is shown explicitly."
+          />
+          <div className="mt-10">
+            <StatePanel
+              icon={AlertTriangle}
+              tone="error"
+              title="Published summaries could not be loaded"
+              description={
+                error instanceof ApiError
+                  ? error.message
+                  : "An unexpected error prevented the summaries from loading."
+              }
+            />
+          </div>
+        </main>
+      </PublicPageShell>
+    );
+  }
 }

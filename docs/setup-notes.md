@@ -1,38 +1,129 @@
 # Setup Notes
 
-## Purpose
-These notes explain how to prepare the project locally before feature development starts.
+## Prerequisites
+- Node.js 22+ and npm
+- PostgreSQL running locally
+- A PostgreSQL database named `mu_cse_transparency`
 
-## What Is Already Ready
-- Root monorepo workspace
-- `frontend/` and `backend/` folder separation
-- Backend module folders
-- Prisma schema scaffold
-- Local upload directory structure
-- Initial docs and architecture notes
+## Environment Files
+### Frontend
+Copy:
+`frontend/.env.example` -> `frontend/.env.local`
 
-## What You Need Before Running
-- Node.js and npm
-- PostgreSQL
-- A database created for this project
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_BASE_URL` | Yes | Base URL for the backend API used by Next.js |
 
-## Local Setup Steps
-1. Run `npm install` from the repository root.
-2. Copy `frontend/.env.example` to `frontend/.env.local`.
-3. Copy `backend/.env.example` to `backend/.env`.
-4. Update the database URL and JWT secrets in `backend/.env`.
-5. Run `npm run db:generate` from the root.
-6. Start the frontend with `npm run dev:frontend`.
-7. Start the backend with `npm run dev:backend`.
+Default:
+`http://localhost:4000/api`
 
-## Development Notes
-- Keep the backend modular. Do not combine multiple domains into one large file.
-- Store uploaded files through the storage adapter, not directly in random folders.
-- Keep finance-sensitive logic on the backend, even if the frontend later hides or shows controls.
-- Do not expose receipts, payment proofs, complaint evidence, or reviewer notes in public routes.
+### Backend
+Copy:
+`backend/.env.example` -> `backend/.env`
 
-## Git Reminder
-- Small safe changes can go to `main`.
-- Use short-lived branches for schema changes, auth changes, or larger feature work.
-- Nayem-authored commits should use the correct `--author` value when needed.
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `NODE_ENV` | Yes | Runtime mode |
+| `PORT` | Yes | Backend port |
+| `FRONTEND_URL` | Yes | Allowed frontend origin for CORS |
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `JWT_ACCESS_SECRET` | Yes | Access token signing secret |
+| `JWT_REFRESH_SECRET` | Yes | Refresh token signing secret |
+| `ACCESS_TOKEN_TTL` | Yes | Access token lifetime |
+| `REFRESH_TOKEN_TTL` | Yes | Refresh token lifetime |
+| `ACCESS_TOKEN_COOKIE_NAME` | Yes | Access token cookie name |
+| `REFRESH_TOKEN_COOKIE_NAME` | Yes | Refresh token cookie name |
+| `BCRYPT_SALT_ROUNDS` | Yes | Password hashing cost |
+| `UPLOADS_ROOT` | Yes | Local upload root directory |
+| `SEED_ADMIN_FULL_NAME` | Yes for admin seed | Seeded admin full name |
+| `SEED_ADMIN_EMAIL` | Yes for admin seed | Seeded admin email |
+| `SEED_ADMIN_PASSWORD` | Yes for admin seed | Seeded admin password |
 
+## Database Setup
+1. Make sure PostgreSQL is running.
+2. Create database:
+   `mu_cse_transparency`
+3. Update `backend/.env` if your PostgreSQL username, password, host, or port is different.
+
+Example connection string:
+`postgresql://postgres:postgres@localhost:5432/mu_cse_transparency`
+
+## Installation
+Run from the repository root:
+
+```powershell
+npm install
+```
+
+## Prisma Commands
+### Generate Prisma client
+```powershell
+npm run db:generate
+```
+
+### Apply migration
+```powershell
+npm run db:migrate
+```
+
+### Seed roles and system admin
+```powershell
+npm run prisma:seed --workspace backend
+```
+
+### Seed safe demo runtime data
+```powershell
+npm run seed:demo:runtime --workspace backend
+```
+
+## Run Commands
+### Development mode
+Backend:
+```powershell
+npm run dev:backend
+```
+
+Frontend:
+```powershell
+npm run dev:frontend
+```
+
+### Build checks
+Frontend:
+```powershell
+npm run build --workspace frontend
+```
+
+Backend:
+```powershell
+npm run build --workspace backend
+```
+
+## Runtime Verification
+Run:
+```powershell
+npm run verify:demo:runtime --workspace backend
+```
+
+What it verifies:
+- backend health route
+- public events
+- public financial summaries
+- login and protected auth
+- payment verification queue
+- income records
+- budget requests
+- expense records
+- approvals
+- reconciliation data
+
+## Expected Local URLs
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:4000`
+- Health: `http://localhost:4000/health`
+
+## Common Notes
+- Backend root `/` is intentionally not a UI route.
+- Public API base is `/api`.
+- Uploaded files are stored locally in development, while metadata stays in PostgreSQL.
+- Demo seed data is safe to rerun and designed for presentation use.

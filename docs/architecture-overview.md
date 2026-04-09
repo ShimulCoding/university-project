@@ -1,50 +1,105 @@
 # Architecture Overview
 
 ## System Goal
-This project is a financial transparency system for MU CSE Society events. It is designed to reduce silent edits, unclear approvals, undocumented expenses, and weak traceability.
+The system provides event finance transparency for MU CSE Society while protecting evidence, reviewer decisions, and internal governance records. It is designed for academic trust, audit traceability, and clear public disclosure boundaries.
 
-## Core Design Style
+## Architecture Style
 - Backend-first
-- Modular
+- Modular by domain
 - Audit-oriented
-- Role-based
-- Summary-transparent, not raw-data-public
+- Role-aware
+- Public-safe rather than raw-data-public
 
 ## Main Layers
 ### Frontend
-- Next.js app for public pages and role-based internal workflows
-- Minimal UI surface needed to drive backend-controlled processes
+- Next.js app with public pages, student-owned flows, and protected internal dashboard flows
+- Shared design system with separate public and internal shell patterns
+- Server-side data loading for live backend-driven pages
 
 ### Backend
 - Express API with TypeScript
-- Feature modules separated by domain
-- Validation, role checks, state transitions, and traceability live here
+- Domain modules for auth, roles, users, events, registrations, payments, budgets, requests, approvals, complaints, reconciliation, public publication, and audit
+- Zod validation, auth middleware, RBAC checks, service-layer state enforcement, and audit logging
 
 ### Database
 - PostgreSQL with Prisma
-- Strong relational model
-- Event-linked finance records
-- Historical records preserved instead of silently overwritten
+- Event-linked data model for registrations, income, requests, expenses, complaints, reconciliation, and publication
+- Revision and decision history kept instead of silent overwrite
 
 ### Storage
-- Local file storage in development through a storage adapter
-- File metadata and entity links stored in PostgreSQL
+- Local storage adapter in development
+- Database stores document metadata and entity links
+- Payment proofs, complaint evidence, and supporting documents remain protected
 
-## Key V1 Data Decisions
-- Participant payment flow uses `Registration` and `PaymentProof`
-- Non-registration income uses `IncomeRecord`
-- Planned/requested expense uses `ExpenseRequest`
-- Actual paid/settled expense uses `ExpenseRecord`
-- Public reporting uses reconciliation-backed summary snapshots
+## Main Backend Modules
+- `auth`
+- `users`
+- `roles`
+- `events`
+- `registrations`
+- `payments`
+- `budgets`
+- `requests`
+- `approvals`
+- `complaints`
+- `reconciliation`
+- `public`
+- `audit`
 
-## Auth and Access
-- Credentials-based login
-- Backend-enforced RBAC
-- Internal roles assigned by authorized admins only
-- Public visitors do not need authentication
+## Main Data Entities
+- `User`
+- `Role`
+- `UserRole`
+- `Event`
+- `Registration`
+- `PaymentProof`
+- `IncomeRecord`
+- `Budget`
+- `BudgetItem`
+- `BudgetRequest`
+- `ExpenseRequest`
+- `ExpenseRecord`
+- `SupportingDocument`
+- `ApprovalDecision`
+- `Complaint`
+- `ComplaintRouting`
+- `ReconciliationReport`
+- `AuditLog`
 
-## Public Transparency Rule
-Public financial summaries become visible only after:
-1. the event is operationally closed
-2. reconciliation is finalized
-3. an authorized user publishes the public snapshot
+## Access Model
+- Public visitors can browse public events and published summaries
+- Students can register, submit payment proof, and submit complaints
+- Event managers prepare requests and operational event-side records
+- Finance controllers verify payments, record income, settle expenses, and manage reconciliation
+- Approvers handle approval decisions and publication authority
+- System admins retain protected broad access including audit views
+- Complaint review authority exists for protected complaint routing flows
+
+## Public Summary Rule
+Public summaries appear only when:
+1. reconciliation is finalized
+2. the event is completed or closed
+3. an authorized internal role publishes the snapshot
+4. the payload is limited to summary-only data
+
+## Route Surface
+### Public and student
+- Event discovery
+- Event details
+- Registration flow
+- Registration status
+- Payment proof submission
+- Complaint submission and complaint history
+- Published financial summaries
+
+### Internal
+- Verification queue
+- Income records
+- Budgets
+- Requests
+- Expense ledger
+- Approvals
+- Complaints review
+- Reconciliation
+- Publication controls
+- Audit log

@@ -1,12 +1,20 @@
-# Docs
+# Documentation Map
 
-This folder keeps the project notes in a simple, beginner-friendly structure.
+This folder contains the final handoff package for the completed project.
 
-## Files
-- `setup-notes.md`: first-time setup steps and local development notes
-- `architecture-decisions.md`: locked decisions we agreed to before implementation
-- `architecture-overview.md`: high-level explanation of how the system is organized
-- `implementation-placeholders.md`: placeholder planning notes for backend, frontend, and docs
+## Recommended Reading Order
+1. `handoff-summary.md`
+2. `setup-notes.md`
+3. `demo-guide.md`
+4. `architecture-decisions.md`
+5. `architecture-overview.md`
+6. `git-workflow.md`
 
-Keep this folder practical. It should help a teammate understand the project quickly without reading code first.
-
+## File Guide
+- `handoff-summary.md`: concise final project handoff status
+- `setup-notes.md`: exact local setup, env, database, run, and verification commands
+- `demo-guide.md`: demo credentials, demo flow, and presentation notes
+- `architecture-decisions.md`: final locked implementation decisions
+- `architecture-overview.md`: system structure and module overview
+- `git-workflow.md`: collaboration and commit workflow used by Shimul and Nayem
+- `implementation-placeholders.md`: completed feature checklist and submission-oriented delivery view

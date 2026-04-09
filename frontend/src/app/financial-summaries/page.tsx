@@ -24,13 +24,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatePanel } from "@/components/ui/state-panel";
+import {
+  getHistoricalPublishedSnapshotCount,
+  getLatestPublishedSummariesPerEvent,
+} from "@/lib/public-summary";
 
 export const dynamic = "force-dynamic";
 
 export default async function FinancialSummariesPage() {
   try {
     const summaries = await listPublicFinancialSummaries();
-    const totalCollected = summaries.reduce(
+    const latestSummaries = getLatestPublishedSummariesPerEvent(summaries);
+    const historicalSnapshotCount = getHistoricalPublishedSnapshotCount(summaries);
+    const totalCollected = latestSummaries.reduce(
       (sum, summary) => sum + Number(summary.totals.collected),
       0,
     );
@@ -47,10 +53,12 @@ export default async function FinancialSummariesPage() {
           <div className="mt-8 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="grid gap-4 md:grid-cols-3">
               <Card tone="muted">
-                <div className="data-kicker">Published summaries</div>
-                <div className="mt-4 text-3xl font-semibold text-primary">{summaries.length}</div>
+                <div className="data-kicker">Published events</div>
+                <div className="mt-4 text-3xl font-semibold text-primary">
+                  {latestSummaries.length}
+                </div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  Public snapshots currently available from finalized reconciliation.
+                  Latest public-safe snapshot currently visible for each published event.
                 </p>
               </Card>
               <Card tone="muted">
@@ -59,14 +67,16 @@ export default async function FinancialSummariesPage() {
                   {formatMoney(totalCollected)}
                 </div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  Aggregated across published summary-only records.
+                  Aggregated across the latest published snapshot for each event.
                 </p>
               </Card>
               <Card tone="muted">
-                <div className="data-kicker">Disclosure rule</div>
-                <div className="mt-4 text-lg font-semibold text-primary">Summary only</div>
+                <div className="data-kicker">Historical snapshots</div>
+                <div className="mt-4 text-3xl font-semibold text-primary">
+                  {historicalSnapshotCount}
+                </div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  Evidence, complaint detail, and reviewer notes remain outside this layer.
+                  Earlier published versions stay part of protected internal release history.
                 </p>
               </Card>
             </div>
@@ -77,14 +87,15 @@ export default async function FinancialSummariesPage() {
                 </div>
                 <CardTitle className="mt-4 text-xl">Publication is a governed release, not a data dump</CardTitle>
                 <CardDescription>
-                  The public side is intentionally narrow: understandable totals,
-                  traceable timing, and confidence that unreconciled data has not leaked.
+                  The public side shows only the latest published snapshot per event:
+                  understandable totals, traceable timing, and confidence that unreconciled
+                  data has not leaked.
                 </CardDescription>
               </CardHeader>
             </Card>
           </div>
 
-          {summaries.length === 0 ? (
+          {latestSummaries.length === 0 ? (
             <div className="mt-10">
               <StatePanel
                 icon={CheckCircle2}
@@ -95,7 +106,7 @@ export default async function FinancialSummariesPage() {
             </div>
           ) : (
             <div className="mt-10 grid gap-6 lg:grid-cols-2">
-              {summaries.map((summary) => (
+              {latestSummaries.map((summary) => (
                 <PublicSummaryCard key={summary.id} summary={summary} />
               ))}
             </div>

@@ -12,12 +12,12 @@ export function PublicSummaryCard({ summary }: { summary: PublicFinancialSummary
     <Card className="h-full">
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="success">{formatEnumLabel(summary.status)}</Badge>
+          <Badge variant="success">Latest {formatEnumLabel(summary.status)}</Badge>
           <Badge variant="neutral">Published {formatDate(summary.publishedAt)}</Badge>
         </div>
         <CardTitle className="mt-4 text-2xl">{summary.event.title}</CardTitle>
         <CardDescription>
-          Summary-only public disclosure based on finalized reconciliation for this event.
+          Latest summary-only public disclosure based on finalized reconciliation for this event.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">

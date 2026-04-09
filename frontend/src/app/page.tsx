@@ -4,11 +4,14 @@ import { ArrowRight, Eye, ShieldCheck, Sparkles } from "lucide-react";
 import {
   controlCadence,
   disclosureBoundary,
-  landingMetrics,
   publicEventCards,
   publishedSummaries,
   trustPillars,
 } from "@/features/foundation/data/demo-content";
+import { listPublicEvents, listPublicFinancialSummaries } from "@/lib/api/public";
+import { formatMoney } from "@/lib/format";
+import { getLatestPublishedSummariesPerEvent } from "@/lib/public-summary";
+import type { PublicEvent } from "@/types";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,9 +23,93 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const publishedSummary = publishedSummaries[0];
+export const dynamic = "force-dynamic";
 
-export default function HomePage() {
+const fallbackPublishedSummary = publishedSummaries[0];
+
+async function getLandingData() {
+  try {
+    const [events, publishedSnapshots] = await Promise.all([
+      listPublicEvents(),
+      listPublicFinancialSummaries(),
+    ]);
+    const latestPublishedSummaries = getLatestPublishedSummariesPerEvent(publishedSnapshots);
+    const latestSummary = latestPublishedSummaries[0] ?? null;
+
+    return {
+      events,
+      metrics: [
+        {
+          label: "Published events",
+          value: String(latestPublishedSummaries.length),
+          detail: "Latest public-safe snapshot visible for each event that crossed publication.",
+        },
+        {
+          label: "Public events",
+          value: String(events.length),
+          detail: "Live event records currently visible on the public side.",
+        },
+        {
+          label: "Open registrations",
+          value: String(
+            events.filter((event) => event.registrationWindow.state === "OPEN").length,
+          ),
+          detail: "Student-accessible event windows open right now.",
+        },
+        {
+          label: "Latest disclosed collection",
+          value: latestSummary ? formatMoney(latestSummary.totals.collected) : "Unavailable",
+          detail: latestSummary
+            ? `From the most recent published snapshot for ${latestSummary.event.title}.`
+            : "No published event has crossed the public release boundary yet.",
+        },
+      ],
+      latestSummary,
+    };
+  } catch {
+    return {
+      events: [] as PublicEvent[],
+      metrics: [
+        {
+          label: "Published events",
+          value: "Live sync",
+          detail: "Homepage metrics will reflect the backend once runtime data is reachable.",
+        },
+        {
+          label: "Public events",
+          value: "Live sync",
+          detail: "Public event counts come from the running backend rather than hardcoded UI.",
+        },
+        {
+          label: "Open registrations",
+          value: "Live sync",
+          detail: "Registration visibility is driven by backend event windows.",
+        },
+        {
+          label: "Latest disclosed collection",
+          value: "Unavailable",
+          detail: "The most recent published snapshot could not be loaded right now.",
+        },
+      ],
+      latestSummary: null,
+    };
+  }
+}
+
+export default async function HomePage() {
+  const { metrics, latestSummary } = await getLandingData();
+  const publishedSummary = latestSummary
+    ? {
+        title: latestSummary.event.title,
+        note: "Latest public-safe summary currently available from the live backend.",
+        totals: {
+          collected: formatMoney(latestSummary.totals.collected),
+          spent: formatMoney(latestSummary.totals.spent),
+          closingBalance: formatMoney(latestSummary.totals.closingBalance),
+        },
+      }
+    : fallbackPublishedSummary;
+
   return (
     <PublicPageShell>
       <main>
@@ -55,7 +142,7 @@ export default function HomePage() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {landingMetrics.map((metric) => (
+                {metrics.map((metric) => (
                   <Card key={metric.label} className="p-5">
                     <div className="metric-figure">{metric.value}</div>
                     <div className="mt-4 text-sm font-semibold text-foreground">

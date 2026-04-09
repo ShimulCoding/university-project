@@ -33,12 +33,12 @@ export default async function PublicFinancialSummaryDetailsPage({
       <PublicPageShell>
         <main className="section-shell py-12 sm:py-16">
           <PageHeader
-            eyebrow="Published summary details"
+            eyebrow="Latest published summary"
             title={summary.event.title}
-            description="This view is generated from live published reconciliation output and exposes only the public-safe summary layer."
+            description="This view resolves to the latest public-safe summary released for the event and exposes only the publication-safe disclosure layer."
             action={
               <Badge variant="success">
-                Published {formatDate(summary.publishedAt)}
+                Latest published {formatDate(summary.publishedAt)}
               </Badge>
             }
           />
@@ -116,8 +116,8 @@ export default async function PublicFinancialSummaryDetailsPage({
                   <Badge variant="success">{formatEnumLabel(summary.reconciliation.status)}</Badge>
                   <CardTitle className="mt-3 text-xl">Reconciliation basis</CardTitle>
                   <CardDescription>
-                    Finalized reconciliation report {summary.reconciliation.reportId} is the basis
-                    for this public disclosure.
+                    Finalized reconciliation report {summary.reconciliation.reportId} is the
+                    basis for the latest public disclosure available for this event.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
@@ -202,7 +202,7 @@ export default async function PublicFinancialSummaryDetailsPage({
       <PublicPageShell>
         <main className="section-shell py-12 sm:py-16">
           <PageHeader
-            eyebrow="Published summary details"
+            eyebrow="Latest published summary"
             title="This published summary is unavailable right now"
             description="The live backend could not return the requested summary."
           />

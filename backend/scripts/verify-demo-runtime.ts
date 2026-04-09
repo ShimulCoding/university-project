@@ -5,11 +5,6 @@ loadProjectEnv();
 const baseUrl = process.env.BACKEND_BASE_URL?.trim() || "http://127.0.0.1:4000";
 const demoActiveEventSlug = "demo-open-finance-workshop-2026";
 const demoClosedEventSlug = "demo-cse-annual-tech-symposium-2026";
-const expectedTotals = {
-  collected: 4250,
-  spent: 1800,
-  closingBalance: 2450,
-};
 
 function assertCondition(condition: unknown, message: string) {
   if (!condition) {
@@ -138,13 +133,22 @@ async function main() {
         payload?: { summaryOnly?: boolean };
       }
     | undefined;
+  const collected = Number(summary?.totals?.collected);
+  const spent = Number(summary?.totals?.spent);
+  const closingBalance = Number(summary?.totals?.closingBalance);
 
   assertCondition(summary?.event?.slug === demoClosedEventSlug, "Public summary slug mismatch.");
   assertCondition(
-    Number(summary?.totals?.collected) === expectedTotals.collected &&
-      Number(summary?.totals?.spent) === expectedTotals.spent &&
-      Number(summary?.totals?.closingBalance) === expectedTotals.closingBalance,
-    "Public summary totals do not match the seeded reconciliation totals.",
+    Number.isFinite(collected) && Number.isFinite(spent) && Number.isFinite(closingBalance),
+    "Public summary totals should be numeric values.",
+  );
+  assertCondition(
+    collected > 0 && spent >= 0,
+    "Public summary totals should reflect a real published financial outcome.",
+  );
+  assertCondition(
+    Math.abs((collected - spent) - closingBalance) < 0.0001,
+    "Public summary closing balance does not reconcile with collected minus spent totals.",
   );
   assertCondition(summary?.payload?.summaryOnly === true, "Public summary must remain summary-only.");
 

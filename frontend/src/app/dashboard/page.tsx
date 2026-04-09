@@ -14,6 +14,10 @@ import {
   listReconciliationReports,
 } from "@/lib/api/internal";
 import { formatDateTime, formatEnumLabel, formatMoney } from "@/lib/format";
+import {
+  getHistoricalPublishedSnapshotCount,
+  getLatestPublishedSummariesPerEvent,
+} from "@/lib/public-summary";
 import { dashboardNavigation } from "@/lib/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,6 +70,9 @@ export default async function DashboardOverviewPage() {
     canSeeAudit ? listAuditLogs({ limit: "5" }) : Promise.resolve([]),
     listPublicFinancialSummaries(),
   ]);
+  const latestPublicSummaries = getLatestPublishedSummariesPerEvent(publicSummaries);
+  const historicalPublishedSnapshotCount =
+    getHistoricalPublishedSnapshotCount(publicSummaries);
 
   const quickLinks = dashboardNavigation
     .filter((item) => item.href !== "/dashboard" && item.href !== "/dashboard/controls")
@@ -91,9 +98,9 @@ export default async function DashboardOverviewPage() {
       visible: canSeeComplaints,
     },
     {
-      label: "Published summaries",
-      value: publicSummaries.length,
-      detail: "Public-safe financial snapshots already released.",
+      label: "Public event pages",
+      value: latestPublicSummaries.length,
+      detail: "Latest public-safe summary currently visible per published event.",
       visible: true,
     },
   ].filter((metric) => metric.visible);
@@ -146,7 +153,12 @@ export default async function DashboardOverviewPage() {
           <div className="flex flex-wrap gap-2">
             <Badge variant="success">Protected routes active</Badge>
             <Badge variant="warning">{quickLinks.length} internal views enabled</Badge>
-            <Badge variant="info">{publicSummaries.length} public snapshot(s)</Badge>
+            <Badge variant="info">{latestPublicSummaries.length} public page(s)</Badge>
+            {historicalPublishedSnapshotCount > 0 ? (
+              <Badge variant="neutral">
+                {historicalPublishedSnapshotCount} historical snapshot(s)
+              </Badge>
+            ) : null}
           </div>
         }
       />
@@ -250,6 +262,23 @@ export default async function DashboardOverviewPage() {
                 </div>
                 <div className="mt-2 text-sm text-muted-foreground">
                   Event-linked records feeding closure and reporting
+                </div>
+              </div>
+              <div className="md:col-span-2 rounded-[1.1rem] border border-border/70 bg-panel px-4 py-4">
+                <div className="data-kicker">Public release posture</div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="text-lg font-semibold text-foreground">
+                    {latestPublicSummaries.length} live public page(s)
+                  </span>
+                  {historicalPublishedSnapshotCount > 0 ? (
+                    <Badge variant="neutral">
+                      {historicalPublishedSnapshotCount} historical snapshot(s)
+                    </Badge>
+                  ) : null}
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  The public side resolves to the latest published release for each event,
+                  while earlier published versions remain part of protected internal history.
                 </div>
               </div>
               {reconciliationReports.slice(0, 2).map((report) => (

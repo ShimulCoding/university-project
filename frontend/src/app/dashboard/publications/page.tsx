@@ -16,6 +16,10 @@ import {
   getPublicSummaryStateTone,
   getReconciliationStateTone,
 } from "@/lib/format";
+import {
+  getHistoricalPublishedSnapshotCount,
+  getLatestPublishedSummariesPerEvent,
+} from "@/lib/public-summary";
 import { PublishSummaryButton } from "@/components/internal/reconciliation-actions";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +60,9 @@ export default async function DashboardPublicationsPage({
     listReconciliationReports({ status: "FINALIZED" }),
     listPublicFinancialSummaries(),
   ]);
+  const latestPublishedSummaries = getLatestPublishedSummariesPerEvent(publishedSummaries);
+  const historicalPublishedSnapshotCount =
+    getHistoricalPublishedSnapshotCount(publishedSummaries);
   const selectedReport = reportId
     ? await getReconciliationReport(reportId)
     : reports[0] ?? null;
@@ -63,6 +70,14 @@ export default async function DashboardPublicationsPage({
     ? publishedSummaries.find((summary) => summary.reconciliation.reportId === selectedReport.id) ??
       null
     : null;
+  const latestPublishedForSelectedEvent = selectedReport
+    ? latestPublishedSummaries.find((summary) => summary.event.id === selectedReport.event.id) ??
+      null
+    : null;
+  const selectedReportHasHistoricalSnapshot =
+    publishedForSelected !== null &&
+    latestPublishedForSelectedEvent !== null &&
+    publishedForSelected.id !== latestPublishedForSelectedEvent.id;
   const isPublishEligible =
     selectedReport &&
     selectedReport.status === "FINALIZED" &&
@@ -129,12 +144,18 @@ export default async function DashboardPublicationsPage({
                     ? ` Published ${formatDateTime(publishedForSelected.publishedAt)}.`
                     : " No public snapshot has been published yet."}
                 </div>
+                {selectedReportHasHistoricalSnapshot ? (
+                  <div className="mt-3 rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
+                    This report has an earlier published snapshot on record. The public page
+                    resolves to the latest released version for this event.
+                  </div>
+                ) : null}
                 {publishedForSelected ? (
                   <Link
                     href={`/financial-summaries/${selectedReport.event.slug}`}
                     className="mt-3 inline-flex font-semibold text-primary hover:text-primary/80"
                   >
-                    Open the public summary page
+                    Open the latest public summary page
                   </Link>
                 ) : null}
               </div>
@@ -178,13 +199,17 @@ export default async function DashboardPublicationsPage({
             </CardContent>
           </Card>
 
-          {publishedSummaries.length > 0 ? (
+          {latestPublishedSummaries.length > 0 ? (
             <Card tone="success">
               <CardHeader>
-                <CardTitle>Already published snapshots</CardTitle>
+                <CardTitle>Latest public-facing summaries</CardTitle>
+                <CardDescription>
+                  Internal history can contain multiple published snapshots for one event, but
+                  the public side always resolves to the latest release.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 pt-0">
-                {publishedSummaries.map((summary) => (
+                {latestPublishedSummaries.map((summary) => (
                   <Link
                     key={summary.id}
                     href={`/financial-summaries/${summary.event.slug}`}
@@ -202,6 +227,12 @@ export default async function DashboardPublicationsPage({
                     </div>
                   </Link>
                 ))}
+                {historicalPublishedSnapshotCount > 0 ? (
+                  <div className="rounded-[1.1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
+                    {historicalPublishedSnapshotCount} earlier published snapshot(s) remain in
+                    protected internal release history for audit and comparison purposes.
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
           ) : null}

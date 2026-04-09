@@ -17,7 +17,7 @@ export function DashboardSidebar() {
   const navigation = dashboardNavigation.filter((item) => item.roles.includes(activeRole));
 
   return (
-    <aside className="surface-panel-muted flex h-full flex-col gap-8 p-5 lg:sticky lg:top-6 lg:min-h-[calc(100vh-3rem)]">
+    <aside className="order-2 surface-panel-muted flex h-full flex-col gap-8 p-5 lg:order-none lg:sticky lg:top-6 lg:min-h-[calc(100vh-3rem)]">
       <div className="space-y-5">
         <AppLogo />
         <div className="rounded-[1.35rem] border border-primary/10 bg-primary px-4 py-4 text-primary-foreground shadow-panel">

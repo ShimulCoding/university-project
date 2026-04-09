@@ -2,6 +2,7 @@ import { CheckCircle2, EyeOff } from "lucide-react";
 
 import {
   disclosureBoundary,
+  publicationChecklist,
   publishedSummaries,
 } from "@/features/foundation/data/demo-content";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
@@ -101,6 +102,25 @@ export default function FinancialSummariesPage() {
           </div>
 
           <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <Badge variant="info">Release conditions</Badge>
+                <CardTitle className="mt-3 text-xl">A summary becomes public only after closure logic passes</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-0">
+                {publicationChecklist.map((item, index) => (
+                  <div
+                    key={item}
+                    className="flex items-start gap-3 rounded-[1.15rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground"
+                  >
+                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-panel text-xs font-semibold text-primary">
+                      {index + 1}
+                    </div>
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
             <Card tone="success">
               <CardHeader>
                 <div className="flex items-center gap-3">

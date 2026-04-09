@@ -5,7 +5,7 @@ import { AppLogo } from "@/components/shell/app-logo";
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-border/70 bg-panel">
+    <footer className="border-t border-border/70 bg-panel/95 backdrop-blur">
       <div className="section-shell grid gap-10 py-12 lg:grid-cols-[1.4fr_0.8fr_0.8fr]">
         <div className="space-y-4">
           <AppLogo />
@@ -34,6 +34,13 @@ export function PublicFooter() {
           <div className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
             <p>Only finalized reconciliation can cross into public publication.</p>
             <p>Protected evidence, reviewer notes, and complaint details stay internal.</p>
+          </div>
+        </div>
+        <div className="lg:col-span-3">
+          <div className="subtle-divider" />
+          <div className="mt-4 flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>Designed for clarity, accountability, and controlled publication.</span>
+            <span>Frontend foundation preview for MU CSE Financial Transparency Platform.</span>
           </div>
         </div>
       </div>

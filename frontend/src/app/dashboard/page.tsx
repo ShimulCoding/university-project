@@ -11,6 +11,27 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 export default function DashboardOverviewPage() {
   return (
     <>
+      <section className="surface-panel-muted grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-center">
+        <div>
+          <div className="data-kicker">Protected workspace boundary</div>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+            Internal review surfaces stay action-oriented, not decorative.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+            This shell is designed for verification, approvals, and publication control.
+            Public readers never see the evidence layer behind these panels.
+          </p>
+        </div>
+        <div className="rounded-[1.25rem] border border-primary/10 bg-panel px-5 py-5 shadow-sm">
+          <div className="data-kicker">Current posture</div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Badge variant="success">Protected routes active</Badge>
+            <Badge variant="warning">Review queue visible</Badge>
+            <Badge variant="info">Publication gated</Badge>
+          </div>
+        </div>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {dashboardMetrics.map((metric) => (
           <Card key={metric.label}>

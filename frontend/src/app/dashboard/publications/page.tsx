@@ -1,5 +1,6 @@
 import {
   disclosureBoundary,
+  publicationChecklist,
   publishedSummaries,
 } from "@/features/foundation/data/demo-content";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +48,25 @@ export default function DashboardPublicationsPage() {
         </Card>
 
         <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <Badge variant="info">Publish checklist</Badge>
+              <CardTitle className="mt-3">The public release boundary stays explicit</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              {publicationChecklist.map((item, index) => (
+                <div
+                  key={item}
+                  className="flex items-start gap-3 rounded-[1.1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground"
+                >
+                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-panel text-xs font-semibold text-primary">
+                    {index + 1}
+                  </div>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
           <Card tone="success">
             <CardHeader>
               <CardTitle>Allowed into public pages</CardTitle>

@@ -43,6 +43,25 @@ export const trustPillars = [
   },
 ] as const;
 
+export const controlCadence = [
+  {
+    label: "Registration",
+    description: "Students enter a clean public flow without seeing protected finance handling.",
+  },
+  {
+    label: "Verification",
+    description: "Finance reviewers validate proof and references before any income is trusted.",
+  },
+  {
+    label: "Reconciliation",
+    description: "Verified income and settled expense are assembled into an auditable event outcome.",
+  },
+  {
+    label: "Publication",
+    description: "Only finalized, explicitly published summary data crosses into the public surface.",
+  },
+] as const;
+
 export const publicEventCards = [
   {
     title: "Demo Open Finance Workshop 2026",
@@ -63,6 +82,24 @@ export const publicEventCards = [
     description:
       "A closed event with verified income, settled expense, finalized reconciliation, and an already published public summary.",
     seatsLabel: "Finalized operational records",
+  },
+] as const;
+
+export const eventPageSignals = [
+  {
+    label: "Open registration tracks",
+    value: "01",
+    detail: "One event currently demonstrates an active public registration posture.",
+  },
+  {
+    label: "Publish-ready event records",
+    value: "01",
+    detail: "One completed event already has finalized reconciliation and a released summary.",
+  },
+  {
+    label: "Boundary guarantee",
+    value: "100%",
+    detail: "Public event views exclude proofs, evidence paths, and reviewer notes by design.",
   },
 ] as const;
 
@@ -98,6 +135,13 @@ export const disclosureBoundary = {
     "Draft or pending internal numbers that have not passed reconciliation and publish controls.",
   ],
 } as const;
+
+export const publicationChecklist = [
+  "Event is operationally completed or closed.",
+  "Reconciliation has moved beyond draft and reached finalized status.",
+  "Public summary snapshot is shaped as totals and high-level breakdowns only.",
+  "Protected evidence, reviewer notes, and complaint detail remain internal.",
+] as const;
 
 export const dashboardMetrics = [
   {

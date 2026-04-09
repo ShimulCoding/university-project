@@ -7,9 +7,10 @@ export function PublicPageShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen">
+    <div className="page-tint min-h-screen">
+      <div className="page-grid pointer-events-none fixed inset-0 z-0 opacity-[0.18] [mask-image:radial-gradient(circle_at_center,black,transparent_78%)]" />
       <PublicHeader />
-      {children}
+      <div className="relative z-10">{children}</div>
       <PublicFooter />
     </div>
   );

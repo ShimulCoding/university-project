@@ -53,6 +53,12 @@ export function DashboardHeader() {
           {current?.description ??
             "A role-aware foundation for verification, approvals, protected audit review, and publication-safe operations."}
         </p>
+        <div className="mt-5 rounded-[1.15rem] border border-border/70 bg-panel-muted px-4 py-4">
+          <div className="data-kicker">Current role focus</div>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            {roleMeta[activeRole].focus}
+          </p>
+        </div>
       </div>
       <div className="flex flex-col items-stretch gap-3 md:min-w-[320px]">
         <RolePreviewSwitcher />

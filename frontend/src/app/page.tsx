@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Eye, ShieldCheck, Sparkles } from "lucide-react";
 
 import {
+  controlCadence,
   disclosureBoundary,
   landingMetrics,
   publicEventCards,
@@ -129,6 +130,27 @@ export default function HomePage() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        </section>
+
+        <section className="section-shell pb-12 sm:pb-16">
+          <div className="surface-panel-muted p-6 sm:p-8">
+            <div className="data-kicker">Operational cadence</div>
+            <div className="mt-4 grid gap-4 lg:grid-cols-4">
+              {controlCadence.map((item, index) => (
+                <div key={item.label} className="relative rounded-[1.2rem] border border-border/70 bg-panel px-4 py-5 shadow-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-sm font-semibold text-foreground">{item.label}</div>
+                    <div className="font-mono text-xs text-muted-foreground">
+                      0{index + 1}
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </section>

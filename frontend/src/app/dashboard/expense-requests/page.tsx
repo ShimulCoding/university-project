@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert } from "lucide-react";
 
+import { getCurrentUser } from "@/lib/api/student";
+import { hasAnyRole } from "@/lib/access";
 import {
   getExpenseRequest,
   listExpenseRequests,
@@ -47,6 +49,8 @@ export default async function ExpenseRequestsPage({
     typeof params.expenseRequestId === "string" ? params.expenseRequestId : undefined;
 
   try {
+    const user = await getCurrentUser();
+    const canSubmitRequests = hasAnyRole(user, ["SYSTEM_ADMIN", "EVENT_MANAGEMENT_USER"]);
     const [expenseRequests, events] = await Promise.all([
       listExpenseRequests({ eventId, state }),
       listInternalEventOptions(),
@@ -214,18 +218,29 @@ export default async function ExpenseRequestsPage({
                 </Card>
                 <SupportingDocumentList documents={selectedRequest.documents} />
                 <DecisionHistoryCard decisions={selectedRequest.approvalDecisions} />
-                {selectedRequest.state === "DRAFT" ? (
+                {canSubmitRequests &&
+                (selectedRequest.state === "DRAFT" || selectedRequest.state === "RETURNED") ? (
                   <SubmitRequestButton
                     endpoint={`/requests/expense-requests/${selectedRequest.id}/submit`}
                     label="Expense request"
                   />
+                ) : !canSubmitRequests ? (
+                  <Card tone="muted">
+                    <CardHeader>
+                      <CardTitle className="text-xl">Read-only request visibility</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0 text-sm leading-6 text-muted-foreground">
+                      This session can inspect expense request history and linked settlements, but
+                      only request authoring roles can create or submit expense requests here.
+                    </CardContent>
+                  </Card>
                 ) : null}
               </>
             ) : null}
           </div>
         </div>
 
-        <ExpenseRequestForm events={events} />
+        {canSubmitRequests ? <ExpenseRequestForm events={events} /> : null}
       </>
     );
   } catch (error) {

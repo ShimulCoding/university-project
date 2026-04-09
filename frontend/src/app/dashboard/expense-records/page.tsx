@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert } from "lucide-react";
 
+import { getCurrentUser } from "@/lib/api/student";
+import { hasAnyRole } from "@/lib/access";
 import {
   getExpenseRecord,
   listExpenseRecords,
@@ -47,6 +49,8 @@ export default async function ExpenseRecordsPage({
     typeof params.expenseRecordId === "string" ? params.expenseRecordId : undefined;
 
   try {
+    const user = await getCurrentUser();
+    const canManageExpenseRecords = hasAnyRole(user, ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"]);
     const [expenseRecords, events, expenseRequests] = await Promise.all([
       listExpenseRecords({ eventId, state }),
       listInternalEventOptions(),
@@ -205,17 +209,32 @@ export default async function ExpenseRecordsPage({
                   </CardContent>
                 </Card>
                 <SupportingDocumentList documents={selectedRecord.documents} />
-                <ExpenseRecordStatePanel
-                  expenseRecordId={selectedRecord.id}
-                  allowSettle={selectedRecord.state === "RECORDED"}
-                  allowVoid={selectedRecord.state !== "VOIDED"}
-                />
+                {canManageExpenseRecords ? (
+                  <ExpenseRecordStatePanel
+                    expenseRecordId={selectedRecord.id}
+                    allowSettle={selectedRecord.state === "RECORDED"}
+                    allowVoid={selectedRecord.state !== "VOIDED"}
+                  />
+                ) : (
+                  <Card tone="muted">
+                    <CardHeader>
+                      <CardTitle className="text-xl">Read-only expense ledger access</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0 text-sm leading-6 text-muted-foreground">
+                      This role can inspect settled spending and its linked request context, but
+                      only finance or system-admin sessions can create, settle, or void expense
+                      records.
+                    </CardContent>
+                  </Card>
+                )}
               </>
             ) : null}
           </div>
         </div>
 
-        <ExpenseRecordForm events={events} expenseRequests={expenseRequests} />
+        {canManageExpenseRecords ? (
+          <ExpenseRecordForm events={events} expenseRequests={expenseRequests} />
+        ) : null}
       </>
     );
   } catch (error) {

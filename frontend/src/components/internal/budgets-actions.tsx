@@ -252,7 +252,16 @@ export function BudgetStateForm({
 }: {
   budget: BudgetRecord;
 }) {
-  const [state, setState] = useState(budget.state === "REVISED" ? "SUBMITTED" : budget.state);
+  const transitionOptions = {
+    DRAFT: [{ value: "SUBMITTED", label: "Submitted" }, { value: "APPROVED", label: "Approved" }],
+    SUBMITTED: [{ value: "APPROVED", label: "Approved" }],
+    APPROVED: [],
+    REVISED: [],
+  } as const;
+  const availableOptions = transitionOptions[budget.state];
+  const [state, setState] = useState<"DRAFT" | "SUBMITTED" | "APPROVED">(
+    (availableOptions[0]?.value as "DRAFT" | "SUBMITTED" | "APPROVED" | undefined) ?? "SUBMITTED",
+  );
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
 
   return (
@@ -264,48 +273,53 @@ export function BudgetStateForm({
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 pt-0">
-        <Field label="State">
-          <Select
-            value={state}
-            onChange={(event) => {
-              clearFeedback();
-              setState(event.target.value as "DRAFT" | "SUBMITTED" | "APPROVED");
-            }}
-            options={[
-              { value: "DRAFT", label: "Draft" },
-              { value: "SUBMITTED", label: "Submitted" },
-              { value: "APPROVED", label: "Approved" },
-            ]}
-          />
-        </Field>
-        <div className="flex flex-wrap gap-3">
-          <Button
-            disabled={isPending}
-            onClick={() =>
-              void runAction(
-                () =>
-                  patchJson(`/budgets/${budget.id}/state`, {
-                    state,
-                  }),
-                "Budget state updated.",
-              )
-            }
-          >
-            {isPending ? "Updating state..." : "Update state"}
-          </Button>
-          <Button
-            variant="outline"
-            disabled={isPending || budget.isActive}
-            onClick={() =>
-              void runAction(
-                () => postEmpty(`/budgets/${budget.id}/activate`),
-                "Budget version activated.",
-              )
-            }
-          >
-            {budget.isActive ? "Active version" : "Activate version"}
-          </Button>
-        </div>
+        {availableOptions.length > 0 ? (
+          <>
+            <Field label="State">
+              <Select
+                value={state}
+                onChange={(event) => {
+                  clearFeedback();
+                  setState(event.target.value as "DRAFT" | "SUBMITTED" | "APPROVED");
+                }}
+                options={[...availableOptions]}
+              />
+            </Field>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                disabled={isPending}
+                onClick={() =>
+                  void runAction(
+                    () =>
+                      patchJson(`/budgets/${budget.id}/state`, {
+                        state,
+                      }),
+                    "Budget state updated.",
+                  )
+                }
+              >
+                {isPending ? "Updating state..." : "Update state"}
+              </Button>
+              <Button
+                variant="outline"
+                disabled={isPending || budget.isActive || budget.state !== "APPROVED"}
+                onClick={() =>
+                  void runAction(
+                    () => postEmpty(`/budgets/${budget.id}/activate`),
+                    "Budget version activated.",
+                  )
+                }
+              >
+                {budget.isActive ? "Active version" : "Activate version"}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
+            This budget version is already at its final state. Create a revision if the event
+            needs a new approved version rather than trying to move this record backward.
+          </div>
+        )}
         <FeedbackMessage feedback={feedback} />
       </CardContent>
     </Card>

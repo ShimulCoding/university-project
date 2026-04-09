@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert } from "lucide-react";
 
+import { getCurrentUser } from "@/lib/api/student";
+import { hasAnyRole } from "@/lib/access";
 import {
   getBudgetRequest,
   listBudgetRequests,
@@ -46,6 +48,8 @@ export default async function BudgetRequestsPage({
     typeof params.budgetRequestId === "string" ? params.budgetRequestId : undefined;
 
   try {
+    const user = await getCurrentUser();
+    const canSubmitRequests = hasAnyRole(user, ["SYSTEM_ADMIN", "EVENT_MANAGEMENT_USER"]);
     const [budgetRequests, events] = await Promise.all([
       listBudgetRequests({ eventId, state }),
       listInternalEventOptions(),
@@ -193,18 +197,29 @@ export default async function BudgetRequestsPage({
                 </Card>
                 <SupportingDocumentList documents={selectedRequest.documents} />
                 <DecisionHistoryCard decisions={selectedRequest.approvalDecisions} />
-                {selectedRequest.state === "DRAFT" ? (
+                {canSubmitRequests &&
+                (selectedRequest.state === "DRAFT" || selectedRequest.state === "RETURNED") ? (
                   <SubmitRequestButton
                     endpoint={`/requests/budget-requests/${selectedRequest.id}/submit`}
                     label="Budget request"
                   />
+                ) : !canSubmitRequests ? (
+                  <Card tone="muted">
+                    <CardHeader>
+                      <CardTitle className="text-xl">Read-only request visibility</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0 text-sm leading-6 text-muted-foreground">
+                      This session can inspect request history and decisions, but only the request
+                      authoring roles can create or submit budget requests from this page.
+                    </CardContent>
+                  </Card>
                 ) : null}
               </>
             ) : null}
           </div>
         </div>
 
-        <BudgetRequestForm events={events} />
+        {canSubmitRequests ? <BudgetRequestForm events={events} /> : null}
       </>
     );
   } catch (error) {

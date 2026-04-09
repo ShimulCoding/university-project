@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert } from "lucide-react";
 
+import { getCurrentUser } from "@/lib/api/student";
+import { hasAnyRole } from "@/lib/access";
 import { getBudget, listBudgets, listInternalEventOptions } from "@/lib/api/internal";
 import { ApiError } from "@/lib/api/shared";
 import {
@@ -41,6 +43,8 @@ export default async function BudgetsPage({
   const budgetId = typeof params.budgetId === "string" ? params.budgetId : undefined;
 
   try {
+    const user = await getCurrentUser();
+    const canManageBudgets = hasAnyRole(user, ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"]);
     const [budgets, events] = await Promise.all([
       listBudgets({ eventId, state, isActive }),
       listInternalEventOptions(),
@@ -226,14 +230,29 @@ export default async function BudgetsPage({
                     </div>
                   </CardContent>
                 </Card>
-                <BudgetStateForm budget={selectedBudget} />
-                <BudgetComposerForm events={events} budget={selectedBudget} />
+                {canManageBudgets ? (
+                  <>
+                    <BudgetStateForm budget={selectedBudget} />
+                    <BudgetComposerForm events={events} budget={selectedBudget} />
+                  </>
+                ) : (
+                  <Card tone="muted">
+                    <CardHeader>
+                      <CardTitle className="text-xl">Read-only role on budget history</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0 text-sm leading-6 text-muted-foreground">
+                      This session can inspect budget versions and item structure, but only finance
+                      or system-admin roles can create revisions, activate versions, or change
+                      budget state.
+                    </CardContent>
+                  </Card>
+                )}
               </>
             ) : null}
           </div>
         </div>
 
-        <BudgetComposerForm events={events} />
+        {canManageBudgets ? <BudgetComposerForm events={events} /> : null}
       </>
     );
   } catch (error) {

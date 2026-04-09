@@ -4,35 +4,114 @@
 
 @layer base {
   :root {
-    --background: 42 30% 98%;
-    --foreground: 165 36% 14%;
+    --canvas: 210 38% 98%;
+    --background: 213 33% 98%;
+    --foreground: 221 39% 16%;
+    --panel: 0 0% 100%;
+    --panel-foreground: 221 39% 16%;
+    --panel-muted: 210 28% 96%;
     --card: 0 0% 100%;
-    --card-foreground: 165 36% 14%;
+    --card-foreground: 221 39% 16%;
     --popover: 0 0% 100%;
-    --popover-foreground: 165 36% 14%;
-    --primary: 167 46% 28%;
-    --primary-foreground: 46 60% 98%;
-    --secondary: 41 62% 94%;
-    --secondary-foreground: 165 36% 16%;
-    --muted: 41 35% 92%;
-    --muted-foreground: 165 14% 35%;
-    --accent: 28 72% 88%;
-    --accent-foreground: 165 36% 14%;
-    --destructive: 0 72% 51%;
+    --popover-foreground: 221 39% 16%;
+    --primary: 221 57% 19%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 25% 93%;
+    --secondary-foreground: 221 35% 21%;
+    --muted: 214 21% 93%;
+    --muted-foreground: 215 14% 41%;
+    --accent: 176 41% 90%;
+    --accent-foreground: 177 60% 18%;
+    --success: 168 55% 32%;
+    --success-foreground: 160 57% 97%;
+    --success-muted: 170 45% 92%;
+    --warning: 40 88% 46%;
+    --warning-foreground: 31 78% 17%;
+    --warning-muted: 44 100% 93%;
+    --destructive: 2 56% 44%;
     --destructive-foreground: 0 0% 100%;
-    --border: 38 23% 84%;
-    --input: 38 23% 84%;
-    --ring: 167 46% 28%;
-    --radius: 1rem;
+    --border: 216 19% 86%;
+    --input: 216 19% 86%;
+    --ring: 221 57% 19%;
+    --radius: 1.125rem;
+  }
+
+  html {
+    @apply scroll-smooth;
   }
 
   * {
     @apply border-border;
   }
 
+  *::selection {
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-canvas text-foreground antialiased;
     font-family: var(--font-sans), "Segoe UI", sans-serif;
+    background-image:
+      radial-gradient(circle at top left, rgba(15, 23, 42, 0.06), transparent 32%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 247, 251, 0.95));
+  }
+
+  a {
+    @apply transition-colors;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-tight text-foreground;
+  }
+
+  h1,
+  h2 {
+    font-feature-settings: "ss01" on, "cv02" on, "cv11" on;
   }
 }
 
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .surface-panel {
+    @apply rounded-[1.5rem] border border-border/80 bg-panel shadow-panel;
+  }
+
+  .surface-panel-strong {
+    @apply rounded-[1.5rem] border border-primary/10 bg-primary text-primary-foreground shadow-lift;
+  }
+
+  .surface-panel-muted {
+    @apply rounded-[1.5rem] border border-border/70 bg-panel-muted shadow-inset;
+  }
+
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas;
+  }
+
+  .section-shell {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .grid-fade {
+    background-size: 30px 30px;
+  }
+
+  .data-kicker {
+    @apply text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground;
+  }
+
+  .headline-display {
+    @apply font-display text-4xl leading-none sm:text-5xl lg:text-6xl;
+  }
+
+  .metric-figure {
+    @apply font-display text-3xl leading-none text-primary sm:text-4xl;
+  }
+}

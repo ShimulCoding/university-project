@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import type { UserProfile } from "@/types";
 import { dashboardNavigation, dashboardSupportLinks, roleMeta } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { useRolePreview } from "@/components/providers/role-preview-provider";
 import { AppLogo } from "@/components/shell/app-logo";
 import { Badge } from "@/components/ui/badge";
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ user }: { user: UserProfile }) {
   const pathname = usePathname();
   const { activeRole } = useRolePreview();
 
@@ -31,6 +32,10 @@ export function DashboardSidebar() {
           <p className="mt-2 text-sm leading-6 text-primary-foreground/80">
             {activeRoleMeta.description}
           </p>
+          <div className="mt-4 rounded-[1rem] border border-white/10 bg-white/10 px-3 py-3 text-sm text-primary-foreground/85">
+            <div className="font-semibold">{user.fullName}</div>
+            <div className="mt-1 text-xs text-primary-foreground/70">{user.email}</div>
+          </div>
         </div>
       </div>
 

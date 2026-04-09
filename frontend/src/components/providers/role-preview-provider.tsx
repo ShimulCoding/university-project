@@ -18,20 +18,32 @@ const RolePreviewContext = createContext<RolePreviewContextValue | null>(null);
 
 export function RolePreviewProvider({
   children,
+  initialRole = defaultRole,
+  roles,
 }: {
   children: React.ReactNode;
+  initialRole?: AppRole;
+  roles?: AppRole[];
 }) {
-  const [activeRole, setActiveRole] = useState<AppRole>(defaultRole);
+  const availableRoles = useMemo(
+    () => (roles && roles.length > 0 ? roles : (Object.keys(roleMeta) as AppRole[])),
+    [roles],
+  );
+  const fallbackRole = availableRoles[0] ?? initialRole;
+  const [activeRole, setActiveRole] = useState<AppRole>(initialRole);
 
   useEffect(() => {
     const storedRole = window.localStorage.getItem(rolePreviewStorageKey) as
       | AppRole
       | null;
 
-    if (storedRole && storedRole in roleMeta) {
+    if (storedRole && availableRoles.includes(storedRole)) {
       setActiveRole(storedRole);
+      return;
     }
-  }, []);
+
+    setActiveRole(fallbackRole);
+  }, [availableRoles, fallbackRole]);
 
   const handleSetActiveRole = (role: AppRole) => {
     setActiveRole(role);
@@ -42,9 +54,9 @@ export function RolePreviewProvider({
     () => ({
       activeRole,
       setActiveRole: handleSetActiveRole,
-      roles: Object.keys(roleMeta) as AppRole[],
+      roles: availableRoles,
     }),
-    [activeRole],
+    [activeRole, availableRoles],
   );
 
   return (

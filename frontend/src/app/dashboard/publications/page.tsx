@@ -1,53 +1,211 @@
+import Link from "next/link";
+import { ShieldAlert } from "lucide-react";
+
+import { getCurrentUser } from "@/lib/api/student";
+import { hasAnyRole } from "@/lib/access";
+import { listPublicFinancialSummaries } from "@/lib/api/public";
 import {
-  disclosureBoundary,
-  publicationChecklist,
-  publishedSummaries,
-} from "@/features/foundation/data/demo-content";
+  getReconciliationReport,
+  listReconciliationReports,
+} from "@/lib/api/internal";
+import {
+  formatDateTime,
+  formatEnumLabel,
+  formatMoney,
+  getEventStatusTone,
+  getPublicSummaryStateTone,
+  getReconciliationStateTone,
+} from "@/lib/format";
+import { PublishSummaryButton } from "@/components/internal/reconciliation-actions";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { StatePanel } from "@/components/ui/state-panel";
 
-export default function DashboardPublicationsPage() {
-  const summary = publishedSummaries[0];
+export const dynamic = "force-dynamic";
+
+const publicationChecklist = [
+  "Reconciliation status must be Finalized.",
+  "Event status must be Completed or Closed.",
+  "Only public-safe summary data may cross the boundary.",
+  "A published snapshot is immutable evidence of what was released.",
+] as const;
+
+const publicIncluded = [
+  "Collected, spent, and closing balance totals",
+  "Summary-only income and expense breakdown",
+  "Publication timestamp and linked finalized reconciliation",
+] as const;
+
+const publicExcluded = [
+  "Payment proofs and supporting evidence files",
+  "Reviewer notes, approval remarks, and protected complaint detail",
+  "Raw audit context or private participant information",
+] as const;
+
+export default async function DashboardPublicationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const reportId = typeof params.reportId === "string" ? params.reportId : undefined;
+  const user = await getCurrentUser();
+  const canPublish = hasAnyRole(user, ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"]);
+  const [reports, publishedSummaries] = await Promise.all([
+    listReconciliationReports({ status: "FINALIZED" }),
+    listPublicFinancialSummaries(),
+  ]);
+  const selectedReport = reportId
+    ? await getReconciliationReport(reportId)
+    : reports[0] ?? null;
+  const publishedForSelected = selectedReport
+    ? publishedSummaries.find((summary) => summary.reconciliation.reportId === selectedReport.id) ??
+      null
+    : null;
+  const isPublishEligible =
+    selectedReport &&
+    selectedReport.status === "FINALIZED" &&
+    (selectedReport.event.status === "COMPLETED" || selectedReport.event.status === "CLOSED");
 
   return (
     <>
       <PageHeader
         eyebrow="Publication boundary"
-        title="Internal teams see the boundary before they see the publish action"
-        description="The UI keeps publication logic explicit: finalized reconciliation, completed or closed event state, and public-safe summary shaping."
+        title="Release public financial summaries only from finalized, publish-safe closure data"
+        description="This surface makes the public boundary explicit: finalized reconciliation, completed or closed event status, and a summary-only payload that never leaks protected evidence."
       />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_0.9fr]">
         <Card>
           <CardHeader>
             <Badge variant="success">Publish-safe snapshot</Badge>
-            <CardTitle className="mt-3 text-2xl">{summary.title}</CardTitle>
-            <CardDescription>{summary.note}</CardDescription>
+            <CardTitle className="mt-3 text-2xl">
+              {selectedReport ? selectedReport.event.title : "No finalized report selected"}
+            </CardTitle>
+            <CardDescription>
+              {selectedReport
+                ? "Only summary totals and the release basis move across the boundary."
+                : "Generate and finalize a reconciliation report before publication becomes available."}
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-3">
             <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
               <div className="data-kicker">Collected</div>
               <div className="mt-2 text-2xl font-semibold text-foreground">
-                {summary.totals.collected}
+                {selectedReport ? formatMoney(selectedReport.totalIncome) : "Not ready"}
               </div>
             </div>
             <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
               <div className="data-kicker">Spent</div>
               <div className="mt-2 text-2xl font-semibold text-foreground">
-                {summary.totals.spent}
+                {selectedReport ? formatMoney(selectedReport.totalExpense) : "Not ready"}
               </div>
             </div>
             <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
               <div className="data-kicker">Closing balance</div>
               <div className="mt-2 text-2xl font-semibold text-foreground">
-                {summary.totals.closingBalance}
+                {selectedReport ? formatMoney(selectedReport.closingBalance) : "Not ready"}
               </div>
             </div>
+            {selectedReport ? (
+              <div className="md:col-span-3 rounded-[1.2rem] border border-border/70 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant={getReconciliationStateTone(selectedReport.status)}>
+                    {formatEnumLabel(selectedReport.status)}
+                  </Badge>
+                  <Badge variant={getEventStatusTone(selectedReport.event.status)}>
+                    {formatEnumLabel(selectedReport.event.status)}
+                  </Badge>
+                  {publishedForSelected ? (
+                    <Badge variant={getPublicSummaryStateTone(publishedForSelected.status)}>
+                      {formatEnumLabel(publishedForSelected.status)}
+                    </Badge>
+                  ) : null}
+                </div>
+                <div className="mt-3">
+                  Finalized {formatDateTime(selectedReport.finalizedAt)}.
+                  {publishedForSelected
+                    ? ` Published ${formatDateTime(publishedForSelected.publishedAt)}.`
+                    : " No public snapshot has been published yet."}
+                </div>
+                {publishedForSelected ? (
+                  <Link
+                    href={`/financial-summaries/${selectedReport.event.slug}`}
+                    className="mt-3 inline-flex font-semibold text-primary hover:text-primary/80"
+                  >
+                    Open the public summary page
+                  </Link>
+                ) : null}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
         <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <Badge variant="info">Live finalized reports</Badge>
+              <CardTitle className="mt-3">Choose the report at the publication boundary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              {reports.length === 0 ? (
+                <StatePanel
+                  icon={ShieldAlert}
+                  title="No finalized reconciliation reports are ready"
+                  description="Finance and approver roles must close the reconciliation step before publication is possible."
+                  tone="empty"
+                />
+              ) : (
+                reports.map((report) => (
+                  <Link
+                    key={report.id}
+                    href={`/dashboard/publications?reportId=${report.id}`}
+                    className="block rounded-[1.1rem] border border-border/70 bg-panel px-4 py-4 transition-colors hover:border-primary/20 hover:bg-panel-muted"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="font-semibold text-foreground">{report.event.title}</div>
+                      <Badge variant={getEventStatusTone(report.event.status)}>
+                        {formatEnumLabel(report.event.status)}
+                      </Badge>
+                    </div>
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      {formatMoney(report.totalIncome)} collected / {formatMoney(report.totalExpense)} spent
+                    </div>
+                  </Link>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
+          {publishedSummaries.length > 0 ? (
+            <Card tone="success">
+              <CardHeader>
+                <CardTitle>Already published snapshots</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-0">
+                {publishedSummaries.map((summary) => (
+                  <Link
+                    key={summary.id}
+                    href={`/financial-summaries/${summary.event.slug}`}
+                    className="block rounded-[1.1rem] border border-border/70 bg-panel px-4 py-4 transition-colors hover:border-primary/20 hover:bg-panel-muted"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="font-semibold text-foreground">{summary.event.title}</div>
+                      <Badge variant={getPublicSummaryStateTone(summary.status)}>
+                        {formatEnumLabel(summary.status)}
+                      </Badge>
+                    </div>
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      Published {formatDateTime(summary.publishedAt)} / balance{" "}
+                      {formatMoney(summary.totals.closingBalance)}
+                    </div>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
+          ) : null}
+
           <Card>
             <CardHeader>
               <Badge variant="info">Publish checklist</Badge>
@@ -72,7 +230,7 @@ export default function DashboardPublicationsPage() {
               <CardTitle>Allowed into public pages</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-0">
-              {disclosureBoundary.publicIncluded.map((item) => (
+              {publicIncluded.map((item) => (
                 <div
                   key={item}
                   className="rounded-[1.1rem] border border-success/15 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground"
@@ -87,7 +245,7 @@ export default function DashboardPublicationsPage() {
               <CardTitle>Blocked from public pages</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-0">
-              {disclosureBoundary.publicExcluded.map((item) => (
+              {publicExcluded.map((item) => (
                 <div
                   key={item}
                   className="rounded-[1.1rem] border border-border/70 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground"
@@ -97,6 +255,10 @@ export default function DashboardPublicationsPage() {
               ))}
             </CardContent>
           </Card>
+
+          {canPublish && selectedReport && isPublishEligible && !publishedForSelected ? (
+            <PublishSummaryButton reportId={selectedReport.id} />
+          ) : null}
         </div>
       </div>
     </>

@@ -1,11 +1,17 @@
 import type {
   BadgeTone,
+  BudgetState,
   ComplaintState,
   EventStatus,
+  ExpenseRecordState,
+  IncomeState,
   PaymentProofState,
   PublicEvent,
+  PublicSummaryStatus,
+  ReconciliationState,
   RegistrationPaymentState,
   RegistrationWindowState,
+  RequestState,
 } from "@/types";
 
 const dateFormatter = new Intl.DateTimeFormat("en-GB", {
@@ -114,6 +120,76 @@ export function getComplaintStateTone(state: ComplaintState): BadgeTone {
   }
 }
 
+export function getBudgetStateTone(state: BudgetState): BadgeTone {
+  switch (state) {
+    case "APPROVED":
+      return "success";
+    case "SUBMITTED":
+      return "info";
+    case "REVISED":
+      return "warning";
+    default:
+      return "neutral";
+  }
+}
+
+export function getRequestStateTone(state: RequestState): BadgeTone {
+  switch (state) {
+    case "APPROVED":
+      return "success";
+    case "SUBMITTED":
+    case "PENDING_REVIEW":
+      return "info";
+    case "RETURNED":
+      return "warning";
+    case "REJECTED":
+      return "danger";
+    default:
+      return "neutral";
+  }
+}
+
+export function getExpenseRecordStateTone(state: ExpenseRecordState): BadgeTone {
+  switch (state) {
+    case "SETTLED":
+      return "success";
+    case "VOIDED":
+      return "danger";
+    default:
+      return "warning";
+  }
+}
+
+export function getIncomeStateTone(state: IncomeState): BadgeTone {
+  switch (state) {
+    case "VERIFIED":
+      return "success";
+    case "REJECTED":
+      return "danger";
+    default:
+      return "warning";
+  }
+}
+
+export function getReconciliationStateTone(state: ReconciliationState): BadgeTone {
+  switch (state) {
+    case "FINALIZED":
+      return "success";
+    case "REVIEWED":
+      return "info";
+    default:
+      return "warning";
+  }
+}
+
+export function getPublicSummaryStateTone(state: PublicSummaryStatus): BadgeTone {
+  return state === "PUBLISHED" ? "success" : "warning";
+}
+
 export function isRegistrationOpen(event: PublicEvent) {
   return event.status === "PUBLISHED" && event.registrationWindow.state === "OPEN";
+}
+
+export function sumMoney(values: Array<string | number | null | undefined>) {
+  return values.reduce<number>((total, value) => total + Number(value ?? 0), 0);
 }

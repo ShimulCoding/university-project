@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import type { UserProfile } from "@/types";
 import { dashboardNavigation, roleMeta } from "@/lib/navigation";
 import { useRolePreview } from "@/components/providers/role-preview-provider";
+import { InternalSessionCard } from "@/components/internal/internal-session-card";
 import { RolePreviewSwitcher } from "@/components/shell/role-preview-switcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,9 +27,59 @@ const dashboardTitles: Record<string, { title: string; description: string }> = 
     description:
       "A clear boundary between protected internal evidence and public-safe financial summaries.",
   },
+  "/dashboard/payments": {
+    title: "Payment verification queue",
+    description:
+      "Finance review stays evidence-aware, status-controlled, and clearly separated from the public surface.",
+  },
+  "/dashboard/income-records": {
+    title: "Manual income records",
+    description:
+      "Track sponsor, donation, university support, and other event-linked income with protected evidence.",
+  },
+  "/dashboard/budgets": {
+    title: "Budget management",
+    description:
+      "Preserve budget versions, item structure, and controlled activation without silent overwrite.",
+  },
+  "/dashboard/budget-requests": {
+    title: "Budget requests",
+    description:
+      "Prepare and review funding requests with supporting documents and decision history.",
+  },
+  "/dashboard/expense-requests": {
+    title: "Expense requests",
+    description:
+      "Keep requested spending separate from actual settled expense records.",
+  },
+  "/dashboard/expense-records": {
+    title: "Expense records",
+    description:
+      "Capture actual paid or settled expenses with linkage back to approved request context.",
+  },
+  "/dashboard/approvals": {
+    title: "Approval queue",
+    description:
+      "Operational approval stays explicit, auditable, and protected from self-approval.",
+  },
+  "/dashboard/complaints": {
+    title: "Complaint review",
+    description:
+      "Protected complaint routing, escalation, and lifecycle handling remain internal-only.",
+  },
+  "/dashboard/reconciliation": {
+    title: "Reconciliation workspace",
+    description:
+      "Compare event-linked income and expense, surface warnings clearly, and control closure.",
+  },
+  "/dashboard/audit": {
+    title: "Protected audit views",
+    description:
+      "System administrators can inspect the trace history behind sensitive actions and access decisions.",
+  },
 };
 
-export function DashboardHeader() {
+export function DashboardHeader({ user }: { user: UserProfile }) {
   const pathname = usePathname();
   const { activeRole } = useRolePreview();
   const matchedNavigationItem = dashboardNavigation.find(
@@ -70,6 +122,11 @@ export function DashboardHeader() {
             <Link href="/">Landing page</Link>
           </Button>
         </div>
+        <InternalSessionCard
+          user={user}
+          title="Live backend identity"
+          description="Navigation and page actions are backed by this authenticated session, while the role preview narrows the internal UI focus."
+        />
       </div>
     </div>
   );

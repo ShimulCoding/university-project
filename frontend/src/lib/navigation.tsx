@@ -1,11 +1,23 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Archive,
+  BadgeCheck,
   BookOpenText,
+  BriefcaseBusiness,
+  ClipboardCheck,
+  ClipboardList,
+  Coins,
+  FileBadge2,
   FileSearch,
+  Files,
   Globe2,
   LayoutDashboard,
   Landmark,
+  Megaphone,
+  ReceiptText,
   ShieldCheck,
+  ShieldEllipsis,
+  WalletCards,
   Waypoints,
 } from "lucide-react";
 
@@ -88,9 +100,105 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
       "FINANCIAL_CONTROLLER",
       "ORGANIZATIONAL_APPROVER",
       "EVENT_MANAGEMENT_USER",
-      "GENERAL_STUDENT",
       "COMPLAINT_REVIEW_AUTHORITY",
     ],
+  },
+  {
+    href: "/dashboard/payments",
+    label: "Verification",
+    description: "Payment proof queue and review",
+    icon: BadgeCheck,
+    roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"],
+  },
+  {
+    href: "/dashboard/income-records",
+    label: "Income records",
+    description: "Manual income tracking and evidence",
+    icon: Coins,
+    roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"],
+  },
+  {
+    href: "/dashboard/budgets",
+    label: "Budgets",
+    description: "Budget versions and activation",
+    icon: WalletCards,
+    roles: [
+      "SYSTEM_ADMIN",
+      "FINANCIAL_CONTROLLER",
+      "ORGANIZATIONAL_APPROVER",
+      "EVENT_MANAGEMENT_USER",
+    ],
+  },
+  {
+    href: "/dashboard/budget-requests",
+    label: "Budget requests",
+    description: "Requested funding and review trail",
+    icon: ClipboardList,
+    roles: [
+      "SYSTEM_ADMIN",
+      "FINANCIAL_CONTROLLER",
+      "ORGANIZATIONAL_APPROVER",
+      "EVENT_MANAGEMENT_USER",
+    ],
+  },
+  {
+    href: "/dashboard/expense-requests",
+    label: "Expense requests",
+    description: "Requested spending before settlement",
+    icon: BriefcaseBusiness,
+    roles: [
+      "SYSTEM_ADMIN",
+      "FINANCIAL_CONTROLLER",
+      "ORGANIZATIONAL_APPROVER",
+      "EVENT_MANAGEMENT_USER",
+    ],
+  },
+  {
+    href: "/dashboard/expense-records",
+    label: "Expense records",
+    description: "Recorded and settled spending",
+    icon: ReceiptText,
+    roles: [
+      "SYSTEM_ADMIN",
+      "FINANCIAL_CONTROLLER",
+      "ORGANIZATIONAL_APPROVER",
+      "EVENT_MANAGEMENT_USER",
+    ],
+  },
+  {
+    href: "/dashboard/approvals",
+    label: "Approvals",
+    description: "Decision queue and separation of duties",
+    icon: ClipboardCheck,
+    roles: ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"],
+  },
+  {
+    href: "/dashboard/complaints",
+    label: "Complaints",
+    description: "Protected review, routing, and escalation",
+    icon: ShieldEllipsis,
+    roles: ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER", "COMPLAINT_REVIEW_AUTHORITY"],
+  },
+  {
+    href: "/dashboard/reconciliation",
+    label: "Reconciliation",
+    description: "Closure reports and warning checks",
+    icon: Files,
+    roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER"],
+  },
+  {
+    href: "/dashboard/publications",
+    label: "Publications",
+    description: "Public-safe release boundary",
+    icon: Globe2,
+    roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER"],
+  },
+  {
+    href: "/dashboard/audit",
+    label: "Audit",
+    description: "Protected logs and trace detail",
+    icon: Archive,
+    roles: ["SYSTEM_ADMIN"],
   },
   {
     href: "/dashboard/controls",
@@ -104,13 +212,6 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
       "EVENT_MANAGEMENT_USER",
       "COMPLAINT_REVIEW_AUTHORITY",
     ],
-  },
-  {
-    href: "/dashboard/publications",
-    label: "Publications",
-    description: "Public-safe release boundary",
-    icon: Globe2,
-    roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER"],
   },
 ];
 
@@ -136,7 +237,13 @@ export const dashboardSupportLinks = [
   {
     title: "Operational notes",
     description:
-      "Foundation routes are placeholders for future business pages, not the final full app.",
+      "Queues, approvals, complaints, and publication steps are now tied to live backend routes.",
+    icon: Megaphone,
+  },
+  {
+    title: "Control language",
+    description:
+      "The internal shell uses one consistent review pattern: list, detail, action, and audit trail.",
     icon: BookOpenText,
   },
 ] as const;

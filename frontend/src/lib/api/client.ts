@@ -37,3 +37,19 @@ export function postFormData<T>(path: string, formData: FormData) {
     body: formData,
   });
 }
+
+export function patchJson<T>(path: string, body: unknown) {
+  return apiFetchClient<T>(path, {
+    method: "PATCH",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+export function postEmpty<T>(path: string) {
+  return apiFetchClient<T>(path, {
+    method: "POST",
+  });
+}

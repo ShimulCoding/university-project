@@ -186,18 +186,32 @@ export default async function DashboardPublicationsPage({
                     })}
                     className={
                       report.id === selectedReportId
-                        ? "focus-ring block rounded-[1.1rem] border border-primary/20 bg-panel-muted px-4 py-4 text-primary transition-colors"
+                        ? "focus-ring block rounded-[1.1rem] border border-primary/20 bg-panel-muted px-4 py-4 transition-colors"
                         : "focus-ring block rounded-[1.1rem] border border-border/70 bg-panel px-4 py-4 transition-colors hover:border-primary/20 hover:bg-panel-muted"
                     }
                     aria-current={report.id === selectedReportId ? "page" : undefined}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="font-semibold text-foreground">{report.event.title}</div>
+                      <div
+                        className={
+                          report.id === selectedReportId
+                            ? "font-semibold text-primary"
+                            : "font-semibold text-foreground"
+                        }
+                      >
+                        {report.event.title}
+                      </div>
                       <Badge variant={getEventStatusTone(report.event.status)}>
                         {formatEnumLabel(report.event.status)}
                       </Badge>
                     </div>
-                    <div className="mt-2 text-sm text-muted-foreground">
+                    <div
+                      className={
+                        report.id === selectedReportId
+                          ? "mt-2 text-sm text-primary/80"
+                          : "mt-2 text-sm text-muted-foreground"
+                      }
+                    >
                       {formatMoney(report.totalIncome)} collected / {formatMoney(report.totalExpense)} spent
                     </div>
                   </Link>
@@ -295,7 +309,7 @@ export default async function DashboardPublicationsPage({
           </Card>
 
           {canPublish && selectedReport && isPublishEligible && !publishedForSelected ? (
-            <PublishSummaryButton reportId={selectedReport.id} />
+            <PublishSummaryButton key={`publish-${selectedReport.id}`} reportId={selectedReport.id} />
           ) : null}
         </div>
       </div>

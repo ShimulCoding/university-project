@@ -8,6 +8,7 @@ import {
   listBudgetRequests,
   listInternalEventOptions,
 } from "@/lib/api/internal";
+import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
 import {
   formatDateTime,
@@ -54,8 +55,11 @@ export default async function BudgetRequestsPage({
       listBudgetRequests({ eventId, state }),
       listInternalEventOptions(),
     ]);
-    const selectedRequest =
-      budgetRequestId ? await getBudgetRequest(budgetRequestId) : budgetRequests[0] ?? null;
+    const selectedBudgetRequestId =
+      budgetRequests.find((request) => request.id === budgetRequestId)?.id ?? budgetRequests[0]?.id;
+    const selectedRequest = selectedBudgetRequestId
+      ? await getBudgetRequest(selectedBudgetRequestId)
+      : null;
 
     return (
       <>
@@ -129,11 +133,23 @@ export default async function BudgetRequestsPage({
                   </TableHeader>
                   <TableBody>
                     {budgetRequests.map((request) => (
-                      <TableRow key={request.id}>
+                      <TableRow
+                        key={request.id}
+                        data-state={request.id === selectedBudgetRequestId ? "selected" : undefined}
+                      >
                         <TableCell className="align-top">
                           <Link
-                            href={`/dashboard/budget-requests?budgetRequestId=${request.id}`}
-                            className="font-semibold text-foreground hover:text-primary"
+                            href={buildRelativeHref("/dashboard/budget-requests", params, {
+                              budgetRequestId: request.id,
+                            })}
+                            className={
+                              request.id === selectedBudgetRequestId
+                                ? "focus-ring rounded-sm font-semibold text-primary"
+                                : "focus-ring rounded-sm font-semibold text-foreground hover:text-primary hover:underline"
+                            }
+                            aria-current={
+                              request.id === selectedBudgetRequestId ? "page" : undefined
+                            }
                           >
                             {request.purpose}
                           </Link>
@@ -158,7 +174,7 @@ export default async function BudgetRequestsPage({
 
           <div className="space-y-6">
             {selectedRequest ? (
-              <>
+              <div key={selectedRequest.id} className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl">Selected request</CardTitle>
@@ -214,7 +230,7 @@ export default async function BudgetRequestsPage({
                     </CardContent>
                   </Card>
                 ) : null}
-              </>
+              </div>
             ) : null}
           </div>
         </div>

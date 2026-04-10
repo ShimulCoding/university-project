@@ -193,7 +193,7 @@ export default async function DashboardOverviewPage() {
         {metrics.map((metric) => (
           <Card key={metric.label}>
             <div className="data-kicker">{metric.label}</div>
-            <div className="mt-4 text-3xl font-semibold text-primary">{metric.value}</div>
+            <div className="metric-figure mt-4">{metric.value}</div>
             <div className="mt-3 text-sm leading-6 text-muted-foreground">{metric.detail}</div>
           </Card>
         ))}

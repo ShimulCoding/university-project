@@ -6,6 +6,7 @@ import {
   listIncomeRecords,
   listInternalEventOptions,
 } from "@/lib/api/internal";
+import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
 import {
   formatDate,
@@ -52,8 +53,11 @@ export default async function IncomeRecordsPage({
       listInternalEventOptions(),
     ]);
 
-    const selectedIncome =
-      incomeRecordId ? await getIncomeRecord(incomeRecordId) : incomeRecords[0] ?? null;
+    const selectedIncomeRecordId =
+      incomeRecords.find((record) => record.id === incomeRecordId)?.id ?? incomeRecords[0]?.id;
+    const selectedIncome = selectedIncomeRecordId
+      ? await getIncomeRecord(selectedIncomeRecordId)
+      : null;
 
     return (
       <>
@@ -117,11 +121,25 @@ export default async function IncomeRecordsPage({
                   </TableHeader>
                   <TableBody>
                     {incomeRecords.map((record) => (
-                      <TableRow key={record.id}>
+                      <TableRow
+                        key={record.id}
+                        data-state={
+                          record.id === selectedIncomeRecordId ? "selected" : undefined
+                        }
+                      >
                         <TableCell className="align-top">
                           <Link
-                            href={`/dashboard/income-records?incomeRecordId=${record.id}`}
-                            className="font-semibold text-foreground hover:text-primary"
+                            href={buildRelativeHref("/dashboard/income-records", params, {
+                              incomeRecordId: record.id,
+                            })}
+                            className={
+                              record.id === selectedIncomeRecordId
+                                ? "focus-ring rounded-sm font-semibold text-primary"
+                                : "focus-ring rounded-sm font-semibold text-foreground hover:text-primary hover:underline"
+                            }
+                            aria-current={
+                              record.id === selectedIncomeRecordId ? "page" : undefined
+                            }
                           >
                             {record.sourceLabel}
                           </Link>
@@ -146,7 +164,7 @@ export default async function IncomeRecordsPage({
 
           <div className="space-y-6">
             {selectedIncome ? (
-              <>
+              <div key={selectedIncome.id} className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl">Selected income record</CardTitle>
@@ -198,7 +216,7 @@ export default async function IncomeRecordsPage({
                   title="Protected evidence"
                   emptyMessage="This income record does not yet have an attached evidence file."
                 />
-              </>
+              </div>
             ) : null}
             <IncomeRecordForm events={events} />
           </div>

@@ -18,7 +18,7 @@ export function useActionState() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRoutingPending, startTransition] = useTransition();
   const router = useRouter();
-  const isPending = isSubmitting || isRoutingPending;
+  const isPending = isSubmitting;
 
   const clearFeedback = () => setFeedback({ message: null, tone: null });
 
@@ -44,6 +44,7 @@ export function useActionState() {
   return {
     feedback,
     isPending,
+    isRefreshing: isRoutingPending,
     clearFeedback,
     runAction,
   };

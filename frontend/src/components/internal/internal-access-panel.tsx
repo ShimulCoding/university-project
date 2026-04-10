@@ -36,8 +36,8 @@ export function InternalAccessPanel() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRoutingPending, startTransition] = useTransition();
-  const isBusy = isSubmitting || isRoutingPending;
+  const [, startTransition] = useTransition();
+  const isBusy = isSubmitting;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -52,6 +52,7 @@ export function InternalAccessPanel() {
       });
 
       setSuccessMessage("Signed in successfully. Loading the internal workspace...");
+      setIsSubmitting(false);
 
       startTransition(() => {
         router.refresh();

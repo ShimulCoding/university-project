@@ -21,8 +21,8 @@ export function RegistrationForm({ event }: { event: PublicEvent }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRoutingPending, startTransition] = useTransition();
-  const isBusy = isSubmitting || isRoutingPending;
+  const [, startTransition] = useTransition();
+  const isBusy = isSubmitting;
 
   const clearFieldError = (field: keyof RegistrationFieldErrors) => {
     setErrorMessage(null);
@@ -65,6 +65,7 @@ export function RegistrationForm({ event }: { event: PublicEvent }) {
       });
 
       setSuccessMessage("Registration created. Opening your private registration status...");
+      setIsSubmitting(false);
 
       startTransition(() => {
         router.push(`/registrations/${response.registration.id}`);

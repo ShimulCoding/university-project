@@ -4,6 +4,7 @@ import { AlertTriangle, SearchSlash, ShieldAlert } from "lucide-react";
 import { getCurrentUser } from "@/lib/api/student";
 import { hasAnyRole } from "@/lib/access";
 import { getBudget, listBudgets, listInternalEventOptions } from "@/lib/api/internal";
+import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
 import {
   formatDateTime,
@@ -49,7 +50,8 @@ export default async function BudgetsPage({
       listBudgets({ eventId, state, isActive }),
       listInternalEventOptions(),
     ]);
-    const selectedBudget = budgetId ? await getBudget(budgetId) : budgets[0] ?? null;
+    const selectedBudgetId = budgets.find((budget) => budget.id === budgetId)?.id ?? budgets[0]?.id;
+    const selectedBudget = selectedBudgetId ? await getBudget(selectedBudgetId) : null;
 
     return (
       <>
@@ -132,11 +134,21 @@ export default async function BudgetsPage({
                   </TableHeader>
                   <TableBody>
                     {budgets.map((budget) => (
-                      <TableRow key={budget.id}>
+                      <TableRow
+                        key={budget.id}
+                        data-state={budget.id === selectedBudgetId ? "selected" : undefined}
+                      >
                         <TableCell className="align-top">
                           <Link
-                            href={`/dashboard/budgets?budgetId=${budget.id}`}
-                            className="font-semibold text-foreground hover:text-primary"
+                            href={buildRelativeHref("/dashboard/budgets", params, {
+                              budgetId: budget.id,
+                            })}
+                            className={
+                              budget.id === selectedBudgetId
+                                ? "focus-ring rounded-sm font-semibold text-primary"
+                                : "focus-ring rounded-sm font-semibold text-foreground hover:text-primary hover:underline"
+                            }
+                            aria-current={budget.id === selectedBudgetId ? "page" : undefined}
                           >
                             v{budget.version}
                             {budget.title ? ` - ${budget.title}` : ""}
@@ -164,7 +176,7 @@ export default async function BudgetsPage({
 
           <div className="space-y-6">
             {selectedBudget ? (
-              <>
+              <div key={selectedBudget.id} className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl">Selected budget version</CardTitle>
@@ -247,7 +259,7 @@ export default async function BudgetsPage({
                     </CardContent>
                   </Card>
                 )}
-              </>
+              </div>
             ) : null}
           </div>
         </div>

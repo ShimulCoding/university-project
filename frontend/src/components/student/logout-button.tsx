@@ -21,8 +21,8 @@ export function LogoutButton({
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRoutingPending, startTransition] = useTransition();
-  const isBusy = isSubmitting || isRoutingPending;
+  const [, startTransition] = useTransition();
+  const isBusy = isSubmitting;
 
   const handleLogout = async () => {
     try {
@@ -31,6 +31,7 @@ export function LogoutButton({
       await apiFetchClient("/auth/logout", {
         method: "POST",
       });
+      setIsSubmitting(false);
       startTransition(() => {
         if (redirectTo) {
           router.replace(redirectTo);

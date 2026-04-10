@@ -8,6 +8,7 @@ import {
   getReconciliationReport,
   listReconciliationReports,
 } from "@/lib/api/internal";
+import { buildRelativeHref } from "@/lib/detail-query";
 import {
   formatDateTime,
   formatEnumLabel,
@@ -63,9 +64,8 @@ export default async function DashboardPublicationsPage({
   const latestPublishedSummaries = getLatestPublishedSummariesPerEvent(publishedSummaries);
   const historicalPublishedSnapshotCount =
     getHistoricalPublishedSnapshotCount(publishedSummaries);
-  const selectedReport = reportId
-    ? await getReconciliationReport(reportId)
-    : reports[0] ?? null;
+  const selectedReportId = reports.find((report) => report.id === reportId)?.id ?? reports[0]?.id;
+  const selectedReport = selectedReportId ? await getReconciliationReport(selectedReportId) : null;
   const publishedForSelected = selectedReport
     ? publishedSummaries.find((summary) => summary.reconciliation.reportId === selectedReport.id) ??
       null
@@ -107,19 +107,19 @@ export default async function DashboardPublicationsPage({
           <CardContent className="grid gap-4 md:grid-cols-3">
             <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
               <div className="data-kicker">Collected</div>
-              <div className="mt-2 text-2xl font-semibold text-foreground">
+              <div className="amount-figure mt-2">
                 {selectedReport ? formatMoney(selectedReport.totalIncome) : "Not ready"}
               </div>
             </div>
             <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
               <div className="data-kicker">Spent</div>
-              <div className="mt-2 text-2xl font-semibold text-foreground">
+              <div className="amount-figure mt-2">
                 {selectedReport ? formatMoney(selectedReport.totalExpense) : "Not ready"}
               </div>
             </div>
             <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
               <div className="data-kicker">Closing balance</div>
-              <div className="mt-2 text-2xl font-semibold text-foreground">
+              <div className="amount-figure mt-2">
                 {selectedReport ? formatMoney(selectedReport.closingBalance) : "Not ready"}
               </div>
             </div>
@@ -181,8 +181,15 @@ export default async function DashboardPublicationsPage({
                 reports.map((report) => (
                   <Link
                     key={report.id}
-                    href={`/dashboard/publications?reportId=${report.id}`}
-                    className="block rounded-[1.1rem] border border-border/70 bg-panel px-4 py-4 transition-colors hover:border-primary/20 hover:bg-panel-muted"
+                    href={buildRelativeHref("/dashboard/publications", params, {
+                      reportId: report.id,
+                    })}
+                    className={
+                      report.id === selectedReportId
+                        ? "focus-ring block rounded-[1.1rem] border border-primary/20 bg-panel-muted px-4 py-4 text-primary transition-colors"
+                        : "focus-ring block rounded-[1.1rem] border border-border/70 bg-panel px-4 py-4 transition-colors hover:border-primary/20 hover:bg-panel-muted"
+                    }
+                    aria-current={report.id === selectedReportId ? "page" : undefined}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="font-semibold text-foreground">{report.event.title}</div>

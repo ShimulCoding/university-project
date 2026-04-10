@@ -6,6 +6,7 @@ import {
   listComplaintReviewQueue,
   listInternalEventOptions,
 } from "@/lib/api/internal";
+import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
 import { formatDateTime, formatEnumLabel, getComplaintStateTone } from "@/lib/format";
 import { ComplaintWorkflowPanel } from "@/components/internal/complaints-actions";
@@ -46,11 +47,9 @@ export default async function ComplaintsPage({
       listComplaintReviewQueue({ eventId, state, search }),
       listInternalEventOptions(),
     ]);
-    const selectedComplaint = complaintId
-      ? await getComplaint(complaintId)
-      : complaints[0]
-        ? await getComplaint(complaints[0].id)
-        : null;
+    const selectedComplaintId =
+      complaints.find((item) => item.id === complaintId)?.id ?? complaints[0]?.id;
+    const selectedComplaint = selectedComplaintId ? await getComplaint(selectedComplaintId) : null;
 
     return (
       <>
@@ -129,11 +128,23 @@ export default async function ComplaintsPage({
                   </TableHeader>
                   <TableBody>
                     {complaints.map((complaint) => (
-                      <TableRow key={complaint.id}>
+                      <TableRow
+                        key={complaint.id}
+                        data-state={complaint.id === selectedComplaintId ? "selected" : undefined}
+                      >
                         <TableCell className="align-top">
                           <Link
-                            href={`/dashboard/complaints?complaintId=${complaint.id}`}
-                            className="font-semibold text-foreground hover:text-primary"
+                            href={buildRelativeHref("/dashboard/complaints", params, {
+                              complaintId: complaint.id,
+                            })}
+                            className={
+                              complaint.id === selectedComplaintId
+                                ? "focus-ring rounded-sm font-semibold text-primary"
+                                : "focus-ring rounded-sm font-semibold text-foreground hover:text-primary hover:underline"
+                            }
+                            aria-current={
+                              complaint.id === selectedComplaintId ? "page" : undefined
+                            }
                           >
                             {complaint.subject}
                           </Link>
@@ -158,7 +169,7 @@ export default async function ComplaintsPage({
 
           <div className="space-y-6">
             {selectedComplaint ? (
-              <>
+              <div key={selectedComplaint.id} className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl">Selected complaint</CardTitle>
@@ -207,7 +218,7 @@ export default async function ComplaintsPage({
                 />
                 <ComplaintRoutingCard routingHistory={selectedComplaint.routingHistory} />
                 <ComplaintWorkflowPanel complaintId={selectedComplaint.id} />
-              </>
+              </div>
             ) : (
               <Card tone="muted">
                 <CardHeader>

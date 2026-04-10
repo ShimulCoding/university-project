@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, CreditCard, SearchSlash, ShieldAlert } from "lucide-react";
 
 import { listInternalEventOptions, listPaymentVerificationQueue } from "@/lib/api/internal";
+import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
 import { formatDateTime, formatEnumLabel, formatMoney, getPaymentStateTone } from "@/lib/format";
 import { PaymentDecisionForm } from "@/components/internal/payments-actions";
@@ -41,6 +42,7 @@ export default async function PaymentVerificationQueuePage({
       listInternalEventOptions(),
     ]);
     const selectedProof = queue.find((item) => item.id === proofId) ?? queue[0] ?? null;
+    const selectedProofId = selectedProof?.id;
 
     return (
       <>
@@ -105,11 +107,21 @@ export default async function PaymentVerificationQueuePage({
                   </TableHeader>
                   <TableBody>
                     {queue.map((item) => (
-                      <TableRow key={item.id}>
+                      <TableRow
+                        key={item.id}
+                        data-state={item.id === selectedProofId ? "selected" : undefined}
+                      >
                         <TableCell className="align-top">
                           <Link
-                            href={`/dashboard/payments?proofId=${item.id}`}
-                            className="font-semibold text-foreground hover:text-primary"
+                            href={buildRelativeHref("/dashboard/payments", params, {
+                              proofId: item.id,
+                            })}
+                            className={
+                              item.id === selectedProofId
+                                ? "focus-ring rounded-sm font-semibold text-primary"
+                                : "focus-ring rounded-sm font-semibold text-foreground hover:text-primary hover:underline"
+                            }
+                            aria-current={item.id === selectedProofId ? "page" : undefined}
                           >
                             {item.registration.participantName}
                           </Link>
@@ -135,7 +147,7 @@ export default async function PaymentVerificationQueuePage({
 
           <div className="space-y-6">
             {!selectedProof ? null : (
-              <>
+              <div key={selectedProof.id} className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl">Selected proof</CardTitle>
@@ -189,7 +201,7 @@ export default async function PaymentVerificationQueuePage({
                   emptyMessage="No proof file is attached to this submission."
                 />
                 <PaymentDecisionForm paymentProofId={selectedProof.id} />
-              </>
+              </div>
             )}
 
             <Card tone="muted">

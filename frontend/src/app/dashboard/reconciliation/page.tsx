@@ -13,6 +13,7 @@ import {
   listInternalEventOptions,
   listReconciliationReports,
 } from "@/lib/api/internal";
+import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
 import {
   formatDateTime,
@@ -66,9 +67,8 @@ export default async function ReconciliationPage({
       listReconciliationReports({ eventId, status }),
       listInternalEventOptions(),
     ]);
-    const selectedReport = reportId
-      ? await getReconciliationReport(reportId)
-      : reports[0] ?? null;
+    const selectedReportId = reports.find((report) => report.id === reportId)?.id ?? reports[0]?.id;
+    const selectedReport = selectedReportId ? await getReconciliationReport(selectedReportId) : null;
     const hasPublishedSnapshot =
       selectedReport?.publicSummarySnapshots.some((snapshot) => snapshot.status === "PUBLISHED") ??
       false;
@@ -146,11 +146,21 @@ export default async function ReconciliationPage({
                   </TableHeader>
                   <TableBody>
                     {reports.map((report) => (
-                      <TableRow key={report.id}>
+                      <TableRow
+                        key={report.id}
+                        data-state={report.id === selectedReportId ? "selected" : undefined}
+                      >
                         <TableCell className="align-top">
                           <Link
-                            href={`/dashboard/reconciliation?reportId=${report.id}`}
-                            className="font-semibold text-foreground hover:text-primary"
+                            href={buildRelativeHref("/dashboard/reconciliation", params, {
+                              reportId: report.id,
+                            })}
+                            className={
+                              report.id === selectedReportId
+                                ? "focus-ring rounded-sm font-semibold text-primary"
+                                : "focus-ring rounded-sm font-semibold text-foreground hover:text-primary hover:underline"
+                            }
+                            aria-current={report.id === selectedReportId ? "page" : undefined}
                           >
                             {report.event.title}
                           </Link>
@@ -182,7 +192,7 @@ export default async function ReconciliationPage({
 
           <div className="space-y-6">
             {selectedReport ? (
-              <>
+              <div key={selectedReport.id} className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl">Selected report</CardTitle>
@@ -359,7 +369,7 @@ export default async function ReconciliationPage({
                     tone="warning"
                   />
                 ) : null}
-              </>
+              </div>
             ) : null}
           </div>
         </div>

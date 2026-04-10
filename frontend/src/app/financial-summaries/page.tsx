@@ -54,7 +54,7 @@ export default async function FinancialSummariesPage() {
             <div className="grid gap-4 md:grid-cols-3">
               <Card tone="muted" className="flex h-full flex-col justify-between">
                 <div className="data-kicker">Published events</div>
-                <div className="mt-4 text-3xl font-semibold text-primary">
+                <div className="metric-figure mt-4">
                   {latestSummaries.length}
                 </div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -72,7 +72,7 @@ export default async function FinancialSummariesPage() {
               </Card>
               <Card tone="muted" className="flex h-full flex-col justify-between">
                 <div className="data-kicker">Historical snapshots</div>
-                <div className="mt-4 text-3xl font-semibold text-primary">
+                <div className="metric-figure mt-4">
                   {historicalSnapshotCount}
                 </div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">

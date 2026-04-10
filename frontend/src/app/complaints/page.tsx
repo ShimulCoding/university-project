@@ -73,50 +73,62 @@ export default async function MyComplaintsPage() {
                   }
                 />
               ) : (
-                complaints.map((complaint) => (
-                  <Card key={complaint.id}>
-                    <CardHeader>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={getComplaintStateTone(complaint.state)}>
-                          {formatEnumLabel(complaint.state)}
-                        </Badge>
-                        {complaint.event ? (
-                          <Badge variant="neutral">{complaint.event.title}</Badge>
-                        ) : (
-                          <Badge variant="neutral">General complaint</Badge>
-                        )}
-                      </div>
-                      <CardTitle className="mt-4 text-xl">{complaint.subject}</CardTitle>
-                      <CardDescription>{complaint.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm text-muted-foreground">
-                          Submitted {formatDateTime(complaint.createdAt)}
+                complaints.map((complaint) => {
+                  const latestRouting = complaint.routingHistory.at(-1);
+
+                  return (
+                    <Card key={complaint.id}>
+                      <CardHeader>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant={getComplaintStateTone(complaint.state)}>
+                            {formatEnumLabel(complaint.state)}
+                          </Badge>
+                          {complaint.event ? (
+                            <Badge variant="neutral">{complaint.event.title}</Badge>
+                          ) : (
+                            <Badge variant="neutral">General complaint</Badge>
+                          )}
                         </div>
-                        <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm text-muted-foreground">
-                          Evidence files: {complaint.evidence.length}
-                        </div>
-                      </div>
-                      {complaint.routingHistory.length > 0 ? (
-                        <div className="rounded-[1rem] border border-border/70 bg-panel px-4 py-4">
-                          <div className="data-kicker">Routing history</div>
-                          <div className="mt-3 space-y-3">
-                            {complaint.routingHistory.map((routing) => (
-                              <div key={routing.id} className="text-sm leading-6 text-muted-foreground">
-                                <span className="font-medium text-foreground">
-                                  {formatEnumLabel(routing.state)}
-                                </span>{" "}
-                                on {formatDateTime(routing.createdAt)}
-                                {routing.toRole ? ` to ${routing.toRole.name}` : ""}
-                              </div>
-                            ))}
+                        <CardTitle className="mt-4 text-xl">{complaint.subject}</CardTitle>
+                        <CardDescription>{complaint.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-3 md:grid-cols-3">
+                          <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm text-muted-foreground">
+                            Submitted {formatDateTime(complaint.createdAt)}
+                          </div>
+                          <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm text-muted-foreground">
+                            {latestRouting
+                              ? `${formatEnumLabel(latestRouting.state)} on ${formatDateTime(latestRouting.createdAt)}`
+                              : "Awaiting internal review update"}
+                          </div>
+                          <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm text-muted-foreground">
+                            Evidence files: {complaint.evidence.length}
                           </div>
                         </div>
-                      ) : null}
-                    </CardContent>
-                  </Card>
-                ))
+                        {complaint.routingHistory.length > 0 ? (
+                          <div className="rounded-[1rem] border border-border/70 bg-panel px-4 py-4">
+                            <div className="data-kicker">Routing history</div>
+                            <div className="mt-3 space-y-3">
+                              {complaint.routingHistory.map((routing) => (
+                                <div
+                                  key={routing.id}
+                                  className="text-sm leading-6 text-muted-foreground"
+                                >
+                                  <span className="font-medium text-foreground">
+                                    {formatEnumLabel(routing.state)}
+                                  </span>{" "}
+                                  on {formatDateTime(routing.createdAt)}
+                                  {routing.toRole ? ` to ${routing.toRole.name}` : ""}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                      </CardContent>
+                    </Card>
+                  );
+                })
               )}
             </div>
 

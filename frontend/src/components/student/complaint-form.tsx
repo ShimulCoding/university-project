@@ -23,8 +23,8 @@ export function ComplaintForm({ events }: { events: PublicEvent[] }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRoutingPending, startTransition] = useTransition();
-  const isBusy = isSubmitting || isRoutingPending;
+  const [, startTransition] = useTransition();
+  const isBusy = isSubmitting;
 
   const initialEventId = searchParams.get("eventId") ?? "";
 
@@ -77,6 +77,7 @@ export function ComplaintForm({ events }: { events: PublicEvent[] }) {
 
       formRef.current?.reset();
       setSuccessMessage("Complaint submitted. Opening your complaint history...");
+      setIsSubmitting(false);
       startTransition(() => {
         router.push("/complaints");
         router.refresh();

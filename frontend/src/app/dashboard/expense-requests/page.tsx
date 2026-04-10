@@ -8,6 +8,7 @@ import {
   listExpenseRequests,
   listInternalEventOptions,
 } from "@/lib/api/internal";
+import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
 import {
   formatDateTime,
@@ -55,8 +56,11 @@ export default async function ExpenseRequestsPage({
       listExpenseRequests({ eventId, state }),
       listInternalEventOptions(),
     ]);
-    const selectedRequest =
-      expenseRequestId ? await getExpenseRequest(expenseRequestId) : expenseRequests[0] ?? null;
+    const selectedExpenseRequestId =
+      expenseRequests.find((request) => request.id === expenseRequestId)?.id ?? expenseRequests[0]?.id;
+    const selectedRequest = selectedExpenseRequestId
+      ? await getExpenseRequest(selectedExpenseRequestId)
+      : null;
 
     return (
       <>
@@ -130,11 +134,25 @@ export default async function ExpenseRequestsPage({
                   </TableHeader>
                   <TableBody>
                     {expenseRequests.map((request) => (
-                      <TableRow key={request.id}>
+                      <TableRow
+                        key={request.id}
+                        data-state={
+                          request.id === selectedExpenseRequestId ? "selected" : undefined
+                        }
+                      >
                         <TableCell className="align-top">
                           <Link
-                            href={`/dashboard/expense-requests?expenseRequestId=${request.id}`}
-                            className="font-semibold text-foreground hover:text-primary"
+                            href={buildRelativeHref("/dashboard/expense-requests", params, {
+                              expenseRequestId: request.id,
+                            })}
+                            className={
+                              request.id === selectedExpenseRequestId
+                                ? "focus-ring rounded-sm font-semibold text-primary"
+                                : "focus-ring rounded-sm font-semibold text-foreground hover:text-primary hover:underline"
+                            }
+                            aria-current={
+                              request.id === selectedExpenseRequestId ? "page" : undefined
+                            }
                           >
                             {request.purpose}
                           </Link>
@@ -159,7 +177,7 @@ export default async function ExpenseRequestsPage({
 
           <div className="space-y-6">
             {selectedRequest ? (
-              <>
+              <div key={selectedRequest.id} className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl">Selected request</CardTitle>
@@ -235,7 +253,7 @@ export default async function ExpenseRequestsPage({
                     </CardContent>
                   </Card>
                 ) : null}
-              </>
+              </div>
             ) : null}
           </div>
         </div>

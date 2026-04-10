@@ -9,6 +9,7 @@ import {
   listExpenseRequests,
   listInternalEventOptions,
 } from "@/lib/api/internal";
+import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
 import {
   formatDate,
@@ -56,8 +57,11 @@ export default async function ExpenseRecordsPage({
       listInternalEventOptions(),
       listExpenseRequests({ state: "APPROVED" }),
     ]);
-    const selectedRecord =
-      expenseRecordId ? await getExpenseRecord(expenseRecordId) : expenseRecords[0] ?? null;
+    const selectedExpenseRecordId =
+      expenseRecords.find((record) => record.id === expenseRecordId)?.id ?? expenseRecords[0]?.id;
+    const selectedRecord = selectedExpenseRecordId
+      ? await getExpenseRecord(selectedExpenseRecordId)
+      : null;
 
     return (
       <>
@@ -128,11 +132,25 @@ export default async function ExpenseRecordsPage({
                   </TableHeader>
                   <TableBody>
                     {expenseRecords.map((record) => (
-                      <TableRow key={record.id}>
+                      <TableRow
+                        key={record.id}
+                        data-state={
+                          record.id === selectedExpenseRecordId ? "selected" : undefined
+                        }
+                      >
                         <TableCell className="align-top">
                           <Link
-                            href={`/dashboard/expense-records?expenseRecordId=${record.id}`}
-                            className="font-semibold text-foreground hover:text-primary"
+                            href={buildRelativeHref("/dashboard/expense-records", params, {
+                              expenseRecordId: record.id,
+                            })}
+                            className={
+                              record.id === selectedExpenseRecordId
+                                ? "focus-ring rounded-sm font-semibold text-primary"
+                                : "focus-ring rounded-sm font-semibold text-foreground hover:text-primary hover:underline"
+                            }
+                            aria-current={
+                              record.id === selectedExpenseRecordId ? "page" : undefined
+                            }
                           >
                             {record.description}
                           </Link>
@@ -155,7 +173,7 @@ export default async function ExpenseRecordsPage({
 
           <div className="space-y-6">
             {selectedRecord ? (
-              <>
+              <div key={selectedRecord.id} className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl">Selected expense record</CardTitle>
@@ -227,7 +245,7 @@ export default async function ExpenseRecordsPage({
                     </CardContent>
                   </Card>
                 )}
-              </>
+              </div>
             ) : null}
           </div>
         </div>

@@ -7,6 +7,7 @@ import {
   listInternalEventOptions,
   listApprovalQueue,
 } from "@/lib/api/internal";
+import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
 import {
   formatDateTime,
@@ -126,11 +127,33 @@ export default async function ApprovalsPage({
                   </TableHeader>
                   <TableBody>
                     {queue.map((item) => (
-                      <TableRow key={`${item.entityType}-${item.entityId}`}>
+                      <TableRow
+                        key={`${item.entityType}-${item.entityId}`}
+                        data-state={
+                          item.entityId === selectedItem?.entityId &&
+                          item.entityType === selectedItem.entityType
+                            ? "selected"
+                            : undefined
+                        }
+                      >
                         <TableCell className="align-top">
                           <Link
-                            href={`/dashboard/approvals?entityType=${item.entityType}&entityId=${item.entityId}`}
-                            className="font-semibold text-foreground hover:text-primary"
+                            href={buildRelativeHref("/dashboard/approvals", params, {
+                              entityType: item.entityType,
+                              entityId: item.entityId,
+                            })}
+                            className={
+                              item.entityId === selectedItem?.entityId &&
+                              item.entityType === selectedItem.entityType
+                                ? "focus-ring rounded-sm font-semibold text-primary"
+                                : "focus-ring rounded-sm font-semibold text-foreground hover:text-primary hover:underline"
+                            }
+                            aria-current={
+                              item.entityId === selectedItem?.entityId &&
+                              item.entityType === selectedItem.entityType
+                                ? "page"
+                                : undefined
+                            }
                           >
                             {formatEnumLabel(item.entityType)}
                           </Link>
@@ -155,7 +178,10 @@ export default async function ApprovalsPage({
 
           <div className="space-y-6">
             {selectedItem && selectedRecord ? (
-              <>
+              <div
+                key={`${selectedItem.entityType}-${selectedItem.entityId}`}
+                className="space-y-6"
+              >
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl">Selected approval target</CardTitle>
@@ -193,7 +219,7 @@ export default async function ApprovalsPage({
                 <SupportingDocumentList documents={selectedRecord.documents} />
                 <DecisionHistoryCard decisions={selectedRecord.approvalDecisions} />
                 <ApprovalDecisionForm item={selectedItem} />
-              </>
+              </div>
             ) : null}
           </div>
         </div>

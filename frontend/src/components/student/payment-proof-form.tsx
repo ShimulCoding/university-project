@@ -22,8 +22,8 @@ export function PaymentProofForm({ registrationId }: { registrationId: string })
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRoutingPending, startTransition] = useTransition();
-  const isBusy = isSubmitting || isRoutingPending;
+  const [, startTransition] = useTransition();
+  const isBusy = isSubmitting;
 
   const clearFieldError = (field: keyof PaymentProofFieldErrors) => {
     setErrorMessage(null);
@@ -95,6 +95,7 @@ export function PaymentProofForm({ registrationId }: { registrationId: string })
 
       formRef.current?.reset();
       setSuccessMessage("Payment proof submitted. Opening your registration status...");
+      setIsSubmitting(false);
       startTransition(() => {
         router.push(`/registrations/${registrationId}`);
         router.refresh();

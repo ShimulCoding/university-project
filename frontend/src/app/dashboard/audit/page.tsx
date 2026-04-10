@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert } from "lucide-react";
 
 import { getAuditLog, listAuditLogs } from "@/lib/api/internal";
+import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
 import { formatDateTime } from "@/lib/format";
 import { FilterCard } from "@/components/internal/filter-card";
@@ -36,7 +37,8 @@ export default async function AuditPage({
 
   try {
     const logs = await listAuditLogs({ actorId, entityType, entityId, limit });
-    const selectedLog = auditLogId ? await getAuditLog(auditLogId) : logs[0] ?? null;
+    const selectedAuditLogId = logs.find((log) => log.id === auditLogId)?.id ?? logs[0]?.id;
+    const selectedLog = selectedAuditLogId ? await getAuditLog(selectedAuditLogId) : null;
 
     return (
       <>
@@ -100,11 +102,21 @@ export default async function AuditPage({
                   </TableHeader>
                   <TableBody>
                     {logs.map((log) => (
-                      <TableRow key={log.id}>
+                      <TableRow
+                        key={log.id}
+                        data-state={log.id === selectedAuditLogId ? "selected" : undefined}
+                      >
                         <TableCell className="align-top">
                           <Link
-                            href={`/dashboard/audit?auditLogId=${log.id}`}
-                            className="font-semibold text-foreground hover:text-primary"
+                            href={buildRelativeHref("/dashboard/audit", params, {
+                              auditLogId: log.id,
+                            })}
+                            className={
+                              log.id === selectedAuditLogId
+                                ? "focus-ring rounded-sm font-semibold text-primary"
+                                : "focus-ring rounded-sm font-semibold text-foreground hover:text-primary hover:underline"
+                            }
+                            aria-current={log.id === selectedAuditLogId ? "page" : undefined}
                           >
                             {log.action}
                           </Link>
@@ -128,7 +140,7 @@ export default async function AuditPage({
 
           <div className="space-y-6">
             {selectedLog ? (
-              <>
+              <div key={selectedLog.id} className="space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl">Selected audit detail</CardTitle>
@@ -188,8 +200,8 @@ export default async function AuditPage({
                         : "No additional context was recorded for this log."}
                     </pre>
                   </CardContent>
-                </Card>
-              </>
+                  </Card>
+              </div>
             ) : null}
           </div>
         </div>

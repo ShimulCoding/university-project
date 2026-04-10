@@ -33,8 +33,8 @@ export function StudentAccessPanel({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRoutingPending, startTransition] = useTransition();
-  const isBusy = isSubmitting || isRoutingPending;
+  const [, startTransition] = useTransition();
+  const isBusy = isSubmitting;
 
   const options = useMemo(
     () => [
@@ -101,6 +101,7 @@ export function StudentAccessPanel({
           ? "Student access created. Loading your private session..."
           : "Signed in successfully. Loading your private session...",
       );
+      setIsSubmitting(false);
 
       startTransition(() => {
         router.refresh();

@@ -172,7 +172,7 @@ export const paymentsRepository = {
       where: buildQueueWhere(filters),
       include: paymentProofDetailInclude,
       orderBy: {
-        submittedAt: "asc",
+        submittedAt: "desc",
       },
     });
   },

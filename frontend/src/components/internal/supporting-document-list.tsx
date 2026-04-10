@@ -1,7 +1,10 @@
-import { FileText } from "lucide-react";
+import { ExternalLink, FileText } from "lucide-react";
 
 import type { SupportingDocumentSummary } from "@/types";
-import { formatDateTime } from "@/lib/format";
+import { buildApiUrl } from "@/lib/api/shared";
+import { formatDateTime, formatFileSize } from "@/lib/format";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function SupportingDocumentList({
@@ -29,13 +32,26 @@ export function SupportingDocumentList({
               key={document.id}
               className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4"
             >
-              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <FileText className="h-4 w-4 text-primary" />
-                {document.originalName}
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                    <FileText className="h-4 w-4 shrink-0 text-primary" />
+                    <span className="break-all">{document.originalName}</span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Badge variant="neutral">{document.category.replaceAll("_", " ")}</Badge>
+                    <Badge variant="info">{document.mimeType}</Badge>
+                  </div>
+                </div>
+                <Button asChild variant="outline" size="sm">
+                  <a href={buildApiUrl(document.viewPath)} target="_blank" rel="noreferrer">
+                    Open file
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
               </div>
               <div className="mt-2 text-sm leading-6 text-muted-foreground">
-                {document.mimeType} / {document.sizeBytes} bytes /{" "}
-                {formatDateTime(document.createdAt)}
+                {formatFileSize(document.sizeBytes)} / {formatDateTime(document.createdAt)}
               </div>
             </div>
           ))

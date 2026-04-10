@@ -18,7 +18,9 @@ export function PublicHeader() {
           <AppLogo compact />
           <nav className="hidden items-center gap-1 md:flex">
             {publicNavigation.map((item) => {
-              const active = pathname === item.href;
+              const active =
+                pathname === item.href ||
+                (item.href !== "/" && pathname.startsWith(`${item.href}/`));
 
               return (
                 <Link
@@ -41,7 +43,7 @@ export function PublicHeader() {
               Public-safe views only
             </div>
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <Link href="/financial-summaries">Published records</Link>
+              <Link href="/financial-summaries">Financial summaries</Link>
             </Button>
             <Button asChild size="sm">
               <Link href="/dashboard">Internal preview</Link>
@@ -50,7 +52,9 @@ export function PublicHeader() {
         </div>
         <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 md:hidden [&::-webkit-scrollbar]:hidden">
           {publicNavigation.map((item) => {
-            const active = pathname === item.href;
+            const active =
+              pathname === item.href ||
+              (item.href !== "/" && pathname.startsWith(`${item.href}/`));
 
             return (
               <Link

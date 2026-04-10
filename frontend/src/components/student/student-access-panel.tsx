@@ -31,7 +31,10 @@ export function StudentAccessPanel({
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<StudentAccessFieldErrors>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRoutingPending, startTransition] = useTransition();
+  const isBusy = isSubmitting || isRoutingPending;
 
   const options = useMemo(
     () => [
@@ -43,6 +46,7 @@ export function StudentAccessPanel({
 
   const clearFieldError = (field: keyof StudentAccessFieldErrors) => {
     setErrorMessage(null);
+    setSuccessMessage(null);
     setFieldErrors((current) => ({
       ...current,
       [field]: undefined,
@@ -74,7 +78,9 @@ export function StudentAccessPanel({
     }
 
     try {
+      setIsSubmitting(true);
       setErrorMessage(null);
+      setSuccessMessage(null);
       setFieldErrors({});
 
       if (mode === "register") {
@@ -90,11 +96,18 @@ export function StudentAccessPanel({
         });
       }
 
+      setSuccessMessage(
+        mode === "register"
+          ? "Student access created. Loading your private session..."
+          : "Signed in successfully. Loading your private session...",
+      );
+
       startTransition(() => {
         router.refresh();
       });
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, "Unable to start the student session."));
+      setIsSubmitting(false);
     }
   };
 
@@ -120,6 +133,7 @@ export function StudentAccessPanel({
           onValueChange={(value) => {
             setMode(value as "login" | "register");
             setErrorMessage(null);
+            setSuccessMessage(null);
             setFieldErrors({});
           }}
           options={options}
@@ -187,9 +201,14 @@ export function StudentAccessPanel({
               {errorMessage}
             </div>
           ) : null}
+          {successMessage ? (
+            <div className="md:col-span-2 rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success">
+              {successMessage}
+            </div>
+          ) : null}
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={isPending}>
-              {isPending
+            <Button type="submit" disabled={isBusy}>
+              {isBusy
                 ? mode === "register"
                   ? "Creating access..."
                   : "Signing in..."

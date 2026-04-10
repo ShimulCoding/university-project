@@ -34,23 +34,31 @@ export function InternalAccessPanel() {
   const [email, setEmail] = useState<string>(demoAccounts[0].email);
   const [password, setPassword] = useState("DemoPass123!");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRoutingPending, startTransition] = useTransition();
+  const isBusy = isSubmitting || isRoutingPending;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     try {
+      setIsSubmitting(true);
       setErrorMessage(null);
+      setSuccessMessage(null);
       await postJson("/auth/login", {
         email: email.trim(),
         password,
       });
+
+      setSuccessMessage("Signed in successfully. Loading the internal workspace...");
 
       startTransition(() => {
         router.refresh();
       });
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, "Unable to open the internal workspace."));
+      setIsSubmitting(false);
     }
   };
 
@@ -73,6 +81,8 @@ export function InternalAccessPanel() {
               key={account.email}
               type="button"
               onClick={() => {
+                setErrorMessage(null);
+                setSuccessMessage(null);
                 setEmail(account.email);
                 setPassword("DemoPass123!");
               }}
@@ -112,6 +122,7 @@ export function InternalAccessPanel() {
               value={email}
               onChange={(event) => {
                 setErrorMessage(null);
+                setSuccessMessage(null);
                 setEmail(event.target.value);
               }}
               required
@@ -127,6 +138,7 @@ export function InternalAccessPanel() {
               value={password}
               onChange={(event) => {
                 setErrorMessage(null);
+                setSuccessMessage(null);
                 setPassword(event.target.value);
               }}
               required
@@ -137,9 +149,14 @@ export function InternalAccessPanel() {
               {errorMessage}
             </div>
           ) : null}
+          {successMessage ? (
+            <div className="md:col-span-2 rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success">
+              {successMessage}
+            </div>
+          ) : null}
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Opening workspace..." : "Open internal workspace"}
+            <Button type="submit" disabled={isBusy}>
+              {isBusy ? "Opening workspace..." : "Open internal workspace"}
             </Button>
             <span className="text-sm text-muted-foreground">
               Role access is enforced again by the backend after sign-in.

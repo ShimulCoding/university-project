@@ -54,6 +54,18 @@ export function formatMoney(value: string | number) {
   }).format(amount);
 }
 
+export function formatFileSize(value: number) {
+  if (value < 1024) {
+    return `${value} B`;
+  }
+
+  if (value < 1024 * 1024) {
+    return `${(value / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function formatEnumLabel(value: string) {
   return value
     .toLowerCase()

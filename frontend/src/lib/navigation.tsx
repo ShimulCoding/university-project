@@ -26,7 +26,7 @@ import type { AppRole } from "@/types";
 export const publicNavigation = [
   { href: "/", label: "Overview" },
   { href: "/events", label: "Public events" },
-  { href: "/financial-summaries", label: "Published summaries" },
+  { href: "/financial-summaries", label: "Financial summaries" },
 ] as const;
 
 export const roleMeta: Record<

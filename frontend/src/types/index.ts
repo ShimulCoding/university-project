@@ -132,6 +132,7 @@ export type SupportingDocumentSummary = {
   mimeType: string;
   sizeBytes: number;
   createdAt: string;
+  viewPath: string;
 };
 
 export type RegistrationEventSummary = {

@@ -127,7 +127,11 @@
   }
 
   .metric-figure {
-    @apply font-display text-3xl leading-none text-primary sm:text-4xl;
+    @apply font-display text-3xl leading-none text-primary tabular-nums tracking-tight break-words sm:text-4xl;
+  }
+
+  .amount-figure {
+    @apply font-display text-2xl leading-[1.1] text-foreground tabular-nums tracking-tight break-words sm:text-[2rem];
   }
 
   .subtle-divider {

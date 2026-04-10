@@ -32,21 +32,21 @@ export default async function PublicEventsPage() {
 
           <div className="mt-8 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="grid gap-4 md:grid-cols-3">
-              <Card tone="muted">
+              <Card tone="muted" className="flex h-full flex-col justify-between">
                 <div className="data-kicker">Open registration flows</div>
                 <div className="mt-4 text-3xl font-semibold text-primary">{openEvents}</div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
                   Public event records currently accepting student registration.
                 </p>
               </Card>
-              <Card tone="muted">
+              <Card tone="muted" className="flex h-full flex-col justify-between">
                 <div className="data-kicker">Completed or closed events</div>
                 <div className="mt-4 text-3xl font-semibold text-primary">{closedEvents}</div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
                   Events that have moved beyond active intake toward closure or publication.
                 </p>
               </Card>
-              <Card tone="muted">
+              <Card tone="muted" className="flex h-full flex-col justify-between">
                 <div className="data-kicker">Visible registrations</div>
                 <div className="mt-4 text-3xl font-semibold text-primary">{totalRegistrations}</div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">

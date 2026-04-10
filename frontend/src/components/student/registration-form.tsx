@@ -19,10 +19,14 @@ export function RegistrationForm({ event }: { event: PublicEvent }) {
   const [phone, setPhone] = useState("");
   const [fieldErrors, setFieldErrors] = useState<RegistrationFieldErrors>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRoutingPending, startTransition] = useTransition();
+  const isBusy = isSubmitting || isRoutingPending;
 
   const clearFieldError = (field: keyof RegistrationFieldErrors) => {
     setErrorMessage(null);
+    setSuccessMessage(null);
     setFieldErrors((current) => ({
       ...current,
       [field]: undefined,
@@ -50,7 +54,9 @@ export function RegistrationForm({ event }: { event: PublicEvent }) {
     }
 
     try {
+      setIsSubmitting(true);
       setErrorMessage(null);
+      setSuccessMessage(null);
       setFieldErrors({});
       const response = await postJson<{ registration: { id: string } }>("/registrations", {
         eventId: event.id,
@@ -58,12 +64,15 @@ export function RegistrationForm({ event }: { event: PublicEvent }) {
         phone: trimmedPhone || undefined,
       });
 
+      setSuccessMessage("Registration created. Opening your private registration status...");
+
       startTransition(() => {
         router.push(`/registrations/${response.registration.id}`);
         router.refresh();
       });
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, "Unable to create the registration."));
+      setIsSubmitting(false);
     }
   };
 
@@ -118,9 +127,14 @@ export function RegistrationForm({ event }: { event: PublicEvent }) {
               {errorMessage}
             </div>
           ) : null}
+          {successMessage ? (
+            <div className="rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success">
+              {successMessage}
+            </div>
+          ) : null}
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Creating registration..." : "Register for this event"}
+            <Button type="submit" disabled={isBusy}>
+              {isBusy ? "Creating registration..." : "Register for this event"}
             </Button>
             <span className="text-sm text-muted-foreground">
               Registration stays private to your student session and internal reviewers.

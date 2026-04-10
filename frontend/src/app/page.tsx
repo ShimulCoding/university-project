@@ -131,7 +131,7 @@ export default async function HomePage() {
                 <div className="flex flex-wrap gap-3">
                   <Button asChild size="lg">
                     <Link href="/financial-summaries">
-                      Explore published summaries
+                      Explore financial summaries
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>
@@ -143,7 +143,7 @@ export default async function HomePage() {
 
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {metrics.map((metric) => (
-                  <Card key={metric.label} className="p-5">
+                  <Card key={metric.label} className="flex h-full flex-col justify-between p-5">
                     <div className="metric-figure">{metric.value}</div>
                     <div className="mt-4 text-sm font-semibold text-foreground">
                       {metric.label}
@@ -199,19 +199,19 @@ export default async function HomePage() {
                 <CardContent className="grid gap-3 sm:grid-cols-3">
                   <div className="rounded-[1.15rem] border border-success/15 bg-panel px-4 py-4">
                     <div className="data-kicker">Collected</div>
-                    <div className="mt-2 text-2xl font-semibold text-foreground">
+                    <div className="amount-figure mt-2">
                       {publishedSummary.totals.collected}
                     </div>
                   </div>
                   <div className="rounded-[1.15rem] border border-success/15 bg-panel px-4 py-4">
                     <div className="data-kicker">Spent</div>
-                    <div className="mt-2 text-2xl font-semibold text-foreground">
+                    <div className="amount-figure mt-2">
                       {publishedSummary.totals.spent}
                     </div>
                   </div>
                   <div className="rounded-[1.15rem] border border-success/15 bg-panel px-4 py-4">
                     <div className="data-kicker">Closing balance</div>
-                    <div className="mt-2 text-2xl font-semibold text-foreground">
+                    <div className="amount-figure mt-2">
                       {publishedSummary.totals.closingBalance}
                     </div>
                   </div>

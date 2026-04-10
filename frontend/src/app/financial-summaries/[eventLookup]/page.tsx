@@ -55,19 +55,19 @@ export default async function PublicFinancialSummaryDetailsPage({
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
                     <div className="data-kicker">Collected</div>
-                    <div className="mt-2 text-2xl font-semibold text-foreground">
+                    <div className="amount-figure mt-2">
                       {formatMoney(summary.totals.collected)}
                     </div>
                   </div>
                   <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
                     <div className="data-kicker">Spent</div>
-                    <div className="mt-2 text-2xl font-semibold text-foreground">
+                    <div className="amount-figure mt-2">
                       {formatMoney(summary.totals.spent)}
                     </div>
                   </div>
                   <div className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4">
                     <div className="data-kicker">Closing balance</div>
-                    <div className="mt-2 text-2xl font-semibold text-foreground">
+                    <div className="amount-figure mt-2">
                       {formatMoney(summary.totals.closingBalance)}
                     </div>
                   </div>
@@ -77,7 +77,7 @@ export default async function PublicFinancialSummaryDetailsPage({
                   <TableHeader>
                     <TableRow>
                       <TableHead>Summary line</TableHead>
-                      <TableHead>Amount</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -85,7 +85,7 @@ export default async function PublicFinancialSummaryDetailsPage({
                       <TableCell className="font-semibold text-foreground">
                         Verified registration income
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right font-semibold tabular-nums text-foreground">
                         {formatMoney(summary.payload?.breakdown.registrationIncome ?? "0")}
                       </TableCell>
                     </TableRow>
@@ -93,7 +93,7 @@ export default async function PublicFinancialSummaryDetailsPage({
                       <TableCell className="font-semibold text-foreground">
                         Manual income records
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right font-semibold tabular-nums text-foreground">
                         {formatMoney(summary.payload?.breakdown.manualIncome ?? "0")}
                       </TableCell>
                     </TableRow>
@@ -101,7 +101,7 @@ export default async function PublicFinancialSummaryDetailsPage({
                       <TableCell className="font-semibold text-foreground">
                         Settled expense records
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right font-semibold tabular-nums text-foreground">
                         {formatMoney(summary.payload?.breakdown.settledExpense ?? "0")}
                       </TableCell>
                     </TableRow>

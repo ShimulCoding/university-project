@@ -20,10 +20,14 @@ export function PaymentProofForm({ registrationId }: { registrationId: string })
   const formRef = useRef<HTMLFormElement | null>(null);
   const [fieldErrors, setFieldErrors] = useState<PaymentProofFieldErrors>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRoutingPending, startTransition] = useTransition();
+  const isBusy = isSubmitting || isRoutingPending;
 
   const clearFieldError = (field: keyof PaymentProofFieldErrors) => {
     setErrorMessage(null);
+    setSuccessMessage(null);
     setFieldErrors((current) => ({
       ...current,
       [field]: undefined,
@@ -63,7 +67,9 @@ export function PaymentProofForm({ registrationId }: { registrationId: string })
     }
 
     try {
+      setIsSubmitting(true);
       setErrorMessage(null);
+      setSuccessMessage(null);
       setFieldErrors({});
       formData.set("externalChannel", externalChannel);
 
@@ -88,12 +94,14 @@ export function PaymentProofForm({ registrationId }: { registrationId: string })
       await postFormData(`/payments/registrations/${registrationId}/proofs`, formData);
 
       formRef.current?.reset();
+      setSuccessMessage("Payment proof submitted. Opening your registration status...");
       startTransition(() => {
         router.push(`/registrations/${registrationId}`);
         router.refresh();
       });
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, "Unable to submit the payment proof."));
+      setIsSubmitting(false);
     }
   };
 
@@ -184,9 +192,14 @@ export function PaymentProofForm({ registrationId }: { registrationId: string })
               {errorMessage}
             </div>
           ) : null}
+          {successMessage ? (
+            <div className="rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success">
+              {successMessage}
+            </div>
+          ) : null}
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Submitting proof..." : "Submit for verification"}
+            <Button type="submit" disabled={isBusy}>
+              {isBusy ? "Submitting proof..." : "Submit for verification"}
             </Button>
             <span className="text-sm text-muted-foreground">
               After submission, the registration moves into finance verification review.

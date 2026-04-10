@@ -140,6 +140,7 @@ function mapSafeDocument(
     mimeType: document.mimeType,
     sizeBytes: Number(document.sizeBytes),
     createdAt: document.createdAt,
+    viewPath: `/documents/${document.id}/open`,
   };
 }
 

@@ -21,12 +21,16 @@ export function ComplaintForm({ events }: { events: PublicEvent[] }) {
   const formRef = useRef<HTMLFormElement | null>(null);
   const [fieldErrors, setFieldErrors] = useState<ComplaintFieldErrors>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRoutingPending, startTransition] = useTransition();
+  const isBusy = isSubmitting || isRoutingPending;
 
   const initialEventId = searchParams.get("eventId") ?? "";
 
   const clearFieldError = (field: keyof ComplaintFieldErrors) => {
     setErrorMessage(null);
+    setSuccessMessage(null);
     setFieldErrors((current) => ({
       ...current,
       [field]: undefined,
@@ -63,19 +67,23 @@ export function ComplaintForm({ events }: { events: PublicEvent[] }) {
     }
 
     try {
+      setIsSubmitting(true);
       setErrorMessage(null);
+      setSuccessMessage(null);
       setFieldErrors({});
       formData.set("subject", subject);
       formData.set("description", description);
       await postFormData("/complaints", formData);
 
       formRef.current?.reset();
+      setSuccessMessage("Complaint submitted. Opening your complaint history...");
       startTransition(() => {
         router.push("/complaints");
         router.refresh();
       });
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, "Unable to submit the complaint."));
+      setIsSubmitting(false);
     }
   };
 
@@ -158,9 +166,14 @@ export function ComplaintForm({ events }: { events: PublicEvent[] }) {
               {errorMessage}
             </div>
           ) : null}
+          {successMessage ? (
+            <div className="rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success">
+              {successMessage}
+            </div>
+          ) : null}
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Submitting complaint..." : "Submit complaint"}
+            <Button type="submit" disabled={isBusy}>
+              {isBusy ? "Submitting complaint..." : "Submit complaint"}
             </Button>
             <span className="text-sm text-muted-foreground">
               Complaint evidence and routing notes remain protected after submission.

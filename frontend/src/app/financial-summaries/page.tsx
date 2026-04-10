@@ -52,7 +52,7 @@ export default async function FinancialSummariesPage() {
 
           <div className="mt-8 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="grid gap-4 md:grid-cols-3">
-              <Card tone="muted">
+              <Card tone="muted" className="flex h-full flex-col justify-between">
                 <div className="data-kicker">Published events</div>
                 <div className="mt-4 text-3xl font-semibold text-primary">
                   {latestSummaries.length}
@@ -61,16 +61,16 @@ export default async function FinancialSummariesPage() {
                   Latest public-safe snapshot currently visible for each published event.
                 </p>
               </Card>
-              <Card tone="muted">
+              <Card tone="muted" className="flex h-full flex-col justify-between">
                 <div className="data-kicker">Total disclosed collection</div>
-                <div className="mt-4 text-3xl font-semibold text-primary">
+                <div className="metric-figure mt-4">
                   {formatMoney(totalCollected)}
                 </div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
                   Aggregated across the latest published snapshot for each event.
                 </p>
               </Card>
-              <Card tone="muted">
+              <Card tone="muted" className="flex h-full flex-col justify-between">
                 <div className="data-kicker">Historical snapshots</div>
                 <div className="mt-4 text-3xl font-semibold text-primary">
                   {historicalSnapshotCount}

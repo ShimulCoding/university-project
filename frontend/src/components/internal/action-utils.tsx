@@ -15,13 +15,16 @@ export function useActionState() {
     message: null,
     tone: null,
   });
-  const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRoutingPending, startTransition] = useTransition();
   const router = useRouter();
+  const isPending = isSubmitting || isRoutingPending;
 
   const clearFeedback = () => setFeedback({ message: null, tone: null });
 
   const runAction = async (action: () => Promise<void>, successMessage: string) => {
     try {
+      setIsSubmitting(true);
       clearFeedback();
       await action();
       setFeedback({ message: successMessage, tone: "success" });
@@ -33,6 +36,8 @@ export function useActionState() {
         message: getApiErrorMessage(error, "The action could not be completed."),
         tone: "error",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

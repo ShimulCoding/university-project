@@ -61,6 +61,7 @@ function mapSafeDocument(document: RegistrationWithContext["paymentProofs"][numb
     mimeType: document.mimeType,
     sizeBytes: Number(document.sizeBytes),
     createdAt: document.createdAt,
+    viewPath: `/documents/${document.id}/open`,
   };
 }
 

@@ -1,6 +1,7 @@
 import type { UserProfile } from "@/types";
 
 import { formatEnumLabel } from "@/lib/format";
+import { LogoutButton } from "@/components/student/logout-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -15,21 +16,24 @@ export function InternalSessionCard({
 }) {
   return (
     <Card tone="muted">
-      <CardHeader>
-        <Badge variant="info" className="w-fit">
-          Protected internal session
-        </Badge>
-        <CardTitle className="mt-4 text-xl">{title}</CardTitle>
-        <CardDescription className="mt-3">{description}</CardDescription>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Badge variant="neutral">{user.fullName}</Badge>
-          <Badge variant="info">{user.email}</Badge>
-          {user.roles.map((role) => (
-            <Badge key={role} variant="neutral">
-              {formatEnumLabel(role)}
-            </Badge>
-          ))}
+      <CardHeader className="gap-5 md:flex-row md:items-start md:justify-between">
+        <div>
+          <Badge variant="info" className="w-fit">
+            Protected internal session
+          </Badge>
+          <CardTitle className="mt-4 text-xl">{title}</CardTitle>
+          <CardDescription className="mt-3">{description}</CardDescription>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Badge variant="neutral">{user.fullName}</Badge>
+            <Badge variant="info">{user.email}</Badge>
+            {user.roles.map((role) => (
+              <Badge key={role} variant="neutral">
+                {formatEnumLabel(role)}
+              </Badge>
+            ))}
+          </div>
         </div>
+        <LogoutButton redirectTo="/" />
       </CardHeader>
     </Card>
   );

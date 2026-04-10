@@ -27,19 +27,19 @@ export function PublicSummaryCard({ summary }: { summary: PublicFinancialSummary
               <BadgeDollarSign className="h-4 w-4 text-primary" />
               Collected
             </div>
-            <div className="mt-2 text-lg font-semibold text-foreground">
+            <div className="amount-figure mt-2">
               {formatMoney(summary.totals.collected)}
             </div>
           </div>
           <div className="rounded-[1.15rem] border border-border/70 bg-panel-muted px-4 py-4">
             <div className="text-sm font-medium text-foreground">Spent</div>
-            <div className="mt-2 text-lg font-semibold text-foreground">
+            <div className="amount-figure mt-2">
               {formatMoney(summary.totals.spent)}
             </div>
           </div>
           <div className="rounded-[1.15rem] border border-border/70 bg-panel-muted px-4 py-4">
             <div className="text-sm font-medium text-foreground">Closing balance</div>
-            <div className="mt-2 text-lg font-semibold text-foreground">
+            <div className="amount-figure mt-2">
               {formatMoney(summary.totals.closingBalance)}
             </div>
           </div>

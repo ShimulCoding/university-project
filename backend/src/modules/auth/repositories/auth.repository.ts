@@ -3,7 +3,7 @@ import type { DbClient } from "../../../types/database";
 import { userWithActiveRolesInclude } from "../../users/users.mappers";
 
 export const authRepository = {
-  createRefreshToken(
+  async createRefreshToken(
     data: {
       userId: string;
       tokenHash: string;
@@ -21,9 +21,17 @@ export const authRepository = {
       ...(data.ipAddress ? { ipAddress: data.ipAddress } : {}),
     };
 
-    return db.refreshToken.create({
+    const token = await db.refreshToken.create({
       data: createData,
     });
+
+    // Probabilistic cleanup: ~10% of token creations trigger a prune of
+    // expired and revoked tokens to keep the table from growing unboundedly.
+    if (Math.random() < 0.1) {
+      void authRepository.pruneStaleTokens();
+    }
+
+    return token;
   },
 
   findRefreshTokenByHash(tokenHash: string, db: DbClient = prisma) {
@@ -53,5 +61,26 @@ export const authRepository = {
         lastUsedAt: new Date(),
       },
     });
+  },
+
+  /**
+   * Remove refresh tokens that are expired or were revoked more than 24 hours ago.
+   * Fire-and-forget — errors are silently swallowed so this never blocks auth flows.
+   */
+  async pruneStaleTokens(db: DbClient = prisma) {
+    try {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      await db.refreshToken.deleteMany({
+        where: {
+          OR: [
+            { expiresAt: { lt: new Date() } },
+            { revokedAt: { lt: oneDayAgo } },
+          ],
+        },
+      });
+    } catch {
+      // Best-effort cleanup only — never block auth flows.
+    }
   },
 };

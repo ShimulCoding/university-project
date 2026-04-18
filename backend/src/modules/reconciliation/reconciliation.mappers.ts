@@ -84,7 +84,7 @@ function mapActor(actor: ReconciliationReportWithContext["generatedBy"]) {
 }
 
 export function mapReconciliationReport(report: ReconciliationReportWithContext) {
-  const payload = parsePayload(report.warnings);
+  const payload = parsePayload(report.payload);
 
   return {
     id: report.id,
@@ -113,5 +113,5 @@ export function mapReconciliationReport(report: ReconciliationReportWithContext)
 }
 
 export function getReconciliationPayload(report: ReconciliationReportWithContext) {
-  return parsePayload(report.warnings);
+  return parsePayload(report.payload);
 }

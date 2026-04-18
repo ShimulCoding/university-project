@@ -78,7 +78,7 @@ export const reconciliationRepository = {
         totalIncome: data.totalIncome,
         totalExpense: data.totalExpense,
         closingBalance: data.closingBalance,
-        warnings: data.payload as unknown as Prisma.InputJsonValue,
+        payload: data.payload as unknown as Prisma.InputJsonValue,
       },
       include: reconciliationReportDetailInclude,
     });

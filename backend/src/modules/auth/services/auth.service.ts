@@ -43,12 +43,27 @@ async function issueSession(
   };
 }
 
+// In-memory flag: once bootstrap has been attempted and users exist, skip the
+// COUNT(*) query on every subsequent call.  Reset only on process restart.
+let bootstrapCompleted = false;
+
 export const authService = {
   async bootstrapAdmin(input: RegisterInput, auditMetadata?: AuditMetadata): Promise<AuthSessionResult> {
+    // The bootstrap endpoint must never be reachable in production.
+    if (env.NODE_ENV === "production") {
+      throw new AppError(404, "Not found.");
+    }
+
+    // Fast reject once we know the system has already been bootstrapped.
+    if (bootstrapCompleted) {
+      throw new AppError(404, "Not found.");
+    }
+
     const totalUsers = await usersRepository.countUsers();
 
     if (totalUsers > 0) {
-      throw new AppError(409, "Bootstrap admin is only available before any users exist.");
+      bootstrapCompleted = true;
+      throw new AppError(404, "Not found.");
     }
 
     const email = normalizeEmail(input.email);

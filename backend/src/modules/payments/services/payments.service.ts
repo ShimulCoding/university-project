@@ -118,10 +118,10 @@ export const paymentsService = {
       throw new AppError(409, "This registration has already been verified.");
     }
 
-    if (registration.paymentState === RegistrationPaymentState.PENDING_VERIFICATION) {
-      throw new AppError(409, "A payment proof is already pending verification for this registration.");
-    }
-
+    // When paymentState is REJECTED, the student is allowed to resubmit a new proof.
+    // The authoritative guard below checks for an actual pending proof in the database
+    // rather than relying on the registration-level state, which avoids false blocks
+    // when the state and proof records are momentarily out of sync.
     const pendingProof = await paymentsRepository.findPendingPaymentProofForRegistration(registrationId);
 
     if (pendingProof) {

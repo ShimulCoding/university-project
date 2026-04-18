@@ -3,6 +3,7 @@ import { AlertTriangle, SearchSlash, ShieldAlert } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/api/student";
 import { hasAnyRole } from "@/lib/access";
+import type { ApprovalQueueItem } from "@/types";
 import {
   getBudgetRequest,
   listBudgetRequests,
@@ -16,6 +17,7 @@ import {
   formatMoney,
   getRequestStateTone,
 } from "@/lib/format";
+import { ApprovalDecisionForm } from "@/components/internal/approvals-actions";
 import { BudgetRequestForm, SubmitRequestButton } from "@/components/internal/requests-actions";
 import { DecisionHistoryCard } from "@/components/internal/decision-history-card";
 import { FilterCard } from "@/components/internal/filter-card";
@@ -51,6 +53,7 @@ export default async function BudgetRequestsPage({
   try {
     const user = await getCurrentUser();
     const canSubmitRequests = hasAnyRole(user, ["SYSTEM_ADMIN", "EVENT_MANAGEMENT_USER"]);
+    const canApproveRequests = hasAnyRole(user, ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"]);
     const [budgetRequests, events] = await Promise.all([
       listBudgetRequests({ eventId, state }),
       listInternalEventOptions(),
@@ -60,6 +63,27 @@ export default async function BudgetRequestsPage({
     const selectedRequest = selectedBudgetRequestId
       ? await getBudgetRequest(selectedBudgetRequestId)
       : null;
+    const selectedApprovalItem: ApprovalQueueItem | null =
+      selectedRequest &&
+      canApproveRequests &&
+      (selectedRequest.state === "SUBMITTED" || selectedRequest.state === "PENDING_REVIEW")
+        ? {
+            entityType: "BUDGET_REQUEST",
+            entityId: selectedRequest.id,
+            state: selectedRequest.state,
+            amount: selectedRequest.amount,
+            createdAt: selectedRequest.createdAt,
+            updatedAt: selectedRequest.updatedAt,
+            event: selectedRequest.event,
+            requestedBy: selectedRequest.requestedBy,
+            documentCount: selectedRequest.documents.length,
+            decisionCount: selectedRequest.approvalDecisions.length,
+            summary: {
+              purpose: selectedRequest.purpose,
+              justification: selectedRequest.justification,
+            },
+          }
+        : null;
 
     return (
       <>
@@ -213,7 +237,9 @@ export default async function BudgetRequestsPage({
                 </Card>
                 <SupportingDocumentList documents={selectedRequest.documents} />
                 <DecisionHistoryCard decisions={selectedRequest.approvalDecisions} />
-                {canSubmitRequests &&
+                {selectedApprovalItem ? (
+                  <ApprovalDecisionForm item={selectedApprovalItem} />
+                ) : canSubmitRequests &&
                 (selectedRequest.state === "DRAFT" || selectedRequest.state === "RETURNED") ? (
                   <SubmitRequestButton
                     endpoint={`/requests/budget-requests/${selectedRequest.id}/submit`}

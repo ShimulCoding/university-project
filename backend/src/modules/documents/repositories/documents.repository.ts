@@ -13,6 +13,7 @@ export const documentsRepository = {
         originalName: true,
         mimeType: true,
         relativePath: true,
+        uploadedById: true,
       },
     });
   },

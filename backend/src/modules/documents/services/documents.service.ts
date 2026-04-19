@@ -16,6 +16,7 @@ const documentCategoryAccess: Record<DocumentCategory, RoleCode[]> = {
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,
+    RoleCode.COMPLAINT_REVIEW_AUTHORITY,
   ],
   [DocumentCategory.COMPLAINT_EVIDENCE]: [
     RoleCode.SYSTEM_ADMIN,
@@ -24,8 +25,15 @@ const documentCategoryAccess: Record<DocumentCategory, RoleCode[]> = {
   ],
 };
 
-function assertDocumentAccess(actor: AuthenticatedUser, category: DocumentCategory) {
-  if (!hasAnyRole(actor.roles, documentCategoryAccess[category])) {
+function assertDocumentAccess(
+  actor: AuthenticatedUser,
+  document: { category: DocumentCategory; uploadedById: string | null },
+) {
+  if (document.uploadedById === actor.id) {
+    return;
+  }
+
+  if (!hasAnyRole(actor.roles, documentCategoryAccess[document.category])) {
     throw new AppError(403, "You are not allowed to open this protected document.");
   }
 }
@@ -49,7 +57,7 @@ export const documentsService = {
       throw new AppError(404, "Protected document not found.");
     }
 
-    assertDocumentAccess(actor, document.category);
+    assertDocumentAccess(actor, document);
 
     const absolutePath = resolveDocumentPath(document.relativePath);
 

@@ -5,7 +5,6 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { roleMeta } from "@/lib/navigation";
 import type { AppRole } from "@/types";
 
-const rolePreviewStorageKey = "mu-cse-role-preview";
 const defaultRole: AppRole = "FINANCIAL_CONTROLLER";
 
 type RolePreviewContextValue = {
@@ -32,28 +31,10 @@ export function RolePreviewProvider({
   const fallbackRole = availableRoles[0] ?? initialRole;
   const [activeRole, setActiveRole] = useState<AppRole>(initialRole);
 
-  useEffect(() => {
-    const storedRole = window.localStorage.getItem(rolePreviewStorageKey) as
-      | AppRole
-      | null;
-
-    if (storedRole && availableRoles.includes(storedRole)) {
-      setActiveRole(storedRole);
-      return;
-    }
-
-    setActiveRole(fallbackRole);
-  }, [availableRoles, fallbackRole]);
-
-  const handleSetActiveRole = (role: AppRole) => {
-    setActiveRole(role);
-    window.localStorage.setItem(rolePreviewStorageKey, role);
-  };
-
   const value = useMemo(
     () => ({
       activeRole,
-      setActiveRole: handleSetActiveRole,
+      setActiveRole,
       roles: availableRoles,
     }),
     [activeRole, availableRoles],

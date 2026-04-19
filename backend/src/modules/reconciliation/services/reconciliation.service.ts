@@ -84,7 +84,10 @@ async function buildReconciliationPayload(eventId: string): Promise<{
   const verifiedRegistrationIncome = sumDecimals(
     verifiedPaymentProofs.map((proof) => proof.amount),
   );
-  const manualIncome = sumDecimals(manualIncomeRecords.map((record) => record.amount));
+  const verifiedManualIncomeRecords = manualIncomeRecords.filter(
+    (record) => record.state === IncomeState.VERIFIED,
+  );
+  const manualIncome = sumDecimals(verifiedManualIncomeRecords.map((record) => record.amount));
   const settledExpenseRecords = expenseRecords.filter(
     (record) => record.state === ExpenseRecordState.SETTLED,
   );
@@ -126,7 +129,7 @@ async function buildReconciliationPayload(eventId: string): Promise<{
     warnings.push({
       code: "MANUAL_INCOME_NOT_VERIFIED",
       severity: "warning",
-      message: "Some manual income records are included but still not marked as verified.",
+      message: "Some manual income records are not yet verified and were excluded from income totals.",
       count: unverifiedManualIncomeCount,
     });
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { BudgetRecord, EventSummary } from "@/types";
 import { patchJson, postEmpty, postJson } from "@/lib/api/client";
@@ -249,20 +249,47 @@ export function BudgetComposerForm({
 
 export function BudgetStateForm({
   budget,
+  canSubmit,
+  canApprove,
+  canActivate,
 }: {
   budget: BudgetRecord;
+  canSubmit: boolean;
+  canApprove: boolean;
+  canActivate: boolean;
 }) {
-  const transitionOptions = {
-    DRAFT: [{ value: "SUBMITTED", label: "Submitted" }, { value: "APPROVED", label: "Approved" }],
-    SUBMITTED: [{ value: "APPROVED", label: "Approved" }],
-    APPROVED: [],
-    REVISED: [],
-  } as const;
-  const availableOptions = transitionOptions[budget.state];
-  const [state, setState] = useState<"DRAFT" | "SUBMITTED" | "APPROVED">(
-    (availableOptions[0]?.value as "DRAFT" | "SUBMITTED" | "APPROVED" | undefined) ?? "SUBMITTED",
+  const availableOptions = useMemo(() => {
+    if (budget.state === "DRAFT" && canSubmit) {
+      return [{ value: "SUBMITTED", label: "Submitted" }] as const;
+    }
+
+    if (budget.state === "SUBMITTED" && canApprove) {
+      return [{ value: "APPROVED", label: "Approved" }] as const;
+    }
+
+    return [];
+  }, [budget.state, canApprove, canSubmit]);
+  const [state, setState] = useState<"SUBMITTED" | "APPROVED" | "">(
+    availableOptions[0]?.value ?? "",
   );
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
+  const canActivateSelectedBudget = canActivate && budget.state === "APPROVED" && !budget.isActive;
+  const guidanceMessage =
+    budget.state === "DRAFT" && !canSubmit
+      ? "Finance or system admin must submit this budget version before approval."
+      : budget.state === "SUBMITTED" && !canApprove
+        ? "This budget version is waiting for an organizational approver. Finance can activate it only after approval."
+        : budget.state === "APPROVED" && !budget.isActive && !canActivate
+          ? "This budget is approved. Finance or system admin can activate it as the event reference version."
+          : budget.isActive
+            ? "This budget version is already active for the event."
+            : budget.state === "REVISED"
+              ? "This historical version has been revised. Use the latest version for approval or activation."
+              : null;
+
+  useEffect(() => {
+    setState(availableOptions[0]?.value ?? "");
+  }, [availableOptions]);
 
   return (
     <Card>
@@ -280,7 +307,7 @@ export function BudgetStateForm({
                 value={state}
                 onChange={(event) => {
                   clearFeedback();
-                  setState(event.target.value as "DRAFT" | "SUBMITTED" | "APPROVED");
+                  setState(event.target.value as "SUBMITTED" | "APPROVED");
                 }}
                 options={[...availableOptions]}
               />
@@ -300,26 +327,28 @@ export function BudgetStateForm({
               >
                 {isPending ? "Updating state..." : "Update state"}
               </Button>
-              <Button
-                variant="outline"
-                disabled={isPending || budget.isActive || budget.state !== "APPROVED"}
-                onClick={() =>
-                  void runAction(
-                    () => postEmpty(`/budgets/${budget.id}/activate`),
-                    "Budget version activated.",
-                  )
-                }
-              >
-                {budget.isActive ? "Active version" : "Activate version"}
-              </Button>
             </div>
           </>
-        ) : (
+        ) : null}
+        {canActivate ? (
+          <Button
+            variant={canActivateSelectedBudget ? "default" : "outline"}
+            disabled={isPending || !canActivateSelectedBudget}
+            onClick={() =>
+              void runAction(
+                () => postEmpty(`/budgets/${budget.id}/activate`),
+                "Budget version activated.",
+              )
+            }
+          >
+            {budget.isActive ? "Active version" : "Activate version"}
+          </Button>
+        ) : null}
+        {availableOptions.length === 0 && !canActivateSelectedBudget && guidanceMessage ? (
           <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
-            This budget version is already at its final state. Create a revision if the event
-            needs a new approved version rather than trying to move this record backward.
+            {guidanceMessage}
           </div>
-        )}
+        ) : null}
         <FeedbackMessage feedback={feedback} />
       </CardContent>
     </Card>

@@ -45,7 +45,9 @@ export default async function BudgetsPage({
 
   try {
     const user = await getCurrentUser();
-    const canManageBudgets = hasAnyRole(user, ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"]);
+    const canCreateOrReviseBudgets = hasAnyRole(user, ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"]);
+    const canApproveBudgets = hasAnyRole(user, ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"]);
+    const canUseBudgetControls = canCreateOrReviseBudgets || canApproveBudgets;
     const [budgets, events] = await Promise.all([
       listBudgets({ eventId, state, isActive }),
       listInternalEventOptions(),
@@ -242,10 +244,17 @@ export default async function BudgetsPage({
                     </div>
                   </CardContent>
                 </Card>
-                {canManageBudgets ? (
+                {canUseBudgetControls ? (
                   <>
-                    <BudgetStateForm budget={selectedBudget} />
-                    <BudgetComposerForm events={events} budget={selectedBudget} />
+                    <BudgetStateForm
+                      budget={selectedBudget}
+                      canSubmit={canCreateOrReviseBudgets}
+                      canApprove={canApproveBudgets}
+                      canActivate={canCreateOrReviseBudgets}
+                    />
+                    {canCreateOrReviseBudgets ? (
+                      <BudgetComposerForm events={events} budget={selectedBudget} />
+                    ) : null}
                   </>
                 ) : (
                   <Card tone="muted">
@@ -253,9 +262,8 @@ export default async function BudgetsPage({
                       <CardTitle className="text-xl">Read-only role on budget history</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0 text-sm leading-6 text-muted-foreground">
-                      This session can inspect budget versions and item structure, but only finance
-                      or system-admin roles can create revisions, activate versions, or change
-                      budget state.
+                      This session can inspect budget versions and item structure, but budget
+                      submission, approval, and activation remain separated by role.
                     </CardContent>
                   </Card>
                 )}
@@ -264,7 +272,7 @@ export default async function BudgetsPage({
           </div>
         </div>
 
-        {canManageBudgets ? <BudgetComposerForm events={events} /> : null}
+        {canCreateOrReviseBudgets ? <BudgetComposerForm events={events} /> : null}
       </>
     );
   } catch (error) {

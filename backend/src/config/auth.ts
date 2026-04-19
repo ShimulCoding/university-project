@@ -15,17 +15,24 @@ export const authCookieNames = {
   refreshToken: env.REFRESH_TOKEN_COOKIE_NAME,
 } as const;
 
-export const accessTokenCookieOptions: CookieOptions = {
-  ...sharedCookieOptions,
-  maxAge: durationToMs(env.ACCESS_TOKEN_TTL),
+export const accessTokenCookieOptions = (token: string): CookieOptions => {
+  const payload = JSON.parse(Buffer.from(token.split(".")[1] || "", "base64").toString("utf8"));
+  return {
+    ...sharedCookieOptions,
+    expires: new Date(payload.exp * 1000),
+  };
 };
 
-export const refreshTokenCookieOptions: CookieOptions = {
-  ...sharedCookieOptions,
-  maxAge: durationToMs(env.REFRESH_TOKEN_TTL),
+export const refreshTokenCookieOptions = (token: string): CookieOptions => {
+  const payload = JSON.parse(Buffer.from(token.split(".")[1] || "", "base64").toString("utf8"));
+  return {
+    ...sharedCookieOptions,
+    expires: new Date(payload.exp * 1000),
+  };
 };
 
 export const clearCookieOptions: CookieOptions = {
   ...sharedCookieOptions,
+  maxAge: 0,
 };
 

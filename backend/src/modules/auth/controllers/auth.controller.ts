@@ -18,12 +18,12 @@ function writeSessionCookies(
   response.cookie(
     authCookieNames.accessToken,
     session.accessToken,
-    accessTokenCookieOptions,
+    accessTokenCookieOptions(session.accessToken),
   );
   response.cookie(
     authCookieNames.refreshToken,
     session.refreshToken,
-    refreshTokenCookieOptions,
+    refreshTokenCookieOptions(session.refreshToken),
   );
 }
 

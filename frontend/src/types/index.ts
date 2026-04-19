@@ -436,6 +436,13 @@ export type ReconciliationBreakdown = {
 
 export type ReconciliationBreakdownLine = PublicFinancialSummaryBreakdownLine;
 
+export type ReconciliationWarning = {
+  code: string;
+  severity: "info" | "warning";
+  message: string;
+  count?: number;
+};
+
 export type ReconciliationSummarySnapshot = {
   id: string;
   status: PublicSummaryStatus;
@@ -451,7 +458,7 @@ export type ReconciliationReport = {
   isStale: boolean;
   staleReason: string | null;
   staledAt: string | null;
-  warnings: string[];
+  warnings: ReconciliationWarning[];
   breakdown: ReconciliationBreakdown;
   incomeBreakdown?: ReconciliationBreakdownLine[];
   expenseBreakdown?: ReconciliationBreakdownLine[];

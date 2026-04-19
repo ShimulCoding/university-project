@@ -323,10 +323,21 @@ export default async function ReconciliationPage({
                     <CardContent className="space-y-3 pt-0">
                       {selectedReport.warnings.map((warning, index) => (
                         <div
-                          key={`${warning}-${index}`}
+                          key={`${warning.code}-${index}`}
                           className="rounded-[1rem] border border-warning/20 bg-warning-muted px-4 py-4 text-sm leading-6 text-warning"
                         >
-                          {warning}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant={warning.severity === "info" ? "info" : "warning"}>
+                              {formatEnumLabel(warning.severity)}
+                            </Badge>
+                            <span className="font-semibold text-foreground">
+                              {warning.message}
+                            </span>
+                          </div>
+                          <div className="mt-2 text-xs uppercase tracking-[0.18em] text-warning/80">
+                            {warning.code}
+                            {typeof warning.count === "number" ? ` / ${warning.count} record(s)` : ""}
+                          </div>
                         </div>
                       ))}
                     </CardContent>

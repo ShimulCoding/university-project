@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { SummaryBreakdownChart } from "@/components/public/summary-breakdown-chart";
 import { StatePanel } from "@/components/ui/state-panel";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -107,6 +108,21 @@ export default async function PublicFinancialSummaryDetailsPage({
                     </TableRow>
                   </TableBody>
                 </Table>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <SummaryBreakdownChart
+                    title="Income source breakdown"
+                    description="Shows where public-safe income came from, including student registration and verified manual income sources."
+                    total={summary.totals.collected}
+                    items={summary.payload?.incomeBreakdown ?? []}
+                  />
+                  <SummaryBreakdownChart
+                    title="Expense segment breakdown"
+                    description="Shows how settled spending was distributed across event expense categories."
+                    total={summary.totals.spent}
+                    items={summary.payload?.expenseBreakdown ?? []}
+                  />
+                </div>
               </CardContent>
             </Card>
 

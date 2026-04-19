@@ -37,8 +37,18 @@ export type ReconciliationBreakdown = {
   approvedExpenseRequestsWithoutSettledRecord: number;
 };
 
+export type ReconciliationBreakdownLine = {
+  key: string;
+  label: string;
+  segment: string;
+  amount: string;
+  recordCount: number;
+};
+
 export type ReconciliationPayload = {
   eventSnapshot?: ReconciliationEventSnapshot | undefined;
   warnings: ReconciliationWarning[];
   breakdown: ReconciliationBreakdown;
+  incomeBreakdown: ReconciliationBreakdownLine[];
+  expenseBreakdown: ReconciliationBreakdownLine[];
 };

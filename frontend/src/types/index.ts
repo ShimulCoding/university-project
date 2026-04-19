@@ -59,6 +59,14 @@ export type ApprovalDecisionType = "APPROVED" | "REJECTED" | "RETURNED";
 
 export type PublicSummaryStatus = "DRAFT" | "PUBLISHED";
 
+export type PublicFinancialSummaryBreakdownLine = {
+  key: string;
+  label: string;
+  segment: string;
+  amount: string;
+  recordCount: number;
+};
+
 export type BadgeTone = "neutral" | "info" | "success" | "warning" | "danger";
 
 export type UserProfile = {
@@ -122,6 +130,8 @@ export type PublicFinancialSummary = {
       manualIncome: string;
       settledExpense: string;
     };
+    incomeBreakdown: PublicFinancialSummaryBreakdownLine[];
+    expenseBreakdown: PublicFinancialSummaryBreakdownLine[];
   } | null;
 };
 
@@ -424,6 +434,8 @@ export type ReconciliationBreakdown = {
   approvedExpenseRequestsWithoutSettledRecord: number;
 };
 
+export type ReconciliationBreakdownLine = PublicFinancialSummaryBreakdownLine;
+
 export type ReconciliationSummarySnapshot = {
   id: string;
   status: PublicSummaryStatus;
@@ -441,6 +453,8 @@ export type ReconciliationReport = {
   staledAt: string | null;
   warnings: string[];
   breakdown: ReconciliationBreakdown;
+  incomeBreakdown?: ReconciliationBreakdownLine[];
+  expenseBreakdown?: ReconciliationBreakdownLine[];
   createdAt: string;
   finalizedAt: string | null;
   event: EventSummary;

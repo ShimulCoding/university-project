@@ -55,6 +55,8 @@ const emptyPayload: ReconciliationPayload = {
     pendingExpenseRecordCount: 0,
     approvedExpenseRequestsWithoutSettledRecord: 0,
   },
+  incomeBreakdown: [],
+  expenseBreakdown: [],
 };
 
 function parseEventSnapshot(value: unknown) {
@@ -96,6 +98,8 @@ function parsePayload(value: Prisma.JsonValue | null): ReconciliationPayload {
         ? payload.breakdown
         : {}),
     },
+    incomeBreakdown: Array.isArray(payload.incomeBreakdown) ? payload.incomeBreakdown : [],
+    expenseBreakdown: Array.isArray(payload.expenseBreakdown) ? payload.expenseBreakdown : [],
   };
 }
 
@@ -123,6 +127,8 @@ export function mapReconciliationReport(report: ReconciliationReportWithContext)
     staledAt: report.staledAt ?? null,
     warnings: payload.warnings,
     breakdown: payload.breakdown,
+    incomeBreakdown: payload.incomeBreakdown,
+    expenseBreakdown: payload.expenseBreakdown,
     createdAt: report.createdAt,
     finalizedAt: report.finalizedAt ?? null,
     event: {

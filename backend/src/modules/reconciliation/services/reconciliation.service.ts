@@ -24,6 +24,7 @@ import {
 } from "../reconciliation.mappers";
 import { reconciliationRepository } from "../repositories/reconciliation.repository";
 import type {
+  ReconciliationBreakdownLine,
   GenerateReconciliationInput,
   ReconciliationBreakdown,
   ReconciliationFilters,
@@ -69,6 +70,40 @@ function sumDecimals(values: Array<Prisma.Decimal | null>): Prisma.Decimal {
 
 function decimalToMoney(value: Prisma.Decimal) {
   return value.toFixed(2);
+}
+
+function formatSegmentLabel(value: string) {
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function addBreakdownAmount(
+  lines: Map<string, ReconciliationBreakdownLine>,
+  input: Omit<ReconciliationBreakdownLine, "amount" | "recordCount"> & {
+    amount: Prisma.Decimal;
+  },
+) {
+  const existing = lines.get(input.key);
+
+  if (existing) {
+    lines.set(input.key, {
+      ...existing,
+      amount: decimalToMoney(new Prisma.Decimal(existing.amount).plus(input.amount)),
+      recordCount: existing.recordCount + 1,
+    });
+    return;
+  }
+
+  lines.set(input.key, {
+    key: input.key,
+    label: input.label,
+    segment: input.segment,
+    amount: decimalToMoney(input.amount),
+    recordCount: 1,
+  });
 }
 
 async function assertLatestReport(report: ReconciliationReportWithContext) {
@@ -145,6 +180,43 @@ async function buildReconciliationPayload(
   const totalExpense = sumDecimals(settledExpenseRecords.map((record) => record.amount));
   const totalIncome = verifiedRegistrationIncome.plus(manualIncome);
   const closingBalance = totalIncome.minus(totalExpense);
+  const incomeBreakdown = new Map<string, ReconciliationBreakdownLine>();
+  const expenseBreakdown = new Map<string, ReconciliationBreakdownLine>();
+
+  if (!verifiedRegistrationIncome.isZero() || verifiedPaymentProofs.length > 0) {
+    incomeBreakdown.set("student-registration", {
+      key: "student-registration",
+      label: "Student registration fees",
+      segment: "REGISTRATION",
+      amount: decimalToMoney(verifiedRegistrationIncome),
+      recordCount: verifiedPaymentProofs.length,
+    });
+  }
+
+  for (const record of verifiedManualIncomeRecords) {
+    const sourceLabel = record.sourceLabel.trim();
+    const segmentLabel = formatSegmentLabel(record.sourceType);
+    const label = sourceLabel ? `${segmentLabel}: ${sourceLabel}` : segmentLabel;
+
+    addBreakdownAmount(incomeBreakdown, {
+      key: `manual-${record.sourceType}-${sourceLabel.toLowerCase() || "unspecified"}`,
+      label,
+      segment: record.sourceType,
+      amount: record.amount,
+    });
+  }
+
+  for (const record of settledExpenseRecords) {
+    const category = record.category.trim() || "Uncategorized expense";
+
+    addBreakdownAmount(expenseBreakdown, {
+      key: `expense-${category.toLowerCase()}`,
+      label: category,
+      segment: category,
+      amount: record.amount,
+    });
+  }
+
   const missingProofAmountCount = verifiedPaymentProofs.filter((proof) => !proof.amount).length;
   const unverifiedManualIncomeCount = manualIncomeRecords.filter(
     (record) => record.state !== IncomeState.VERIFIED,
@@ -228,6 +300,8 @@ async function buildReconciliationPayload(
       },
       warnings,
       breakdown,
+      incomeBreakdown: Array.from(incomeBreakdown.values()),
+      expenseBreakdown: Array.from(expenseBreakdown.values()),
     },
   };
 }

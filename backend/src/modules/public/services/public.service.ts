@@ -60,6 +60,8 @@ function buildPublicPayload(
       manualIncome: reconciliationPayload.breakdown.manualIncome,
       settledExpense: reconciliationPayload.breakdown.settledExpense,
     },
+    incomeBreakdown: reconciliationPayload.incomeBreakdown,
+    expenseBreakdown: reconciliationPayload.expenseBreakdown,
   };
 }
 

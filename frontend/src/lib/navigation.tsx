@@ -4,6 +4,7 @@ import {
   BadgeCheck,
   BookOpenText,
   BriefcaseBusiness,
+  CalendarDays,
   ClipboardCheck,
   ClipboardList,
   Coins,
@@ -109,6 +110,18 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
     description: "Payment proof queue and review",
     icon: BadgeCheck,
     roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"],
+  },
+  {
+    href: "/dashboard/events",
+    label: "Events",
+    description: "Create, launch, complete, and close events",
+    icon: CalendarDays,
+    roles: [
+      "SYSTEM_ADMIN",
+      "EVENT_MANAGEMENT_USER",
+      "FINANCIAL_CONTROLLER",
+      "ORGANIZATIONAL_APPROVER",
+    ],
   },
   {
     href: "/dashboard/income-records",

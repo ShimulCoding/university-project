@@ -1,9 +1,10 @@
 import { AlertTriangle, FileWarning } from "lucide-react";
 
 import { listPublicEvents } from "@/lib/api/public";
-import { getCurrentUser } from "@/lib/api/student";
+import { getCurrentUser, listMyComplaints } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/shared";
 import { ComplaintForm } from "@/components/student/complaint-form";
+import { ComplaintUpdateSummary } from "@/components/student/complaint-update-summary";
 import { StudentAccessPanel } from "@/components/student/student-access-panel";
 import { StudentSessionCard } from "@/components/student/student-session-card";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
@@ -16,6 +17,7 @@ export const dynamic = "force-dynamic";
 export default async function ComplaintSubmissionPage() {
   try {
     const [user, events] = await Promise.all([getCurrentUser(), listPublicEvents()]);
+    const complaints = user ? await listMyComplaints() : [];
 
     return (
       <PublicPageShell>
@@ -25,6 +27,12 @@ export default async function ComplaintSubmissionPage() {
             title="Submit a private complaint"
             description="Complaints are student-owned, evidence-aware, and intentionally separated from public event and publication views."
           />
+
+          {user ? (
+            <div className="mt-8">
+              <ComplaintUpdateSummary complaints={complaints} />
+            </div>
+          ) : null}
 
           <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
             <div className="space-y-6">

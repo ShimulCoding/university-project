@@ -51,16 +51,29 @@ export async function parseApiResponse<T>(response: Response): Promise<T> {
     return undefined as T;
   }
 
-  const payload = (await response.json().catch(() => null)) as
-    | {
-        message?: string;
-        issues?: ApiValidationIssues;
-      }
-    | null;
+  const text = await response.text().catch(() => "");
+  let payload: { message?: string; issues?: ApiValidationIssues } | null = null;
+
+  try {
+    payload = text ? JSON.parse(text) : null;
+  } catch {
+    // Response was not valid JSON
+  }
 
   if (!response.ok) {
+    let fallbackMessage = "The request could not be completed.";
+    
+    if (text && !text.trim().startsWith("<")) {
+      // Use plain text response if it's not HTML
+      fallbackMessage = text.length > 100 ? `${text.slice(0, 100)}...` : text;
+    } else if (response.statusText) {
+      fallbackMessage = `HTTP Error ${response.status}: ${response.statusText}`;
+    } else {
+      fallbackMessage = `HTTP Error ${response.status}`;
+    }
+
     throw new ApiError(
-      payload?.message ?? "The request could not be completed.",
+      payload?.message ?? fallbackMessage,
       response.status,
       payload?.issues,
     );

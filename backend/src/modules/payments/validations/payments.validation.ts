@@ -87,3 +87,12 @@ export const incomeRecordIdParamSchema = z.object({
     incomeRecordId: z.string().cuid(),
   }),
 });
+
+export const voidIncomeRecordSchema = z.object({
+  params: z.object({
+    incomeRecordId: z.string().cuid(),
+  }),
+  body: z.object({
+    reason: z.string().trim().min(3).max(1000),
+  }),
+});

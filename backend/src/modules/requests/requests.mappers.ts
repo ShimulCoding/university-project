@@ -6,6 +6,7 @@ export const safeSupportingDocumentSelect = Prisma.validator<Prisma.SupportingDo
   originalName: true,
   mimeType: true,
   sizeBytes: true,
+  relativePath: true,
   createdAt: true,
 });
 

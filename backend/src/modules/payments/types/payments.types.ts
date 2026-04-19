@@ -32,3 +32,7 @@ export type IncomeRecordFilters = PaginationInput & {
   eventId?: string | undefined;
   search?: string | undefined;
 };
+
+export type VoidIncomeRecordInput = {
+  reason: string;
+};

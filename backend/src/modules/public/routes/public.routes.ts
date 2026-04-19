@@ -11,6 +11,7 @@ import {
   listPublicSummariesSchema,
   publicSummaryLookupParamSchema,
   publishPublicSummaryParamSchema,
+  unpublishPublicSummaryParamSchema,
 } from "../validations/public.validation";
 
 const router = Router();
@@ -24,6 +25,13 @@ router.get(
   "/financial-summaries/:eventLookup",
   validateRequest(publicSummaryLookupParamSchema),
   asyncHandler(publicController.getPublishedFinancialSummary),
+);
+router.post(
+  "/manage/financial-summaries/:publicSummaryId/unpublish",
+  authenticate,
+  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.ORGANIZATIONAL_APPROVER),
+  validateRequest(unpublishPublicSummaryParamSchema),
+  asyncHandler(publicController.unpublishFinancialSummary),
 );
 router.post(
   "/manage/financial-summaries/:reconciliationReportId/publish",

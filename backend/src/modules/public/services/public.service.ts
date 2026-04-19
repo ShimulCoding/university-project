@@ -63,6 +63,42 @@ export const publicService = {
     return mapPublicFinancialSummary(summary);
   },
 
+  async unpublishFinancialSummary(
+    actor: AuthenticatedUser,
+    publicSummaryId: string,
+    auditMetadata?: AuditMetadata,
+  ) {
+    assertPublishPermissions(actor);
+
+    const summary = await publicRepository.findSummaryById(publicSummaryId);
+
+    if (!summary) {
+      throw new AppError(404, "Public financial summary not found.");
+    }
+
+    if (summary.status !== "PUBLISHED") {
+      throw new AppError(409, "Only published summaries can be unpublished.");
+    }
+
+    const unpublishedSummary = await publicRepository.unpublishSummary(publicSummaryId);
+
+    await auditService.record({
+      actorId: actor.id,
+      action: "public_summary.unpublish",
+      entityType: "PublicSummarySnapshot",
+      entityId: unpublishedSummary.id,
+      summary: `Unpublished public financial summary for ${unpublishedSummary.event.title}`,
+      context: {
+        eventId: unpublishedSummary.event.id,
+        reconciliationReportId: unpublishedSummary.reconciliationReportId,
+        status: unpublishedSummary.status,
+      },
+      ...auditMetadata,
+    });
+
+    return mapPublicFinancialSummary(unpublishedSummary);
+  },
+
   async publishFinancialSummary(
     actor: AuthenticatedUser,
     reconciliationReportId: string,

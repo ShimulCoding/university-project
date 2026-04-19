@@ -7,10 +7,11 @@ import {
 
 import { documentDirectories, uploadRules } from "../../../config/uploads";
 import { prisma } from "../../../config/prisma";
-import { storageProvider } from "../../../storage";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
+import { sanitizeNullableText } from "../../../utils/text-utils";
+import { cleanupStoredUpload, cleanupStoredUploads, storeValidatedUpload } from "../../../utils/upload-utils";
 import {
   hasExpenseRecordManagementAccess,
   hasFinanceReadAccess,
@@ -38,69 +39,13 @@ import type {
   VoidExpenseRecordInput,
 } from "../types/requests.types";
 
-type StoredUpload = {
-  category: DocumentCategory;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-  storedName: string;
-  relativePath: string;
-};
-
-function sanitizeNullableText(value: string | null | undefined) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (value === null) {
-    return null;
-  }
-
-  const trimmedValue = value.trim();
-  return trimmedValue.length > 0 ? trimmedValue : null;
-}
-
-function assertSupportingDocument(file: Express.Multer.File) {
-  const rule = uploadRules.SUPPORTING_DOCUMENT;
-
-  if (!rule.allowedMimeTypes.some((mimeType) => mimeType === file.mimetype)) {
-    throw new AppError(400, "Uploaded file type is not allowed for supporting documents.");
-  }
-
-  if (file.size > rule.maxFileSizeBytes) {
-    throw new AppError(400, "Uploaded file exceeds the maximum allowed size.");
-  }
-}
-
-async function storeSupportingDocument(file: Express.Multer.File): Promise<StoredUpload> {
-  assertSupportingDocument(file);
-
-  const storedFile = await storageProvider.saveFile({
-    buffer: file.buffer,
-    destinationDir: documentDirectories.SUPPORTING_DOCUMENT,
-    originalName: file.originalname,
-  });
-
-  return {
+async function storeSupportingDocument(file: Express.Multer.File) {
+  return storeValidatedUpload(file, {
     category: DocumentCategory.SUPPORTING_DOCUMENT,
-    originalName: file.originalname,
-    mimeType: file.mimetype,
-    sizeBytes: file.size,
-    storedName: storedFile.storedName,
-    relativePath: storedFile.relativePath,
-  };
-}
-
-async function cleanupStoredUpload(upload: StoredUpload | undefined) {
-  if (!upload) {
-    return;
-  }
-
-  try {
-    await storageProvider.removeFile(upload.relativePath);
-  } catch {
-    // Best effort cleanup only.
-  }
+    destinationDir: documentDirectories.SUPPORTING_DOCUMENT,
+    rule: uploadRules.SUPPORTING_DOCUMENT,
+    documentName: "supporting documents",
+  });
 }
 
 function assertRequestSubmissionPermissions(viewer: AuthenticatedUser) {
@@ -531,6 +476,9 @@ export const requestsService = {
     }
 
     const storedUpload = file ? await storeSupportingDocument(file) : undefined;
+    const previousDocumentUploads = storedUpload
+      ? existingRequest.documents.map((document) => ({ relativePath: document.relativePath }))
+      : [];
 
     try {
       const request = await prisma.$transaction(async (tx) => {
@@ -544,6 +492,7 @@ export const requestsService = {
         );
 
         if (storedUpload) {
+          await requestsRepository.deleteSupportingDocumentsForExpenseRequest(expenseRequestId, tx);
           await requestsRepository.createSupportingDocument(
             {
               category: storedUpload.category,
@@ -581,6 +530,10 @@ export const requestsService = {
         },
         ...auditMetadata,
       });
+
+      if (previousDocumentUploads.length > 0) {
+        await cleanupStoredUploads(previousDocumentUploads);
+      }
 
       return mapExpenseRequest(request);
     } catch (error) {

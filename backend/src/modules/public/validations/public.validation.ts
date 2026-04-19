@@ -20,3 +20,9 @@ export const publishPublicSummaryParamSchema = z.object({
     reconciliationReportId: z.string().cuid(),
   }),
 });
+
+export const unpublishPublicSummaryParamSchema = z.object({
+  params: z.object({
+    publicSummaryId: z.string().cuid(),
+  }),
+});

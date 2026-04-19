@@ -1,4 +1,4 @@
-import { Prisma, type DocumentCategory, type PaymentProofState } from "@prisma/client";
+import { IncomeState, Prisma, type DocumentCategory, type PaymentProofState } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
@@ -220,6 +220,21 @@ export const paymentsRepository = {
         ...(input.referenceText ? { referenceText: input.referenceText } : {}),
         ...(input.collectedAt ? { collectedAt: input.collectedAt } : {}),
       },
+    });
+  },
+
+  updateIncomeRecordState(
+    incomeRecordId: string,
+    input: { state: IncomeState; verifiedById?: string | null | undefined },
+    db: DbClient = prisma,
+  ) {
+    return db.incomeRecord.update({
+      where: { id: incomeRecordId },
+      data: {
+        state: input.state,
+        ...(input.verifiedById !== undefined ? { verifiedById: input.verifiedById } : {}),
+      },
+      include: incomeRecordDetailInclude,
     });
   },
 

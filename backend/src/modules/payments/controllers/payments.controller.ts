@@ -5,6 +5,7 @@ import { paymentsService } from "../services/payments.service";
 import {
   createIncomeRecordSchema,
   submitPaymentProofSchema,
+  voidIncomeRecordSchema,
 } from "../validations/payments.validation";
 
 export const paymentsController = {
@@ -54,6 +55,22 @@ export const paymentsController = {
     );
 
     response.status(201).json({ incomeRecord });
+  },
+
+  async voidIncomeRecord(request: Request, response: Response) {
+    const parsedRequest = voidIncomeRecordSchema.parse({
+      params: request.params,
+      body: request.body,
+    });
+
+    const incomeRecord = await paymentsService.voidIncomeRecord(
+      request.auth!.user,
+      parsedRequest.params.incomeRecordId,
+      parsedRequest.body,
+      getRequestMetadata(request),
+    );
+
+    response.status(200).json({ incomeRecord });
   },
 
   async listIncomeRecords(request: Request, response: Response) {

@@ -20,6 +20,7 @@ export function ReconciliationGenerateForm({
 }) {
   const [eventId, setEventId] = useState(events[0]?.id ?? "");
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
+  const hasEligibleEvents = events.length > 0;
 
   return (
     <Card>
@@ -43,9 +44,14 @@ export function ReconciliationGenerateForm({
             }))}
           />
         </Field>
+        {!hasEligibleEvents ? (
+          <div className="rounded-[1rem] border border-warning/20 bg-warning-muted px-4 py-3 text-sm text-warning">
+            Reconciliation can only be generated after an event is completed or closed.
+          </div>
+        ) : null}
         <FeedbackMessage feedback={feedback} />
         <Button
-          disabled={isPending}
+          disabled={isPending || !eventId}
           onClick={() =>
             void runAction(
               () =>
@@ -147,6 +153,41 @@ export function PublishSummaryButton({
           }
         >
           {isPending ? "Publishing..." : "Publish summary"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+
+export function UnpublishSummaryButton({
+  summaryId,
+}: {
+  summaryId: string;
+}) {
+  const { feedback, isPending, runAction } = useActionState();
+
+  return (
+    <Card tone="muted">
+      <CardHeader>
+        <CardTitle className="text-xl">Unpublish public summary</CardTitle>
+        <CardDescription>
+          This hides the selected snapshot from public pages while preserving the internal audit record.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4 pt-0">
+        <FeedbackMessage feedback={feedback} />
+        <Button
+          variant="outline"
+          disabled={isPending}
+          onClick={() =>
+            void runAction(
+              () => postEmpty(`/public/manage/financial-summaries/${summaryId}/unpublish`),
+              "Public financial summary unpublished.",
+            )
+          }
+        >
+          {isPending ? "Unpublishing..." : "Unpublish summary"}
         </Button>
       </CardContent>
     </Card>

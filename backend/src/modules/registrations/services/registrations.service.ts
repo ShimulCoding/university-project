@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { EventStatus, Prisma } from "@prisma/client";
 
 import { AppError } from "../../../utils/app-error";
+import { sanitizeOptionalText } from "../../../utils/text-utils";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hasFinanceAccess, hasInternalRegistrationAccess } from "../../../utils/role-checks";
 import type { AuthenticatedUser } from "../../../types/auth";
@@ -18,13 +19,13 @@ import {
 import { registrationsRepository } from "../repositories/registrations.repository";
 import type { CreateRegistrationInput, RegistrationListFilters } from "../types/registrations.types";
 
-function sanitizeOptionalText(value: string | undefined) {
-  const trimmedValue = value?.trim();
-  return trimmedValue ? trimmedValue : undefined;
-}
-
 function buildRegistrationCode() {
   return `REG-${randomBytes(4).toString("hex").toUpperCase()}`;
+}
+
+function waitForRegistrationCodeRetry(attempt: number) {
+  const delayMs = 25 * (attempt + 1);
+  return new Promise((resolve) => setTimeout(resolve, delayMs));
 }
 
 function assertRegistrationWindowOpen(event: NonNullable<Awaited<ReturnType<typeof eventsRepository.findById>>>) {
@@ -70,6 +71,7 @@ async function createRegistrationWithUniqueCode(data: CreateRegistrationInput & 
           : typeof target === "string" && target.includes("registrationCode");
 
         if (isRegistrationCodeCollision) {
+          await waitForRegistrationCodeRetry(attempt);
           continue;
         }
 

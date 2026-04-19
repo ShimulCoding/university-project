@@ -1,4 +1,10 @@
-import { ExpenseRecordState, IncomeState, Prisma, ReconciliationState } from "@prisma/client";
+import {
+  EventStatus,
+  ExpenseRecordState,
+  IncomeState,
+  Prisma,
+  ReconciliationState,
+} from "@prisma/client";
 
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
@@ -40,6 +46,17 @@ function assertReconciliationManagementPermissions(viewer: AuthenticatedUser) {
 function assertReconciliationFinalizePermissions(viewer: AuthenticatedUser) {
   if (!hasReconciliationFinalizeAccess(viewer.roles)) {
     throw new AppError(403, "You are not allowed to finalize reconciliation reports.");
+  }
+}
+
+const reconcilableEventStatuses: EventStatus[] = [EventStatus.COMPLETED, EventStatus.CLOSED];
+
+function assertEventCanBeReconciled(status: EventStatus) {
+  if (!reconcilableEventStatuses.includes(status)) {
+    throw new AppError(
+      409,
+      "Reconciliation reports can only be generated after the event is completed or closed.",
+    );
   }
 }
 
@@ -226,6 +243,8 @@ export const reconciliationService = {
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
+
+    assertEventCanBeReconciled(event.status);
 
     const summary = await buildReconciliationPayload(input.eventId);
     const report = await reconciliationRepository.createReport({

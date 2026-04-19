@@ -5,11 +5,7 @@ import { hasAnyRole } from "@/lib/access";
 import { listPublicFinancialSummaries } from "@/lib/api/public";
 import {
   listApprovalQueue,
-  listAuditLogs,
-  listBudgetRequests,
   listComplaintReviewQueue,
-  listExpenseRequests,
-  listIncomeRecords,
   listPaymentVerificationQueue,
   listReconciliationReports,
 } from "@/lib/api/internal";
@@ -30,12 +26,6 @@ export default async function DashboardOverviewPage() {
   const user = await getCurrentUser();
   const roles = user?.roles ?? [];
   const canSeeFinance = hasAnyRole(user, ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"]);
-  const canSeeRequests = hasAnyRole(user, [
-    "SYSTEM_ADMIN",
-    "FINANCIAL_CONTROLLER",
-    "ORGANIZATIONAL_APPROVER",
-    "EVENT_MANAGEMENT_USER",
-  ]);
   const canSeeApprovals = hasAnyRole(user, ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"]);
   const canSeeComplaints = hasAnyRole(user, [
     "SYSTEM_ADMIN",
@@ -47,35 +37,20 @@ export default async function DashboardOverviewPage() {
     "FINANCIAL_CONTROLLER",
     "ORGANIZATIONAL_APPROVER",
   ]);
-  const canSeeAudit = hasAnyRole(user, ["SYSTEM_ADMIN"]);
-
-  const safeFetch = <T,>(promise: Promise<T>): Promise<T | []> =>
+  const safeFetch = <T,>(promise: Promise<T>, fallback: T): Promise<T> =>
     promise.catch((error) => {
       console.error("Dashboard API fetch failed:", error);
-      return [];
+      return fallback;
     });
 
-  const [
-    verificationQueue,
-    incomeRecords,
-    budgetRequests,
-    expenseRequests,
-    approvalQueue,
-    complaints,
-    reconciliationReports,
-    auditLogs,
-    publicSummaries,
-  ] = await Promise.all([
-    safeFetch(canSeeFinance ? listPaymentVerificationQueue({}) : Promise.resolve([])),
-    safeFetch(canSeeFinance ? listIncomeRecords({}) : Promise.resolve([])),
-    safeFetch(canSeeRequests ? listBudgetRequests({}) : Promise.resolve([])),
-    safeFetch(canSeeRequests ? listExpenseRequests({}) : Promise.resolve([])),
-    safeFetch(canSeeApprovals ? listApprovalQueue({}) : Promise.resolve([])),
-    safeFetch(canSeeComplaints ? listComplaintReviewQueue({}) : Promise.resolve([])),
-    safeFetch(canSeeReconciliation ? listReconciliationReports({}) : Promise.resolve([])),
-    safeFetch(canSeeAudit ? listAuditLogs({ limit: "5" }) : Promise.resolve([])),
-    safeFetch(listPublicFinancialSummaries()),
-  ]);
+  const [verificationQueue, approvalQueue, complaints, reconciliationReports, publicSummaries] =
+    await Promise.all([
+      safeFetch(canSeeFinance ? listPaymentVerificationQueue({}) : Promise.resolve([]), []),
+      safeFetch(canSeeApprovals ? listApprovalQueue({}) : Promise.resolve([]), []),
+      safeFetch(canSeeComplaints ? listComplaintReviewQueue({}) : Promise.resolve([]), []),
+      safeFetch(canSeeReconciliation ? listReconciliationReports({}) : Promise.resolve([]), []),
+      safeFetch(listPublicFinancialSummaries(), []),
+    ]);
   const latestPublicSummaries = getLatestPublishedSummariesPerEvent(publicSummaries);
   const historicalPublishedSnapshotCount =
     getHistoricalPublishedSnapshotCount(publicSummaries);
@@ -111,6 +86,13 @@ export default async function DashboardOverviewPage() {
     },
   ].filter((metric) => metric.visible);
 
+  const budgetRequestQueueCount = approvalQueue.filter(
+    (item) => item.entityType === "BUDGET_REQUEST",
+  ).length;
+  const expenseRequestQueueCount = approvalQueue.filter(
+    (item) => item.entityType === "EXPENSE_REQUEST",
+  ).length;
+
   const queueRows = [
     {
       href: "/dashboard/payments",
@@ -122,16 +104,16 @@ export default async function DashboardOverviewPage() {
     {
       href: "/dashboard/budget-requests",
       label: "Budget requests",
-      count: budgetRequests.filter((request) => request.state !== "APPROVED").length,
-      detail: "Funding requests still moving through the protected workflow.",
-      visible: canSeeRequests,
+      count: budgetRequestQueueCount,
+      detail: "Funding requests waiting in the protected approval workflow.",
+      visible: canSeeApprovals,
     },
     {
       href: "/dashboard/expense-requests",
       label: "Expense requests",
-      count: expenseRequests.filter((request) => request.state !== "APPROVED").length,
-      detail: "Requested spending not yet fully closed.",
-      visible: canSeeRequests,
+      count: expenseRequestQueueCount,
+      detail: "Expense requests waiting in the protected approval workflow.",
+      visible: canSeeApprovals,
     },
     {
       href: "/dashboard/approvals",
@@ -262,12 +244,12 @@ export default async function DashboardOverviewPage() {
                 </div>
               </div>
               <div className="rounded-[1.1rem] border border-border/70 bg-panel-muted px-4 py-4">
-                <div className="data-kicker">Manual income records</div>
+                <div className="data-kicker">Reviewed reports</div>
                 <div className="mt-2 text-2xl font-semibold text-foreground">
-                  {incomeRecords.length}
+                  {reconciliationReports.filter((report) => report.status === "REVIEWED").length}
                 </div>
                 <div className="mt-2 text-sm text-muted-foreground">
-                  Event-linked records feeding closure and reporting
+                  Reports reviewed internally before finalization
                 </div>
               </div>
               <div className="md:col-span-2 rounded-[1.1rem] border border-border/70 bg-panel px-4 py-4">
@@ -324,20 +306,6 @@ export default async function DashboardOverviewPage() {
           </Card>
         </div>
       </section>
-
-      {canSeeAudit && auditLogs.length > 0 ? (
-        <section className="grid gap-4 xl:grid-cols-3">
-          {auditLogs.map((log) => (
-            <Card key={log.id} tone="muted">
-              <CardHeader>
-                <Badge variant="warning">{log.entityType}</Badge>
-                <CardTitle className="mt-3 text-base">{log.action}</CardTitle>
-                <CardDescription>{log.summary}</CardDescription>
-              </CardHeader>
-            </Card>
-          ))}
-        </section>
-      ) : null}
     </>
   );
 }

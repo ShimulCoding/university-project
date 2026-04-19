@@ -15,7 +15,7 @@ import {
   formatMoney,
   getIncomeStateTone,
 } from "@/lib/format";
-import { IncomeRecordForm } from "@/components/internal/payments-actions";
+import { IncomeRecordForm, IncomeRecordStatePanel } from "@/components/internal/payments-actions";
 import { FilterCard } from "@/components/internal/filter-card";
 import { SupportingDocumentList } from "@/components/internal/supporting-document-list";
 import { Badge } from "@/components/ui/badge";
@@ -215,6 +215,10 @@ export default async function IncomeRecordsPage({
                   documents={selectedIncome.documents}
                   title="Protected evidence"
                   emptyMessage="This income record does not yet have an attached evidence file."
+                />
+                <IncomeRecordStatePanel
+                  incomeRecordId={selectedIncome.id}
+                  allowVoid={selectedIncome.state !== "REJECTED"}
                 />
               </div>
             ) : null}

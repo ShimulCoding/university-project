@@ -17,6 +17,16 @@ export const publicController = {
     response.status(200).json({ summary });
   },
 
+  async unpublishFinancialSummary(request: Request, response: Response) {
+    const summary = await publicService.unpublishFinancialSummary(
+      request.auth!.user,
+      String(request.params.publicSummaryId),
+      getRequestMetadata(request),
+    );
+
+    response.status(200).json({ summary });
+  },
+
   async publishFinancialSummary(request: Request, response: Response) {
     const summary = await publicService.publishFinancialSummary(
       request.auth!.user,

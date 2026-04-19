@@ -303,6 +303,12 @@ export const requestsRepository = {
     });
   },
 
+  deleteSupportingDocumentsForExpenseRequest(expenseRequestId: string, db: DbClient = prisma) {
+    return db.supportingDocument.deleteMany({
+      where: { expenseRequestId },
+    });
+  },
+
   createSupportingDocument(data: CreateSupportingDocumentData, db: DbClient = prisma) {
     return db.supportingDocument.create({
       data: {

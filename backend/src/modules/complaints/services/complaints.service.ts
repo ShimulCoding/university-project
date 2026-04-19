@@ -2,10 +2,11 @@ import { ComplaintState, DocumentCategory, RoleCode } from "@prisma/client";
 
 import { documentDirectories, uploadRules } from "../../../config/uploads";
 import { prisma } from "../../../config/prisma";
-import { storageProvider } from "../../../storage";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
+import { sanitizeOptionalText } from "../../../utils/text-utils";
+import { cleanupStoredUpload, storeValidatedUpload } from "../../../utils/upload-utils";
 import { hasComplaintReviewAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
@@ -28,14 +29,14 @@ import type {
   RouteComplaintInput,
 } from "../types/complaints.types";
 
-type StoredUpload = {
-  category: DocumentCategory;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-  storedName: string;
-  relativePath: string;
-};
+async function storeComplaintEvidence(file: Express.Multer.File) {
+  return storeValidatedUpload(file, {
+    category: DocumentCategory.COMPLAINT_EVIDENCE,
+    destinationDir: documentDirectories.COMPLAINT_EVIDENCE,
+    rule: uploadRules.COMPLAINT_EVIDENCE,
+    documentName: "complaint evidence",
+  });
+}
 
 const allowedComplaintTransitions: Record<ComplaintState, ComplaintState[]> = {
   [ComplaintState.SUBMITTED]: [
@@ -61,54 +62,6 @@ const allowedComplaintTransitions: Record<ComplaintState, ComplaintState[]> = {
   [ComplaintState.RESOLVED]: [ComplaintState.CLOSED],
   [ComplaintState.CLOSED]: [],
 };
-
-function sanitizeOptionalText(value: string | undefined) {
-  const trimmedValue = value?.trim();
-  return trimmedValue ? trimmedValue : undefined;
-}
-
-function assertComplaintEvidence(file: Express.Multer.File) {
-  const rule = uploadRules.COMPLAINT_EVIDENCE;
-
-  if (!rule.allowedMimeTypes.some((mimeType) => mimeType === file.mimetype)) {
-    throw new AppError(400, "Uploaded file type is not allowed for complaint evidence.");
-  }
-
-  if (file.size > rule.maxFileSizeBytes) {
-    throw new AppError(400, "Uploaded complaint evidence exceeds the maximum allowed size.");
-  }
-}
-
-async function storeComplaintEvidence(file: Express.Multer.File): Promise<StoredUpload> {
-  assertComplaintEvidence(file);
-
-  const storedFile = await storageProvider.saveFile({
-    buffer: file.buffer,
-    destinationDir: documentDirectories.COMPLAINT_EVIDENCE,
-    originalName: file.originalname,
-  });
-
-  return {
-    category: DocumentCategory.COMPLAINT_EVIDENCE,
-    originalName: file.originalname,
-    mimeType: file.mimetype,
-    sizeBytes: file.size,
-    storedName: storedFile.storedName,
-    relativePath: storedFile.relativePath,
-  };
-}
-
-async function cleanupStoredUpload(upload: StoredUpload | undefined) {
-  if (!upload) {
-    return;
-  }
-
-  try {
-    await storageProvider.removeFile(upload.relativePath);
-  } catch {
-    // Best effort cleanup only.
-  }
-}
 
 function assertComplaintReviewPermissions(viewer: AuthenticatedUser) {
   if (!hasComplaintReviewAccess(viewer.roles)) {

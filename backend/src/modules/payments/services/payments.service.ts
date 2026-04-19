@@ -1,15 +1,17 @@
-import { DocumentCategory, PaymentProofState, RegistrationPaymentState } from "@prisma/client";
+import { DocumentCategory, IncomeState, PaymentProofState, RegistrationPaymentState } from "@prisma/client";
 
 import { documentDirectories, uploadRules } from "../../../config/uploads";
 import { prisma } from "../../../config/prisma";
-import { storageProvider } from "../../../storage";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
+import { sanitizeOptionalText } from "../../../utils/text-utils";
+import { cleanupStoredUpload, storeValidatedUpload } from "../../../utils/upload-utils";
 import { hasFinanceAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { eventsRepository } from "../../events/repositories/events.repository";
+import { reconciliationRepository } from "../../reconciliation/repositories/reconciliation.repository";
 import { registrationsRepository } from "../../registrations/repositories/registrations.repository";
 import {
   mapIncomeRecord,
@@ -22,71 +24,21 @@ import type {
   CreateIncomeRecordInput,
   IncomeRecordFilters,
   PaymentProofDecisionInput,
+  VoidIncomeRecordInput,
   PaymentVerificationQueueFilters,
   SubmitPaymentProofInput,
 } from "../types/payments.types";
 
-type StoredUpload = {
-  category: DocumentCategory;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-  storedName: string;
-  relativePath: string;
-};
-
-function sanitizeOptionalText(value: string | undefined) {
-  const trimmedValue = value?.trim();
-  return trimmedValue ? trimmedValue : undefined;
-}
-
-function assertUploadMatchesRule(
-  file: Express.Multer.File,
-  category: keyof typeof uploadRules,
-) {
-  const rule = uploadRules[category];
-
-  if (!rule.allowedMimeTypes.some((mimeType) => mimeType === file.mimetype)) {
-    throw new AppError(400, "Uploaded file type is not allowed for this document category.");
-  }
-
-  if (file.size > rule.maxFileSizeBytes) {
-    throw new AppError(400, "Uploaded file exceeds the maximum allowed size.");
-  }
-}
-
 async function storeUpload(
   file: Express.Multer.File,
   category: "PAYMENT_PROOF" | "SUPPORTING_DOCUMENT",
-): Promise<StoredUpload> {
-  assertUploadMatchesRule(file, category);
-
-  const storedFile = await storageProvider.saveFile({
-    buffer: file.buffer,
-    destinationDir: documentDirectories[category],
-    originalName: file.originalname,
-  });
-
-  return {
+) {
+  return storeValidatedUpload(file, {
     category: DocumentCategory[category],
-    originalName: file.originalname,
-    mimeType: file.mimetype,
-    sizeBytes: file.size,
-    storedName: storedFile.storedName,
-    relativePath: storedFile.relativePath,
-  };
-}
-
-async function cleanupStoredUpload(upload: StoredUpload | undefined) {
-  if (!upload) {
-    return;
-  }
-
-  try {
-    await storageProvider.removeFile(upload.relativePath);
-  } catch {
-    // Best effort cleanup only.
-  }
+    destinationDir: documentDirectories[category],
+    rule: uploadRules[category],
+    documentName: "this document category",
+  });
 }
 
 function assertFinancePermissions(viewer: AuthenticatedUser) {
@@ -367,6 +319,74 @@ export const paymentsService = {
       await cleanupStoredUpload(storedUpload);
       throw error;
     }
+  },
+
+  async voidIncomeRecord(
+    actor: AuthenticatedUser,
+    incomeRecordId: string,
+    input: VoidIncomeRecordInput,
+    auditMetadata?: AuditMetadata,
+  ) {
+    assertFinancePermissions(actor);
+
+    const existingRecord = await paymentsRepository.findIncomeRecordById(incomeRecordId);
+
+    if (!existingRecord) {
+      throw new AppError(404, "Income record not found.");
+    }
+
+    if (existingRecord.state === IncomeState.REJECTED) {
+      throw new AppError(409, "Income record is already voided or rejected.");
+    }
+
+    const wasVerified = existingRecord.state === IncomeState.VERIFIED;
+    const staleReason = `Manual income record ${existingRecord.id} was voided; reconciliation must be regenerated.`;
+    const staledAt = new Date();
+
+    const { incomeRecord, staleReportCount } = await prisma.$transaction(async (tx) => {
+      const voidedRecord = await paymentsRepository.updateIncomeRecordState(
+        incomeRecordId,
+        {
+          state: IncomeState.REJECTED,
+          verifiedById: null,
+        },
+        tx,
+      );
+
+      const staleResult = wasVerified
+        ? await reconciliationRepository.markReportsStaleForEvent(
+            {
+              eventId: existingRecord.eventId,
+              reason: staleReason,
+              staledAt,
+            },
+            tx,
+          )
+        : { count: 0 };
+
+      return {
+        incomeRecord: voidedRecord,
+        staleReportCount: staleResult.count,
+      };
+    });
+
+    await auditService.record({
+      actorId: actor.id,
+      action: "income.void",
+      entityType: "IncomeRecord",
+      entityId: incomeRecord.id,
+      summary: `Voided income record for ${incomeRecord.event.title}`,
+      context: {
+        eventId: incomeRecord.event.id,
+        previousState: existingRecord.state,
+        nextState: incomeRecord.state,
+        reason: input.reason,
+        staleReconciliationReports: staleReportCount,
+      },
+      ...auditMetadata,
+    });
+
+    return mapIncomeRecord(incomeRecord);
   },
 
   async listIncomeRecords(viewer: AuthenticatedUser, filters: IncomeRecordFilters) {

@@ -14,6 +14,7 @@ import {
   listIncomeRecordsSchema,
   listVerificationQueueSchema,
   paymentProofDecisionSchema,
+  voidIncomeRecordSchema,
 } from "../validations/payments.validation";
 
 const router = Router();
@@ -54,6 +55,12 @@ router.get(
   authorize(RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER),
   validateRequest(incomeRecordIdParamSchema),
   asyncHandler(paymentsController.getIncomeRecordById),
+);
+router.post(
+  "/income-records/:incomeRecordId/void",
+  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER),
+  validateRequest(voidIncomeRecordSchema),
+  asyncHandler(paymentsController.voidIncomeRecord),
 );
 router.post(
   "/income-records",

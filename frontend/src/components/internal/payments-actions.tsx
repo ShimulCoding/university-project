@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 import type { EventSummary } from "@/types";
 import { postFormData, postJson } from "@/lib/api/client";
@@ -176,6 +176,71 @@ export function IncomeRecordForm({
             {isPending ? "Recording income..." : "Create income record"}
           </Button>
         </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+
+export function IncomeRecordStatePanel({
+  incomeRecordId,
+  allowVoid,
+}: {
+  incomeRecordId: string;
+  allowVoid: boolean;
+}) {
+  const [reason, setReason] = useState("");
+  const { feedback, isPending, clearFeedback, runAction } = useActionState();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-xl">Income record state</CardTitle>
+        <CardDescription>
+          Void incorrect manual income without deleting evidence or history. Verified records mark related reconciliation reports stale.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pt-0">
+        {allowVoid ? (
+          <form
+            className="grid gap-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+
+              void runAction(
+                () =>
+                  postJson(`/payments/income-records/${incomeRecordId}/void`, {
+                    reason: reason.trim(),
+                  }),
+                "Income record voided.",
+              );
+            }}
+          >
+            <Field
+              label="Void reason"
+              description="Keep the reason specific because this action remains audit-visible."
+            >
+              <Textarea
+                rows={3}
+                value={reason}
+                onChange={(event) => {
+                  setReason(event.target.value);
+                  clearFeedback();
+                }}
+                placeholder="Explain why this income record should no longer count."
+                required
+              />
+            </Field>
+            <FeedbackMessage feedback={feedback} />
+            <Button type="submit" variant="danger" disabled={isPending || reason.trim().length < 3}>
+              {isPending ? "Voiding record..." : "Void income record"}
+            </Button>
+          </form>
+        ) : (
+          <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
+            This income record is already voided or rejected. The audit trail remains available in protected views.
+          </div>
+        )}
       </CardContent>
     </Card>
   );

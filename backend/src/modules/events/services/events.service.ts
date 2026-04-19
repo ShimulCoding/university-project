@@ -3,8 +3,12 @@ import { EventStatus, Prisma } from "@prisma/client";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
-import { hasEventManagementAccess } from "../../../utils/role-checks";
+import {
+  hasEventManagementAccess,
+  hasEventManagementReadAccess,
+} from "../../../utils/role-checks";
 import { slugify } from "../../../utils/slugify";
+import { sanitizeNullableText } from "../../../utils/text-utils";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { mapManageEvent, mapPublicEvent, publicEventStatuses } from "../events.mappers";
@@ -29,15 +33,6 @@ const allowedEventTransitions: Record<EventStatus, EventStatus[]> = {
   [EventStatus.CLOSED]: [EventStatus.ARCHIVED],
   [EventStatus.ARCHIVED]: [],
 };
-
-function sanitizeNullableText(value: string | undefined) {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  const trimmedValue = value.trim();
-  return trimmedValue.length > 0 ? trimmedValue : null;
-}
 
 function assertPublicStatusFilter(status: EventStatus | undefined) {
   if (!status) {
@@ -85,6 +80,12 @@ function assertValidStatusTransition(currentStatus: EventStatus, nextStatus: Eve
   }
 }
 
+function assertEventManagementReadPermissions(viewer: AuthenticatedUser) {
+  if (!hasEventManagementReadAccess(viewer.roles)) {
+    throw new AppError(403, "You are not allowed to view managed events.");
+  }
+}
+
 function assertEventManagementPermissions(viewer: AuthenticatedUser) {
   if (!hasEventManagementAccess(viewer.roles)) {
     throw new AppError(403, "You are not allowed to manage events.");
@@ -118,7 +119,7 @@ export const eventsService = {
   },
 
   async listManageEvents(viewer: AuthenticatedUser, filters: EventListFilters) {
-    assertEventManagementPermissions(viewer);
+    assertEventManagementReadPermissions(viewer);
 
     const paginationOptions = getPaginationOptions(filters);
     const [events, totalItems] = await Promise.all([
@@ -133,7 +134,7 @@ export const eventsService = {
   },
 
   async getManageEvent(viewer: AuthenticatedUser, eventLookupKey: string) {
-    assertEventManagementPermissions(viewer);
+    assertEventManagementReadPermissions(viewer);
 
     const event = await eventsRepository.findByLookupKey(eventLookupKey);
 

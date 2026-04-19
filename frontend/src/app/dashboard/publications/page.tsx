@@ -21,7 +21,10 @@ import {
   getHistoricalPublishedSnapshotCount,
   getLatestPublishedSummariesPerEvent,
 } from "@/lib/public-summary";
-import { PublishSummaryButton } from "@/components/internal/reconciliation-actions";
+import {
+  PublishSummaryButton,
+  UnpublishSummaryButton,
+} from "@/components/internal/reconciliation-actions";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -320,6 +323,13 @@ export default async function DashboardPublicationsPage({
 
           {canPublish && selectedReport && isPublishEligible && !publishedForSelected ? (
             <PublishSummaryButton key={`publish-${selectedReport.id}`} reportId={selectedReport.id} />
+          ) : null}
+
+          {canPublish && publishedForSelected ? (
+            <UnpublishSummaryButton
+              key={`unpublish-${publishedForSelected.id}`}
+              summaryId={publishedForSelected.id}
+            />
           ) : null}
         </div>
       </div>

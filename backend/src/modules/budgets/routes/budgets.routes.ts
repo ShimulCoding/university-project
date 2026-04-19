@@ -55,7 +55,11 @@ router.post(
 );
 router.patch(
   "/:budgetId/state",
-  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER),
+  authorize(
+    RoleCode.SYSTEM_ADMIN,
+    RoleCode.FINANCIAL_CONTROLLER,
+    RoleCode.ORGANIZATIONAL_APPROVER,
+  ),
   validateRequest(updateBudgetStateSchema),
   asyncHandler(budgetsController.updateBudgetState),
 );

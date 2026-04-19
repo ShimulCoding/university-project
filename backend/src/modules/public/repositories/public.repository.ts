@@ -69,6 +69,13 @@ export const publicRepository = {
     });
   },
 
+  findSummaryById(publicSummaryId: string, db: DbClient = prisma) {
+    return db.publicSummarySnapshot.findUnique({
+      where: { id: publicSummaryId },
+      include: publicSummaryDetailInclude,
+    });
+  },
+
   findPublishedSummaryByEventLookup(lookupKey: string, db: DbClient = prisma) {
     return db.publicSummarySnapshot.findFirst({
       where: {
@@ -94,6 +101,16 @@ export const publicRepository = {
       orderBy: {
         publishedAt: "desc",
       },
+    });
+  },
+
+  unpublishSummary(publicSummaryId: string, db: DbClient = prisma) {
+    return db.publicSummarySnapshot.update({
+      where: { id: publicSummaryId },
+      data: {
+        status: PublicSummaryStatus.DRAFT,
+      },
+      include: publicSummaryDetailInclude,
     });
   },
 

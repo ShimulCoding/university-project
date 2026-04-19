@@ -5,6 +5,7 @@ import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import {
+  hasApproverAccess,
   hasBudgetManagementAccess,
   hasFinanceReadAccess,
 } from "../../../utils/role-checks";
@@ -22,7 +23,7 @@ import type {
 } from "../types/budgets.types";
 
 const allowedBudgetStateTransitions: Record<BudgetState, BudgetState[]> = {
-  [BudgetState.DRAFT]: [BudgetState.SUBMITTED, BudgetState.APPROVED],
+  [BudgetState.DRAFT]: [BudgetState.SUBMITTED],
   [BudgetState.SUBMITTED]: [BudgetState.APPROVED],
   [BudgetState.APPROVED]: [],
   [BudgetState.REVISED]: [],
@@ -37,6 +38,12 @@ function assertBudgetReadPermissions(viewer: AuthenticatedUser) {
 function assertBudgetManagementPermissions(viewer: AuthenticatedUser) {
   if (!hasBudgetManagementAccess(viewer.roles)) {
     throw new AppError(403, "You are not allowed to manage budgets.");
+  }
+}
+
+function assertBudgetApprovalPermissions(viewer: AuthenticatedUser) {
+  if (!hasApproverAccess(viewer.roles)) {
+    throw new AppError(403, "Only approver roles can approve budget versions.");
   }
 }
 
@@ -209,7 +216,11 @@ export const budgetsService = {
     input: UpdateBudgetStateInput,
     auditMetadata?: AuditMetadata,
   ) {
-    assertBudgetManagementPermissions(actor);
+    if (input.state === BudgetState.APPROVED) {
+      assertBudgetApprovalPermissions(actor);
+    } else {
+      assertBudgetManagementPermissions(actor);
+    }
 
     const budget = await budgetsRepository.findById(budgetId);
 
@@ -218,6 +229,10 @@ export const budgetsService = {
     }
 
     assertBudgetStateTransition(budget.state, input.state);
+
+    if (input.state === BudgetState.APPROVED && budget.createdById === actor.id) {
+      throw new AppError(409, "Self-approval is not allowed for budget versions.");
+    }
 
     const updatedBudget = await budgetsRepository.updateBudgetState(budgetId, input.state);
 

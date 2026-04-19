@@ -27,6 +27,7 @@ import { hasAnyRole } from "@/lib/access";
 import {
   PublishSummaryButton,
   ReconciliationActionPanel,
+  UnpublishSummaryButton,
   ReconciliationGenerateForm,
 } from "@/components/internal/reconciliation-actions";
 import { FilterCard } from "@/components/internal/filter-card";
@@ -67,6 +68,9 @@ export default async function ReconciliationPage({
       listReconciliationReports({ eventId, status }),
       listInternalEventOptions(),
     ]);
+    const reconcilableEvents = events.filter(
+      (event) => event.status === "COMPLETED" || event.status === "CLOSED",
+    );
     const selectedReportId = reports.find((report) => report.id === reportId)?.id ?? reports[0]?.id;
     const selectedReport = selectedReportId ? await getReconciliationReport(selectedReportId) : null;
     const hasPublishedSnapshot =
@@ -355,12 +359,14 @@ export default async function ReconciliationPage({
                               {formatDateTime(snapshot.publishedAt)}
                             </div>
                           </div>
-                          <Link
-                            href={`/financial-summaries/${selectedReport.event.slug}`}
-                            className="mt-3 inline-flex text-sm font-semibold text-primary hover:text-primary/80"
-                          >
-                            Open public summary
-                          </Link>
+                          {snapshot.status === "PUBLISHED" ? (
+                            <Link
+                              href={`/financial-summaries/${selectedReport.event.slug}`}
+                              className="mt-3 inline-flex text-sm font-semibold text-primary hover:text-primary/80"
+                            >
+                              Open public summary
+                            </Link>
+                          ) : null}
                         </div>
                       ))}
                     </CardContent>
@@ -378,6 +384,16 @@ export default async function ReconciliationPage({
 
                 {canPublish && isPublishEligible && !hasPublishedSnapshot ? (
                   <PublishSummaryButton reportId={selectedReport.id} />
+                ) : null}
+
+                {canPublish && hasPublishedSnapshot ? (
+                  <UnpublishSummaryButton
+                    summaryId={
+                      selectedReport.publicSummarySnapshots.find(
+                        (snapshot) => snapshot.status === "PUBLISHED",
+                      )!.id
+                    }
+                  />
                 ) : null}
 
                 {!isPublishEligible && selectedReport.status === "FINALIZED" ? (
@@ -401,7 +417,7 @@ export default async function ReconciliationPage({
           </div>
         </div>
 
-        {canManage ? <ReconciliationGenerateForm events={events} /> : null}
+        {canManage ? <ReconciliationGenerateForm events={reconcilableEvents} /> : null}
       </>
     );
   } catch (error) {

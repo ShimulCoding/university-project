@@ -16,6 +16,15 @@ export function hasEventManagementAccess(userRoles: RoleCode[]) {
   return hasAnyRole(userRoles, [RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_MANAGEMENT_USER]);
 }
 
+export function hasEventManagementReadAccess(userRoles: RoleCode[]) {
+  return hasAnyRole(userRoles, [
+    RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_MANAGEMENT_USER,
+    RoleCode.FINANCIAL_CONTROLLER,
+    RoleCode.ORGANIZATIONAL_APPROVER,
+  ]);
+}
+
 export function hasInternalRegistrationAccess(userRoles: RoleCode[]) {
   return hasAnyRole(userRoles, [
     RoleCode.SYSTEM_ADMIN,

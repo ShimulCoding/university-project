@@ -7,6 +7,7 @@ import {
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { sanitizeOptionalText } from "../../../utils/text-utils";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hasApproverAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
@@ -40,11 +41,6 @@ function mapDecisionToRequestState(decision: ApprovalDecisionType) {
     case ApprovalDecisionType.RETURNED:
       return RequestState.RETURNED;
   }
-}
-
-function sanitizeOptionalText(value: string | undefined) {
-  const trimmedValue = value?.trim();
-  return trimmedValue ? trimmedValue : undefined;
 }
 
 export const approvalsService = {

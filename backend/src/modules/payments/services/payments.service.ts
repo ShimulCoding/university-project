@@ -5,6 +5,7 @@ import { prisma } from "../../../config/prisma";
 import { storageProvider } from "../../../storage";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hasFinanceAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
@@ -205,8 +206,16 @@ export const paymentsService = {
   async listVerificationQueue(viewer: AuthenticatedUser, filters: PaymentVerificationQueueFilters) {
     assertFinancePermissions(viewer);
 
-    const queue = await paymentsRepository.listPendingVerificationQueue(filters);
-    return queue.map(mapPaymentVerificationQueueItem);
+    const paginationOptions = getPaginationOptions(filters);
+    const [queue, totalItems] = await Promise.all([
+      paymentsRepository.listPendingVerificationQueue(filters, paginationOptions),
+      paymentsRepository.countPendingVerificationQueue(filters),
+    ]);
+
+    return {
+      queue: queue.map(mapPaymentVerificationQueueItem),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async decidePaymentProof(
@@ -363,8 +372,16 @@ export const paymentsService = {
   async listIncomeRecords(viewer: AuthenticatedUser, filters: IncomeRecordFilters) {
     assertFinancePermissions(viewer);
 
-    const incomeRecords = await paymentsRepository.listIncomeRecords(filters);
-    return incomeRecords.map(mapIncomeRecord);
+    const paginationOptions = getPaginationOptions(filters);
+    const [incomeRecords, totalItems] = await Promise.all([
+      paymentsRepository.listIncomeRecords(filters, paginationOptions),
+      paymentsRepository.countIncomeRecords(filters),
+    ]);
+
+    return {
+      incomeRecords: incomeRecords.map(mapIncomeRecord),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getIncomeRecordById(viewer: AuthenticatedUser, incomeRecordId: string) {

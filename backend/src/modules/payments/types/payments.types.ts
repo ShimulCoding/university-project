@@ -1,5 +1,7 @@
 import type { IncomeSourceType } from "@prisma/client";
 
+import type { PaginationInput } from "../../../utils/pagination";
+
 export type SubmitPaymentProofInput = {
   externalChannel: string;
   transactionReference?: string | undefined;
@@ -7,7 +9,7 @@ export type SubmitPaymentProofInput = {
   amount?: string | undefined;
 };
 
-export type PaymentVerificationQueueFilters = {
+export type PaymentVerificationQueueFilters = PaginationInput & {
   eventId?: string | undefined;
   search?: string | undefined;
 };
@@ -26,7 +28,7 @@ export type CreateIncomeRecordInput = {
   collectedAt?: Date | undefined;
 };
 
-export type IncomeRecordFilters = {
+export type IncomeRecordFilters = PaginationInput & {
   eventId?: string | undefined;
   search?: string | undefined;
 };

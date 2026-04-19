@@ -1,6 +1,8 @@
 import type { ApprovalDecisionType, ApprovalEntityType } from "@prisma/client";
 
-export type ApprovalQueueFilters = {
+import type { PaginationInput } from "../../../utils/pagination";
+
+export type ApprovalQueueFilters = PaginationInput & {
   entityType?: ApprovalEntityType | undefined;
   eventId?: string | undefined;
 };

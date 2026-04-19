@@ -10,6 +10,7 @@ import {
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
+import type { PaginationOptions } from "../../../utils/pagination";
 import { reconciliationReportDetailInclude } from "../reconciliation.mappers";
 import type { ReconciliationFilters, ReconciliationPayload } from "../types/reconciliation.types";
 
@@ -49,13 +50,24 @@ function buildReportWhere(filters: ReconciliationFilters): Prisma.Reconciliation
 }
 
 export const reconciliationRepository = {
-  listReports(filters: ReconciliationFilters, db: DbClient = prisma) {
+  listReports(
+    filters: ReconciliationFilters,
+    pagination?: PaginationOptions,
+    db: DbClient = prisma,
+  ) {
     return db.reconciliationReport.findMany({
       where: buildReportWhere(filters),
       include: reconciliationReportDetailInclude,
       orderBy: {
         createdAt: "desc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countReports(filters: ReconciliationFilters, db: DbClient = prisma) {
+    return db.reconciliationReport.count({
+      where: buildReportWhere(filters),
     });
   },
 

@@ -2,6 +2,7 @@ import { EventStatus } from "@prisma/client";
 
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hasEventManagementAccess } from "../../../utils/role-checks";
 import { slugify } from "../../../utils/slugify";
 import type { AuditMetadata } from "../../audit/types/audit.types";
@@ -94,8 +95,16 @@ export const eventsService = {
   async listPublicEvents(filters: EventListFilters) {
     assertPublicStatusFilter(filters.status);
 
-    const events = await eventsRepository.listPublic(filters);
-    return events.map(mapPublicEvent);
+    const paginationOptions = getPaginationOptions(filters);
+    const [events, totalItems] = await Promise.all([
+      eventsRepository.listPublic(filters, paginationOptions),
+      eventsRepository.countPublic(filters),
+    ]);
+
+    return {
+      events: events.map(mapPublicEvent),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getPublicEvent(eventLookupKey: string) {
@@ -111,8 +120,16 @@ export const eventsService = {
   async listManageEvents(viewer: AuthenticatedUser, filters: EventListFilters) {
     assertEventManagementPermissions(viewer);
 
-    const events = await eventsRepository.listManage(filters);
-    return events.map(mapManageEvent);
+    const paginationOptions = getPaginationOptions(filters);
+    const [events, totalItems] = await Promise.all([
+      eventsRepository.listManage(filters, paginationOptions),
+      eventsRepository.countManage(filters),
+    ]);
+
+    return {
+      events: events.map(mapManageEvent),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getManageEvent(viewer: AuthenticatedUser, eventLookupKey: string) {

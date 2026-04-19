@@ -1,6 +1,8 @@
 import { IncomeSourceType } from "@prisma/client";
 import { z } from "zod";
 
+import { paginationQuerySchema } from "../../../utils/pagination-validation";
+
 const optionalDateField = z.preprocess(
   (value) => (value === "" || value === null || value === undefined ? undefined : value),
   z.coerce.date().optional(),
@@ -40,6 +42,7 @@ export const submitPaymentProofSchema = z.object({
 
 export const listVerificationQueueSchema = z.object({
   query: z.object({
+    ...paginationQuerySchema,
     eventId: z.string().cuid().optional(),
     search: z.string().trim().max(120).optional(),
   }),
@@ -73,6 +76,7 @@ export const createIncomeRecordSchema = z.object({
 
 export const listIncomeRecordsSchema = z.object({
   query: z.object({
+    ...paginationQuerySchema,
     eventId: z.string().cuid().optional(),
     search: z.string().trim().max(120).optional(),
   }),

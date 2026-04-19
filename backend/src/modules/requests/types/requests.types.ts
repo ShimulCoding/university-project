@@ -1,11 +1,13 @@
 import type { ExpenseRecordState, RequestState } from "@prisma/client";
 
-export type RequestFilters = {
+import type { PaginationInput } from "../../../utils/pagination";
+
+export type RequestFilters = PaginationInput & {
   eventId?: string | undefined;
   state?: RequestState | undefined;
 };
 
-export type ExpenseRecordFilters = {
+export type ExpenseRecordFilters = PaginationInput & {
   eventId?: string | undefined;
   state?: ExpenseRecordState | undefined;
   expenseRequestId?: string | undefined;

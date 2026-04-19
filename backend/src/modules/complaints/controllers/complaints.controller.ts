@@ -5,8 +5,8 @@ import { complaintsService } from "../services/complaints.service";
 
 export const complaintsController = {
   async listMyComplaints(request: Request, response: Response) {
-    const complaints = await complaintsService.listMyComplaints(request.auth!.user);
-    response.status(200).json({ complaints });
+    const result = await complaintsService.listMyComplaints(request.auth!.user, request.query);
+    response.status(200).json(result);
   },
 
   async getComplaintById(request: Request, response: Response) {
@@ -30,12 +30,12 @@ export const complaintsController = {
   },
 
   async listReviewQueue(request: Request, response: Response) {
-    const complaints = await complaintsService.listReviewQueue(
+    const result = await complaintsService.listReviewQueue(
       request.auth!.user,
       request.query,
     );
 
-    response.status(200).json({ complaints });
+    response.status(200).json(result);
   },
 
   async startReview(request: Request, response: Response) {

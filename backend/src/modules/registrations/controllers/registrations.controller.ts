@@ -15,8 +15,11 @@ export const registrationsController = {
   },
 
   async listMyRegistrations(request: Request, response: Response) {
-    const registrations = await registrationsService.listMyRegistrations(request.auth!.userId);
-    response.status(200).json({ registrations });
+    const result = await registrationsService.listMyRegistrations(
+      request.auth!.userId,
+      request.query,
+    );
+    response.status(200).json(result);
   },
 
   async getRegistrationById(request: Request, response: Response) {
@@ -29,11 +32,12 @@ export const registrationsController = {
   },
 
   async listEventRegistrations(request: Request, response: Response) {
-    const registrations = await registrationsService.listEventRegistrations(
+    const result = await registrationsService.listEventRegistrations(
       request.auth!.user,
       String(request.params.eventId),
+      request.query,
     );
 
-    response.status(200).json({ registrations });
+    response.status(200).json(result);
   },
 };

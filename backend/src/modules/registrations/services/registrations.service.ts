@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { EventStatus, Prisma } from "@prisma/client";
 
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hasFinanceAccess, hasInternalRegistrationAccess } from "../../../utils/role-checks";
 import type { AuthenticatedUser } from "../../../types/auth";
 import type { AuditMetadata } from "../../audit/types/audit.types";
@@ -15,7 +16,7 @@ import {
   mapRegistrationListItem,
 } from "../registrations.mappers";
 import { registrationsRepository } from "../repositories/registrations.repository";
-import type { CreateRegistrationInput } from "../types/registrations.types";
+import type { CreateRegistrationInput, RegistrationListFilters } from "../types/registrations.types";
 
 function sanitizeOptionalText(value: string | undefined) {
   const trimmedValue = value?.trim();
@@ -135,9 +136,17 @@ export const registrationsService = {
     return mapRegistrationForOwner(registration);
   },
 
-  async listMyRegistrations(participantId: string) {
-    const registrations = await registrationsRepository.listByParticipant(participantId);
-    return registrations.map(mapRegistrationForOwner);
+  async listMyRegistrations(participantId: string, filters: RegistrationListFilters) {
+    const paginationOptions = getPaginationOptions(filters);
+    const [registrations, totalItems] = await Promise.all([
+      registrationsRepository.listByParticipant(participantId, paginationOptions),
+      registrationsRepository.countByParticipant(participantId),
+    ]);
+
+    return {
+      registrations: registrations.map(mapRegistrationForOwner),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getRegistrationById(viewer: AuthenticatedUser, registrationId: string) {
@@ -165,7 +174,11 @@ export const registrationsService = {
     return mapRegistrationForInternal(registration);
   },
 
-  async listEventRegistrations(viewer: AuthenticatedUser, eventId: string) {
+  async listEventRegistrations(
+    viewer: AuthenticatedUser,
+    eventId: string,
+    filters: RegistrationListFilters,
+  ) {
     if (!hasInternalRegistrationAccess(viewer.roles)) {
       throw new AppError(403, "You are not allowed to view event registrations.");
     }
@@ -176,9 +189,18 @@ export const registrationsService = {
       throw new AppError(404, "Event not found.");
     }
 
-    const registrations = await registrationsRepository.listByEvent(eventId);
+    const paginationOptions = getPaginationOptions(filters);
+    const [registrations, totalItems] = await Promise.all([
+      registrationsRepository.listByEvent(eventId, paginationOptions),
+      registrationsRepository.countByEvent(eventId),
+    ]);
     const financeView = hasFinanceAccess(viewer.roles);
 
-    return registrations.map((registration) => mapRegistrationListItem(registration, financeView));
+    return {
+      registrations: registrations.map((registration) =>
+        mapRegistrationListItem(registration, financeView),
+      ),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 };

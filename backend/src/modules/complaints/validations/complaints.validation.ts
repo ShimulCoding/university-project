@@ -1,6 +1,8 @@
 import { ComplaintState, RoleCode } from "@prisma/client";
 import { z } from "zod";
 
+import { paginationQuerySchema } from "../../../utils/pagination-validation";
+
 const complaintRoutingTargetRoles = [
   RoleCode.SYSTEM_ADMIN,
   RoleCode.COMPLAINT_REVIEW_AUTHORITY,
@@ -25,6 +27,7 @@ export const createComplaintSchema = z.object({
 
 export const listComplaintQueueSchema = z.object({
   query: z.object({
+    ...paginationQuerySchema,
     eventId: z.string().cuid().optional(),
     state: z.nativeEnum(ComplaintState).optional(),
     search: z.string().trim().min(1).max(200).optional(),

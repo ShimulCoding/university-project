@@ -2,6 +2,7 @@ import { Prisma, type DocumentCategory, type ExpenseRecordState, type RequestSta
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
+import type { PaginationOptions } from "../../../utils/pagination";
 import {
   budgetRequestDetailInclude,
   expenseRecordDetailInclude,
@@ -110,22 +111,51 @@ export const requestsRepository = {
     });
   },
 
-  listBudgetRequests(filters: RequestFilters, db: DbClient = prisma) {
+  listBudgetRequests(filters: RequestFilters, pagination?: PaginationOptions, db: DbClient = prisma) {
     return db.budgetRequest.findMany({
       where: buildRequestWhere(filters),
       include: budgetRequestDetailInclude,
       orderBy: {
         createdAt: "desc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
 
-  listBudgetRequestsByRequester(requestedById: string, db: DbClient = prisma) {
+  countBudgetRequests(filters: RequestFilters, db: DbClient = prisma) {
+    return db.budgetRequest.count({
+      where: buildRequestWhere(filters),
+    });
+  },
+
+  listBudgetRequestsByRequester(
+    requestedById: string,
+    filters: RequestFilters,
+    pagination?: PaginationOptions,
+    db: DbClient = prisma,
+  ) {
     return db.budgetRequest.findMany({
-      where: { requestedById },
+      where: {
+        ...buildRequestWhere(filters),
+        requestedById,
+      },
       include: budgetRequestDetailInclude,
       orderBy: {
         createdAt: "desc",
+      },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countBudgetRequestsByRequester(
+    requestedById: string,
+    filters: RequestFilters,
+    db: DbClient = prisma,
+  ) {
+    return db.budgetRequest.count({
+      where: {
+        ...buildRequestWhere(filters),
+        requestedById,
       },
     });
   },
@@ -180,22 +210,51 @@ export const requestsRepository = {
     });
   },
 
-  listExpenseRequests(filters: RequestFilters, db: DbClient = prisma) {
+  listExpenseRequests(filters: RequestFilters, pagination?: PaginationOptions, db: DbClient = prisma) {
     return db.expenseRequest.findMany({
       where: buildExpenseRequestWhere(filters),
       include: expenseRequestDetailInclude,
       orderBy: {
         createdAt: "desc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
 
-  listExpenseRequestsByRequester(requestedById: string, db: DbClient = prisma) {
+  countExpenseRequests(filters: RequestFilters, db: DbClient = prisma) {
+    return db.expenseRequest.count({
+      where: buildExpenseRequestWhere(filters),
+    });
+  },
+
+  listExpenseRequestsByRequester(
+    requestedById: string,
+    filters: RequestFilters,
+    pagination?: PaginationOptions,
+    db: DbClient = prisma,
+  ) {
     return db.expenseRequest.findMany({
-      where: { requestedById },
+      where: {
+        ...buildExpenseRequestWhere(filters),
+        requestedById,
+      },
       include: expenseRequestDetailInclude,
       orderBy: {
         createdAt: "desc",
+      },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countExpenseRequestsByRequester(
+    requestedById: string,
+    filters: RequestFilters,
+    db: DbClient = prisma,
+  ) {
+    return db.expenseRequest.count({
+      where: {
+        ...buildExpenseRequestWhere(filters),
+        requestedById,
       },
     });
   },
@@ -282,13 +341,24 @@ export const requestsRepository = {
     });
   },
 
-  listExpenseRecords(filters: ExpenseRecordFilters, db: DbClient = prisma) {
+  listExpenseRecords(
+    filters: ExpenseRecordFilters,
+    pagination?: PaginationOptions,
+    db: DbClient = prisma,
+  ) {
     return db.expenseRecord.findMany({
       where: buildExpenseRecordWhere(filters),
       include: expenseRecordDetailInclude,
       orderBy: {
         createdAt: "desc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countExpenseRecords(filters: ExpenseRecordFilters, db: DbClient = prisma) {
+    return db.expenseRecord.count({
+      where: buildExpenseRecordWhere(filters),
     });
   },
 

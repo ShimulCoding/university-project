@@ -9,10 +9,10 @@ export const usersController = {
     response.status(200).json({ user });
   },
 
-  async listUsers(_request: Request, response: Response) {
-    const users = await usersService.listUsers();
+  async listUsers(request: Request, response: Response) {
+    const result = await usersService.listUsers(request.query);
 
-    response.status(200).json({ users });
+    response.status(200).json(result);
   },
 
   async getUserById(request: Request, response: Response) {

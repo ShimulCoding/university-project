@@ -9,6 +9,7 @@ import { asyncHandler } from "../../../utils/async-handler";
 import { rolesController } from "../controllers/roles.controller";
 import {
   assignRoleSchema,
+  listRolesSchema,
   revokeRoleAssignmentSchema,
   userAssignmentsParamSchema,
 } from "../validations/roles.validation";
@@ -17,7 +18,7 @@ const router = Router();
 
 router.use(authenticate);
 
-router.get("/", asyncHandler(rolesController.listRoles));
+router.get("/", validateRequest(listRolesSchema), asyncHandler(rolesController.listRoles));
 router.get(
   "/assignments/:userId",
   authorize(RoleCode.SYSTEM_ADMIN),
@@ -38,4 +39,3 @@ router.delete(
 );
 
 export { router as rolesRouter };
-

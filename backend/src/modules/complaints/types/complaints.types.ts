@@ -1,6 +1,8 @@
 import type { ComplaintState, RoleCode } from "@prisma/client";
 
-export type ComplaintQueueFilters = {
+import type { PaginationInput } from "../../../utils/pagination";
+
+export type ComplaintQueueFilters = PaginationInput & {
   eventId?: string | undefined;
   state?: ComplaintState | undefined;
   search?: string | undefined;

@@ -1,6 +1,8 @@
 import type { ReconciliationState } from "@prisma/client";
 
-export type ReconciliationFilters = {
+import type { PaginationInput } from "../../../utils/pagination";
+
+export type ReconciliationFilters = PaginationInput & {
   eventId?: string | undefined;
   status?: ReconciliationState | undefined;
 };

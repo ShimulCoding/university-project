@@ -1,4 +1,6 @@
-export type PublicSummaryFilters = {
+import type { PaginationInput } from "../../../utils/pagination";
+
+export type PublicSummaryFilters = PaginationInput & {
   search?: string | undefined;
 };
 

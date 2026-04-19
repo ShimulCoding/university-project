@@ -2,6 +2,7 @@ import { Prisma, type EventStatus } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
+import type { PaginationOptions } from "../../../utils/pagination";
 import { eventManageInclude, publicEventStatuses } from "../events.mappers";
 import type { EventListFilters } from "../types/events.types";
 
@@ -150,19 +151,33 @@ export const eventsRepository = {
     });
   },
 
-  listPublic(filters: EventListFilters, db: DbClient = prisma) {
+  listPublic(filters: EventListFilters, pagination?: PaginationOptions, db: DbClient = prisma) {
     return db.event.findMany({
       where: buildListWhere(filters, false),
       include: eventManageInclude,
       orderBy: [{ startsAt: "asc" }, { createdAt: "desc" }],
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
 
-  listManage(filters: EventListFilters, db: DbClient = prisma) {
+  countPublic(filters: EventListFilters, db: DbClient = prisma) {
+    return db.event.count({
+      where: buildListWhere(filters, false),
+    });
+  },
+
+  listManage(filters: EventListFilters, pagination?: PaginationOptions, db: DbClient = prisma) {
     return db.event.findMany({
       where: buildListWhere(filters, true),
       include: eventManageInclude,
       orderBy: [{ createdAt: "desc" }],
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countManage(filters: EventListFilters, db: DbClient = prisma) {
+    return db.event.count({
+      where: buildListWhere(filters, true),
     });
   },
 

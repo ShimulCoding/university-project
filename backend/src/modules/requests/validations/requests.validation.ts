@@ -1,6 +1,8 @@
 import { ExpenseRecordState, RequestState } from "@prisma/client";
 import { z } from "zod";
 
+import { paginationQuerySchema } from "../../../utils/pagination-validation";
+
 const moneyField = z.preprocess(
   (value) => {
     if (typeof value === "number") {
@@ -41,6 +43,7 @@ const optionalBooleanField = z.preprocess(
 
 export const listRequestsSchema = z.object({
   query: z.object({
+    ...paginationQuerySchema,
     eventId: z.string().cuid().optional(),
     state: z.nativeEnum(RequestState).optional(),
   }),
@@ -48,6 +51,7 @@ export const listRequestsSchema = z.object({
 
 export const listExpenseRecordsSchema = z.object({
   query: z.object({
+    ...paginationQuerySchema,
     eventId: z.string().cuid().optional(),
     state: z.nativeEnum(ExpenseRecordState).optional(),
     expenseRequestId: z.string().cuid().optional(),

@@ -10,10 +10,14 @@ export const auditController = {
       entityType: request.query.entityType as string | undefined,
       entityId: request.query.entityId as string | undefined,
       limit: Number(request.query.limit ?? 20),
+      page: Number(request.query.page ?? 1),
+      pageSize: request.query.pageSize
+        ? Number(request.query.pageSize)
+        : Number(request.query.limit ?? 20),
     };
-    const logs = await auditService.listAuditLogs(request.auth!.user, filters);
+    const result = await auditService.listAuditLogs(request.auth!.user, filters);
 
-    response.status(200).json({ logs });
+    response.status(200).json(result);
   },
 
   async getAuditLogById(request: Request, response: Response) {

@@ -1,6 +1,8 @@
 import type { EventStatus } from "@prisma/client";
 
-export type EventListFilters = {
+import type { PaginationInput } from "../../../utils/pagination";
+
+export type EventListFilters = PaginationInput & {
   status?: EventStatus | undefined;
   search?: string | undefined;
 };

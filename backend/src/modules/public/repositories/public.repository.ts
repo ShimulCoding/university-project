@@ -2,6 +2,7 @@ import { Prisma, PublicSummaryStatus } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
+import type { PaginationOptions } from "../../../utils/pagination";
 import { publicSummaryDetailInclude } from "../public.mappers";
 import type { PublicFinancialSummaryPayload, PublicSummaryFilters } from "../types/public.types";
 
@@ -47,13 +48,24 @@ function buildPublishedSummaryWhere(
 }
 
 export const publicRepository = {
-  listPublishedSummaries(filters: PublicSummaryFilters, db: DbClient = prisma) {
+  listPublishedSummaries(
+    filters: PublicSummaryFilters,
+    pagination?: PaginationOptions,
+    db: DbClient = prisma,
+  ) {
     return db.publicSummarySnapshot.findMany({
       where: buildPublishedSummaryWhere(filters),
       include: publicSummaryDetailInclude,
       orderBy: {
         publishedAt: "desc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countPublishedSummaries(filters: PublicSummaryFilters, db: DbClient = prisma) {
+    return db.publicSummarySnapshot.count({
+      where: buildPublishedSummaryWhere(filters),
     });
   },
 

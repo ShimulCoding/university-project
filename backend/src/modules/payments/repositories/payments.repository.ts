@@ -2,6 +2,7 @@ import { Prisma, type DocumentCategory, type PaymentProofState } from "@prisma/c
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
+import type { PaginationOptions } from "../../../utils/pagination";
 import {
   incomeRecordDetailInclude,
   paymentProofDetailInclude,
@@ -167,13 +168,24 @@ export const paymentsRepository = {
     });
   },
 
-  listPendingVerificationQueue(filters: PaymentVerificationQueueFilters, db: DbClient = prisma) {
+  listPendingVerificationQueue(
+    filters: PaymentVerificationQueueFilters,
+    pagination?: PaginationOptions,
+    db: DbClient = prisma,
+  ) {
     return db.paymentProof.findMany({
       where: buildQueueWhere(filters),
       include: paymentProofDetailInclude,
       orderBy: {
         submittedAt: "desc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countPendingVerificationQueue(filters: PaymentVerificationQueueFilters, db: DbClient = prisma) {
+    return db.paymentProof.count({
+      where: buildQueueWhere(filters),
     });
   },
 
@@ -213,6 +225,7 @@ export const paymentsRepository = {
 
   listIncomeRecords(
     filters: { eventId?: string | undefined; search?: string | undefined },
+    pagination?: PaginationOptions,
     db: DbClient = prisma,
   ) {
     return db.incomeRecord.findMany({
@@ -221,6 +234,16 @@ export const paymentsRepository = {
       orderBy: {
         createdAt: "desc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countIncomeRecords(
+    filters: { eventId?: string | undefined; search?: string | undefined },
+    db: DbClient = prisma,
+  ) {
+    return db.incomeRecord.count({
+      where: buildIncomeWhere(filters),
     });
   },
 

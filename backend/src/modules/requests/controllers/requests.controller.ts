@@ -5,13 +5,13 @@ import { requestsService } from "../services/requests.service";
 
 export const requestsController = {
   async listMyBudgetRequests(request: Request, response: Response) {
-    const budgetRequests = await requestsService.listMyBudgetRequests(request.auth!.user);
-    response.status(200).json({ budgetRequests });
+    const result = await requestsService.listMyBudgetRequests(request.auth!.user, request.query);
+    response.status(200).json(result);
   },
 
   async listBudgetRequests(request: Request, response: Response) {
-    const budgetRequests = await requestsService.listBudgetRequests(request.auth!.user, request.query);
-    response.status(200).json({ budgetRequests });
+    const result = await requestsService.listBudgetRequests(request.auth!.user, request.query);
+    response.status(200).json(result);
   },
 
   async getBudgetRequestById(request: Request, response: Response) {
@@ -57,17 +57,17 @@ export const requestsController = {
   },
 
   async listMyExpenseRequests(request: Request, response: Response) {
-    const expenseRequests = await requestsService.listMyExpenseRequests(request.auth!.user);
-    response.status(200).json({ expenseRequests });
+    const result = await requestsService.listMyExpenseRequests(request.auth!.user, request.query);
+    response.status(200).json(result);
   },
 
   async listExpenseRequests(request: Request, response: Response) {
-    const expenseRequests = await requestsService.listExpenseRequests(
+    const result = await requestsService.listExpenseRequests(
       request.auth!.user,
       request.query,
     );
 
-    response.status(200).json({ expenseRequests });
+    response.status(200).json(result);
   },
 
   async getExpenseRequestById(request: Request, response: Response) {
@@ -113,12 +113,12 @@ export const requestsController = {
   },
 
   async listExpenseRecords(request: Request, response: Response) {
-    const expenseRecords = await requestsService.listExpenseRecords(
+    const result = await requestsService.listExpenseRecords(
       request.auth!.user,
       request.query,
     );
 
-    response.status(200).json({ expenseRecords });
+    response.status(200).json(result);
   },
 
   async getExpenseRecordById(request: Request, response: Response) {

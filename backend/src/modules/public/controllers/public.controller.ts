@@ -5,8 +5,8 @@ import { publicService } from "../services/public.service";
 
 export const publicController = {
   async listPublishedFinancialSummaries(request: Request, response: Response) {
-    const summaries = await publicService.listPublishedFinancialSummaries(request.query);
-    response.status(200).json({ summaries });
+    const result = await publicService.listPublishedFinancialSummaries(request.query);
+    response.status(200).json(result);
   },
 
   async getPublishedFinancialSummary(request: Request, response: Response) {

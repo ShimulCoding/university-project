@@ -1,8 +1,11 @@
 import { ReconciliationState } from "@prisma/client";
 import { z } from "zod";
 
+import { paginationQuerySchema } from "../../../utils/pagination-validation";
+
 export const listReconciliationReportsSchema = z.object({
   query: z.object({
+    ...paginationQuerySchema,
     eventId: z.string().cuid().optional(),
     status: z.nativeEnum(ReconciliationState).optional(),
   }),

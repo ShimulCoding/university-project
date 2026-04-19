@@ -2,6 +2,7 @@ import type { AccountStatus } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
+import type { PaginationOptions } from "../../../utils/pagination";
 import { userWithActiveRolesInclude } from "../users.mappers";
 
 export const usersRepository = {
@@ -38,12 +39,13 @@ export const usersRepository = {
     });
   },
 
-  listUsers(db: DbClient = prisma) {
+  listUsers(pagination?: PaginationOptions, db: DbClient = prisma) {
     return db.user.findMany({
       include: userWithActiveRolesInclude,
       orderBy: {
         createdAt: "desc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
 

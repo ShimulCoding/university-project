@@ -1,8 +1,11 @@
 import { ApprovalDecisionType, ApprovalEntityType } from "@prisma/client";
 import { z } from "zod";
 
+import { paginationQuerySchema } from "../../../utils/pagination-validation";
+
 export const listApprovalQueueSchema = z.object({
   query: z.object({
+    ...paginationQuerySchema,
     entityType: z.nativeEnum(ApprovalEntityType).optional(),
     eventId: z.string().cuid().optional(),
   }),

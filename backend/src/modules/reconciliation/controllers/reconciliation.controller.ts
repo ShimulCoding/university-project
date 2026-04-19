@@ -5,8 +5,8 @@ import { reconciliationService } from "../services/reconciliation.service";
 
 export const reconciliationController = {
   async listReports(request: Request, response: Response) {
-    const reports = await reconciliationService.listReports(request.auth!.user, request.query);
-    response.status(200).json({ reports });
+    const result = await reconciliationService.listReports(request.auth!.user, request.query);
+    response.status(200).json(result);
   },
 
   async getReportById(request: Request, response: Response) {

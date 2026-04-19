@@ -6,8 +6,8 @@ import { approvalsService } from "../services/approvals.service";
 
 export const approvalsController = {
   async listApprovalQueue(request: Request, response: Response) {
-    const queue = await approvalsService.listApprovalQueue(request.auth!.user, request.query);
-    response.status(200).json({ queue });
+    const result = await approvalsService.listApprovalQueue(request.auth!.user, request.query);
+    response.status(200).json(result);
   },
 
   async decide(request: Request, response: Response) {

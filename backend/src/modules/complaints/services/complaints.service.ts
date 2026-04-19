@@ -5,6 +5,7 @@ import { prisma } from "../../../config/prisma";
 import { storageProvider } from "../../../storage";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hasComplaintReviewAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
@@ -227,9 +228,17 @@ async function transitionComplaint(
 }
 
 export const complaintsService = {
-  async listMyComplaints(actor: AuthenticatedUser) {
-    const complaints = await complaintsRepository.listComplaintsBySubmitter(actor.id);
-    return complaints.map(mapComplaintForSubmitter);
+  async listMyComplaints(actor: AuthenticatedUser, filters: ComplaintQueueFilters) {
+    const paginationOptions = getPaginationOptions(filters);
+    const [complaints, totalItems] = await Promise.all([
+      complaintsRepository.listComplaintsBySubmitter(actor.id, filters, paginationOptions),
+      complaintsRepository.countComplaintsBySubmitter(actor.id, filters),
+    ]);
+
+    return {
+      complaints: complaints.map(mapComplaintForSubmitter),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getComplaintById(viewer: AuthenticatedUser, complaintId: string) {
@@ -326,8 +335,16 @@ export const complaintsService = {
   async listReviewQueue(viewer: AuthenticatedUser, filters: ComplaintQueueFilters) {
     assertComplaintReviewPermissions(viewer);
 
-    const complaints = await complaintsRepository.listReviewQueue(filters);
-    return complaints.map(mapComplaintQueueItem);
+    const paginationOptions = getPaginationOptions(filters);
+    const [complaints, totalItems] = await Promise.all([
+      complaintsRepository.listReviewQueue(filters, paginationOptions),
+      complaintsRepository.countReviewQueue(filters),
+    ]);
+
+    return {
+      complaints: complaints.map(mapComplaintQueueItem),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async startReview(

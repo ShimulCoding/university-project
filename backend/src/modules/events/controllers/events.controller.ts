@@ -5,8 +5,8 @@ import { eventsService } from "../services/events.service";
 
 export const eventsController = {
   async listPublicEvents(request: Request, response: Response) {
-    const events = await eventsService.listPublicEvents(request.query);
-    response.status(200).json({ events });
+    const result = await eventsService.listPublicEvents(request.query);
+    response.status(200).json(result);
   },
 
   async getPublicEvent(request: Request, response: Response) {
@@ -15,8 +15,8 @@ export const eventsController = {
   },
 
   async listManageEvents(request: Request, response: Response) {
-    const events = await eventsService.listManageEvents(request.auth!.user, request.query);
-    response.status(200).json({ events });
+    const result = await eventsService.listManageEvents(request.auth!.user, request.query);
+    response.status(200).json(result);
   },
 
   async getManageEvent(request: Request, response: Response) {

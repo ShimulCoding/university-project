@@ -9,6 +9,7 @@ import { asyncHandler } from "../../../utils/async-handler";
 import { usersController } from "../controllers/users.controller";
 import {
   createUserSchema,
+  listUsersSchema,
   updateUserStatusSchema,
   userIdParamSchema,
 } from "../validations/users.validation";
@@ -18,7 +19,12 @@ const router = Router();
 router.use(authenticate);
 
 router.get("/me", asyncHandler(usersController.getCurrentUser));
-router.get("/", authorize(RoleCode.SYSTEM_ADMIN), asyncHandler(usersController.listUsers));
+router.get(
+  "/",
+  authorize(RoleCode.SYSTEM_ADMIN),
+  validateRequest(listUsersSchema),
+  asyncHandler(usersController.listUsers),
+);
 router.get(
   "/:userId",
   authorize(RoleCode.SYSTEM_ADMIN),
@@ -39,4 +45,3 @@ router.patch(
 );
 
 export { router as usersRouter };
-

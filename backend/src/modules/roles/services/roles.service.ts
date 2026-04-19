@@ -1,10 +1,12 @@
 import { Prisma, type RoleCode } from "@prisma/client";
 
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { usersRepository } from "../../users/repositories/users.repository";
 import { rolesRepository } from "../repositories/roles.repository";
+import type { RoleListFilters } from "../types/roles.types";
 
 type RoleAssignmentRecord = Prisma.UserRoleGetPayload<{
   include: {
@@ -37,35 +39,51 @@ export const rolesService = {
     return rolesRepository.syncCatalog();
   },
 
-  async listRoles() {
+  async listRoles(filters: RoleListFilters) {
     await rolesRepository.syncCatalog();
-    return rolesRepository.listRoles();
+    const paginationOptions = getPaginationOptions(filters);
+    const [roles, totalItems] = await Promise.all([
+      rolesRepository.listRoles(paginationOptions),
+      rolesRepository.countRoles(),
+    ]);
+
+    return {
+      roles,
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
-  async listUserAssignments(userId: string) {
+  async listUserAssignments(userId: string, filters: RoleListFilters) {
     const user = await usersRepository.findById(userId);
 
     if (!user) {
       throw new AppError(404, "User not found.");
     }
 
-    const assignments = await rolesRepository.listUserAssignments(userId);
+    const paginationOptions = getPaginationOptions(filters);
+    const [assignments, totalItems] = await Promise.all([
+      rolesRepository.listUserAssignments(userId, paginationOptions),
+      rolesRepository.countUserAssignments(userId),
+    ]);
 
-    return assignments.map((assignment) => ({
-      id: assignment.id,
-      userId: assignment.userId,
-      roleCode: assignment.role.code,
-      roleName: assignment.role.name,
-      assignedAt: assignment.assignedAt,
-      revokedAt: assignment.revokedAt,
-      assignedBy: assignment.assignedBy
-        ? {
-            id: assignment.assignedBy.id,
-            fullName: assignment.assignedBy.fullName,
-            email: assignment.assignedBy.email,
-          }
-        : null,
-    }));
+    return {
+      assignments: assignments.map((assignment) => ({
+        id: assignment.id,
+        userId: assignment.userId,
+        roleCode: assignment.role.code,
+        roleName: assignment.role.name,
+        assignedAt: assignment.assignedAt,
+        revokedAt: assignment.revokedAt,
+        assignedBy: assignment.assignedBy
+          ? {
+              id: assignment.assignedBy.id,
+              fullName: assignment.assignedBy.fullName,
+              email: assignment.assignedBy.email,
+            }
+          : null,
+      })),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async assignRole(

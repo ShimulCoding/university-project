@@ -26,8 +26,8 @@ export const paymentsController = {
   },
 
   async listVerificationQueue(request: Request, response: Response) {
-    const queue = await paymentsService.listVerificationQueue(request.auth!.user, request.query);
-    response.status(200).json({ queue });
+    const result = await paymentsService.listVerificationQueue(request.auth!.user, request.query);
+    response.status(200).json(result);
   },
 
   async decidePaymentProof(request: Request, response: Response) {
@@ -57,11 +57,11 @@ export const paymentsController = {
   },
 
   async listIncomeRecords(request: Request, response: Response) {
-    const incomeRecords = await paymentsService.listIncomeRecords(
+    const result = await paymentsService.listIncomeRecords(
       request.auth!.user,
       request.query,
     );
-    response.status(200).json({ incomeRecords });
+    response.status(200).json(result);
   },
 
   async getIncomeRecordById(request: Request, response: Response) {

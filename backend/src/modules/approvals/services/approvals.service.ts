@@ -7,6 +7,7 @@ import {
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hasApproverAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
@@ -51,6 +52,7 @@ export const approvalsService = {
     assertApproverPermissions(actor);
 
     const queueItems: Array<ReturnType<typeof mapApprovalQueueItem>> = [];
+    const paginationOptions = getPaginationOptions(filters);
 
     if (!filters.entityType || filters.entityType === ApprovalEntityType.BUDGET_REQUEST) {
       const budgetRequests = await approvalsRepository.listPendingBudgetRequests(filters);
@@ -70,9 +72,17 @@ export const approvalsService = {
       );
     }
 
-    return queueItems.sort(
+    const sortedQueue = queueItems.sort(
       (left, right) => left.createdAt.getTime() - right.createdAt.getTime(),
     );
+
+    return {
+      queue: sortedQueue.slice(
+        paginationOptions.skip,
+        paginationOptions.skip + paginationOptions.take,
+      ),
+      pagination: buildPaginationResult(paginationOptions, sortedQueue.length),
+    };
   },
 
   async decide(

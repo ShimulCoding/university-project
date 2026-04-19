@@ -1,5 +1,7 @@
 import type { BudgetState } from "@prisma/client";
 
+import type { PaginationInput } from "../../../utils/pagination";
+
 export type BudgetItemInput = {
   category: string;
   label: string;
@@ -7,7 +9,7 @@ export type BudgetItemInput = {
   notes?: string | undefined;
 };
 
-export type BudgetFilters = {
+export type BudgetFilters = PaginationInput & {
   eventId?: string | undefined;
   state?: BudgetState | undefined;
   isActive?: boolean | undefined;

@@ -5,8 +5,8 @@ import { budgetsService } from "../services/budgets.service";
 
 export const budgetsController = {
   async listBudgets(request: Request, response: Response) {
-    const budgets = await budgetsService.listBudgets(request.auth!.user, request.query);
-    response.status(200).json({ budgets });
+    const result = await budgetsService.listBudgets(request.auth!.user, request.query);
+    response.status(200).json(result);
   },
 
   async getBudgetById(request: Request, response: Response) {

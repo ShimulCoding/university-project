@@ -1,6 +1,8 @@
 import { EventStatus } from "@prisma/client";
 import { z } from "zod";
 
+import { paginationQuerySchema } from "../../../utils/pagination-validation";
+
 const eventLookupKeySchema = z.string().trim().min(1).max(160);
 
 const optionalDateField = z.preprocess(
@@ -39,6 +41,7 @@ const eventBodySchema = z.object({
 
 export const listPublicEventsSchema = z.object({
   query: z.object({
+    ...paginationQuerySchema,
     status: z.nativeEnum(EventStatus).optional(),
     search: z.string().trim().max(120).optional(),
   }),

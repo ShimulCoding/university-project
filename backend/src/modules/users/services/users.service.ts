@@ -2,6 +2,7 @@ import { AccountStatus, RoleCode } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hashPassword } from "../../../utils/password";
 import { normalizeEmail } from "../../../utils/normalize-email";
 import type { AuditMetadata } from "../../audit/types/audit.types";
@@ -9,13 +10,20 @@ import { auditService } from "../../audit/services/audit.service";
 import { rolesRepository } from "../../roles/repositories/roles.repository";
 import { mapUserProfile } from "../users.mappers";
 import { usersRepository } from "../repositories/users.repository";
-import type { CreateUserInput } from "../types/users.types";
+import type { CreateUserInput, UserListFilters } from "../types/users.types";
 
 export const usersService = {
-  async listUsers() {
-    const users = await usersRepository.listUsers();
+  async listUsers(filters: UserListFilters) {
+    const paginationOptions = getPaginationOptions(filters);
+    const [users, totalItems] = await Promise.all([
+      usersRepository.listUsers(paginationOptions),
+      usersRepository.countUsers(),
+    ]);
 
-    return users.map(mapUserProfile);
+    return {
+      users: users.map(mapUserProfile),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getCurrentUser(userId: string) {

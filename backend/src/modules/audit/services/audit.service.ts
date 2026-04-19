@@ -2,6 +2,7 @@ import { auditRepository } from "../repositories/audit.repository";
 import type { AuditFilters, CreateAuditLogInput } from "../types/audit.types";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hasAuditReadAccess } from "../../../utils/role-checks";
 
 function assertAuditReadPermissions(viewer: AuthenticatedUser) {
@@ -39,9 +40,19 @@ export const auditService = {
   async listAuditLogs(viewer: AuthenticatedUser, filters: AuditFilters) {
     assertAuditReadPermissions(viewer);
 
-    const logs = await auditRepository.list(filters);
+    const paginationOptions = getPaginationOptions({
+      page: filters.page,
+      pageSize: filters.pageSize ?? filters.limit,
+    });
+    const [logs, totalItems] = await Promise.all([
+      auditRepository.list(filters, paginationOptions),
+      auditRepository.count(filters),
+    ]);
 
-    return logs.map((log) => mapAuditLog(log)!);
+    return {
+      logs: logs.map((log) => mapAuditLog(log)!),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getAuditLogById(viewer: AuthenticatedUser, auditLogId: string) {

@@ -3,16 +3,19 @@ import type { Request, Response } from "express";
 import { rolesService } from "../services/roles.service";
 
 export const rolesController = {
-  async listRoles(_request: Request, response: Response) {
-    const roles = await rolesService.listRoles();
+  async listRoles(request: Request, response: Response) {
+    const result = await rolesService.listRoles(request.query);
 
-    response.status(200).json({ roles });
+    response.status(200).json(result);
   },
 
   async listUserAssignments(request: Request, response: Response) {
-    const assignments = await rolesService.listUserAssignments(String(request.params.userId));
+    const result = await rolesService.listUserAssignments(
+      String(request.params.userId),
+      request.query,
+    );
 
-    response.status(200).json({ assignments });
+    response.status(200).json(result);
   },
 
   async assignRole(request: Request, response: Response) {

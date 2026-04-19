@@ -1,6 +1,8 @@
 import { BudgetState } from "@prisma/client";
 import { z } from "zod";
 
+import { paginationQuerySchema } from "../../../utils/pagination-validation";
+
 const moneyField = z.preprocess(
   (value) => {
     if (typeof value === "number") {
@@ -49,6 +51,7 @@ const budgetBodySchema = z.object({
 
 export const listBudgetsSchema = z.object({
   query: z.object({
+    ...paginationQuerySchema,
     eventId: z.string().cuid().optional(),
     state: z.nativeEnum(BudgetState).optional(),
     isActive: optionalBooleanField,

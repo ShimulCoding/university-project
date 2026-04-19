@@ -2,6 +2,7 @@ import { ExpenseRecordState, IncomeState, Prisma, ReconciliationState } from "@p
 
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import {
   hasReconciliationFinalizeAccess,
   hasReconciliationManagementAccess,
@@ -189,8 +190,16 @@ export const reconciliationService = {
   async listReports(viewer: AuthenticatedUser, filters: ReconciliationFilters) {
     assertReconciliationReadPermissions(viewer);
 
-    const reports = await reconciliationRepository.listReports(filters);
-    return reports.map(mapReconciliationReport);
+    const paginationOptions = getPaginationOptions(filters);
+    const [reports, totalItems] = await Promise.all([
+      reconciliationRepository.listReports(filters, paginationOptions),
+      reconciliationRepository.countReports(filters),
+    ]);
+
+    return {
+      reports: reports.map(mapReconciliationReport),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getReportById(viewer: AuthenticatedUser, reportId: string) {

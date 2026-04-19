@@ -2,7 +2,26 @@ import { Prisma } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
+import type { PaginationOptions } from "../../../utils/pagination";
 import type { AuditFilters, CreateAuditLogInput } from "../types/audit.types";
+
+function buildAuditWhere(filters: AuditFilters): Prisma.AuditLogWhereInput {
+  const where: Prisma.AuditLogWhereInput = {};
+
+  if (filters.actorId) {
+    where.actorId = filters.actorId;
+  }
+
+  if (filters.entityType) {
+    where.entityType = filters.entityType;
+  }
+
+  if (filters.entityId) {
+    where.entityId = filters.entityId;
+  }
+
+  return where;
+}
 
 export const auditRepository = {
   create(input: CreateAuditLogInput, db: DbClient = prisma) {
@@ -24,23 +43,9 @@ export const auditRepository = {
     });
   },
 
-  list(filters: AuditFilters, db: DbClient = prisma) {
-    const where: Prisma.AuditLogWhereInput = {};
-
-    if (filters.actorId) {
-      where.actorId = filters.actorId;
-    }
-
-    if (filters.entityType) {
-      where.entityType = filters.entityType;
-    }
-
-    if (filters.entityId) {
-      where.entityId = filters.entityId;
-    }
-
+  list(filters: AuditFilters, pagination: PaginationOptions, db: DbClient = prisma) {
     return db.auditLog.findMany({
-      where,
+      where: buildAuditWhere(filters),
       include: {
         actor: {
           select: {
@@ -53,7 +58,14 @@ export const auditRepository = {
       orderBy: {
         createdAt: "desc",
       },
-      take: filters.limit,
+      skip: pagination.skip,
+      take: pagination.take,
+    });
+  },
+
+  count(filters: AuditFilters, db: DbClient = prisma) {
+    return db.auditLog.count({
+      where: buildAuditWhere(filters),
     });
   },
 

@@ -10,6 +10,7 @@ import { registrationsController } from "../controllers/registrations.controller
 import {
   createRegistrationSchema,
   eventRegistrationsParamSchema,
+  listRegistrationsSchema,
   registrationIdParamSchema,
 } from "../validations/registrations.validation";
 
@@ -17,7 +18,11 @@ const router = Router();
 
 router.use(authenticate);
 
-router.get("/me", asyncHandler(registrationsController.listMyRegistrations));
+router.get(
+  "/me",
+  validateRequest(listRegistrationsSchema),
+  asyncHandler(registrationsController.listMyRegistrations),
+);
 router.post(
   "/",
   validateRequest(createRegistrationSchema),

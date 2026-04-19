@@ -2,6 +2,7 @@ import { type RegistrationPaymentState } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
+import type { PaginationOptions } from "../../../utils/pagination";
 import { registrationDetailInclude } from "../registrations.mappers";
 
 type CreateRegistrationData = {
@@ -44,23 +45,41 @@ export const registrationsRepository = {
     });
   },
 
-  listByParticipant(participantId: string, db: DbClient = prisma) {
+  listByParticipant(
+    participantId: string,
+    pagination?: PaginationOptions,
+    db: DbClient = prisma,
+  ) {
     return db.registration.findMany({
       where: { participantId },
       include: registrationDetailInclude,
       orderBy: {
         createdAt: "desc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
 
-  listByEvent(eventId: string, db: DbClient = prisma) {
+  countByParticipant(participantId: string, db: DbClient = prisma) {
+    return db.registration.count({
+      where: { participantId },
+    });
+  },
+
+  listByEvent(eventId: string, pagination?: PaginationOptions, db: DbClient = prisma) {
     return db.registration.findMany({
       where: { eventId },
       include: registrationDetailInclude,
       orderBy: {
         createdAt: "desc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countByEvent(eventId: string, db: DbClient = prisma) {
+    return db.registration.count({
+      where: { eventId },
     });
   },
 

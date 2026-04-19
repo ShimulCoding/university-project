@@ -1,6 +1,14 @@
 import { AccountStatus, RoleCode } from "@prisma/client";
 import { z } from "zod";
 
+import { paginationQuerySchema } from "../../../utils/pagination-validation";
+
+export const listUsersSchema = z.object({
+  query: z.object({
+    ...paginationQuerySchema,
+  }),
+});
+
 export const createUserSchema = z.object({
   body: z.object({
     fullName: z.string().trim().min(2).max(100),
@@ -25,4 +33,3 @@ export const updateUserStatusSchema = z.object({
     status: z.nativeEnum(AccountStatus),
   }),
 });
-

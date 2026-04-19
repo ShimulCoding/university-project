@@ -2,6 +2,7 @@ import type { RoleCode } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
+import type { PaginationOptions } from "../../../utils/pagination";
 import { roleCatalog } from "../role-catalog";
 
 export const rolesRepository = {
@@ -24,12 +25,17 @@ export const rolesRepository = {
     }
   },
 
-  listRoles(db: DbClient = prisma) {
+  listRoles(pagination?: PaginationOptions, db: DbClient = prisma) {
     return db.role.findMany({
       orderBy: {
         name: "asc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
+  },
+
+  countRoles(db: DbClient = prisma) {
+    return db.role.count();
   },
 
   findByCode(code: RoleCode, db: DbClient = prisma) {
@@ -66,7 +72,11 @@ export const rolesRepository = {
     });
   },
 
-  listUserAssignments(userId: string, db: DbClient = prisma) {
+  listUserAssignments(
+    userId: string,
+    pagination?: PaginationOptions,
+    db: DbClient = prisma,
+  ) {
     return db.userRole.findMany({
       where: {
         userId,
@@ -78,6 +88,16 @@ export const rolesRepository = {
       },
       orderBy: {
         assignedAt: "asc",
+      },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countUserAssignments(userId: string, db: DbClient = prisma) {
+    return db.userRole.count({
+      where: {
+        userId,
+        revokedAt: null,
       },
     });
   },

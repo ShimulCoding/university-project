@@ -1,3 +1,5 @@
+import type { PaginationInput } from "../../../utils/pagination";
+
 export type AuditMetadata = {
   ipAddress?: string | undefined;
   userAgent?: string | undefined;
@@ -14,9 +16,9 @@ export type CreateAuditLogInput = AuditMetadata & {
   context?: Record<string, unknown> | undefined;
 };
 
-export type AuditFilters = {
+export type AuditFilters = PaginationInput & {
   actorId?: string | undefined;
   entityType?: string | undefined;
   entityId?: string | undefined;
-  limit: number;
+  limit?: number | undefined;
 };

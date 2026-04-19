@@ -2,6 +2,7 @@ import { EventStatus, ReconciliationState } from "@prisma/client";
 
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hasPublicSummaryPublishAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
@@ -40,8 +41,16 @@ function buildPublicPayload(
 
 export const publicService = {
   async listPublishedFinancialSummaries(filters: PublicSummaryFilters) {
-    const summaries = await publicRepository.listPublishedSummaries(filters);
-    return summaries.map(mapPublicFinancialSummary);
+    const paginationOptions = getPaginationOptions(filters);
+    const [summaries, totalItems] = await Promise.all([
+      publicRepository.listPublishedSummaries(filters, paginationOptions),
+      publicRepository.countPublishedSummaries(filters),
+    ]);
+
+    return {
+      summaries: summaries.map(mapPublicFinancialSummary),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getPublishedFinancialSummary(eventLookup: string) {

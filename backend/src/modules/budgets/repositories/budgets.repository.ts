@@ -2,6 +2,7 @@ import { Prisma, type BudgetState } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
+import type { PaginationOptions } from "../../../utils/pagination";
 import { budgetDetailInclude } from "../budgets.mappers";
 import type { BudgetFilters, BudgetItemInput } from "../types/budgets.types";
 
@@ -70,11 +71,18 @@ export const budgetsRepository = {
     });
   },
 
-  listBudgets(filters: BudgetFilters, db: DbClient = prisma) {
+  listBudgets(filters: BudgetFilters, pagination?: PaginationOptions, db: DbClient = prisma) {
     return db.budget.findMany({
       where: buildBudgetWhere(filters),
       include: budgetDetailInclude,
       orderBy: [{ eventId: "asc" }, { version: "desc" }],
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countBudgets(filters: BudgetFilters, db: DbClient = prisma) {
+    return db.budget.count({
+      where: buildBudgetWhere(filters),
     });
   },
 

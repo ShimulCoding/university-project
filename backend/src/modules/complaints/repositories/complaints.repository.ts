@@ -2,6 +2,7 @@ import { ComplaintState, Prisma, type DocumentCategory } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
+import type { PaginationOptions } from "../../../utils/pagination";
 import { complaintDetailInclude } from "../complaints.mappers";
 import type { ComplaintQueueFilters } from "../types/complaints.types";
 
@@ -98,6 +99,52 @@ function buildQueueWhere(filters: ComplaintQueueFilters): Prisma.ComplaintWhereI
   return where;
 }
 
+function buildSubmitterWhere(
+  submittedById: string,
+  filters: ComplaintQueueFilters,
+): Prisma.ComplaintWhereInput {
+  const where: Prisma.ComplaintWhereInput = {
+    submittedById,
+  };
+
+  if (filters.eventId) {
+    where.eventId = filters.eventId;
+  }
+
+  if (filters.state) {
+    where.state = filters.state;
+  }
+
+  const trimmedSearch = filters.search?.trim();
+
+  if (trimmedSearch) {
+    where.OR = [
+      {
+        subject: {
+          contains: trimmedSearch,
+          mode: "insensitive",
+        },
+      },
+      {
+        description: {
+          contains: trimmedSearch,
+          mode: "insensitive",
+        },
+      },
+      {
+        event: {
+          title: {
+            contains: trimmedSearch,
+            mode: "insensitive",
+          },
+        },
+      },
+    ];
+  }
+
+  return where;
+}
+
 export const complaintsRepository = {
   findComplaintById(complaintId: string, db: DbClient = prisma) {
     return db.complaint.findUnique({
@@ -106,21 +153,48 @@ export const complaintsRepository = {
     });
   },
 
-  listComplaintsBySubmitter(submittedById: string, db: DbClient = prisma) {
+  listComplaintsBySubmitter(
+    submittedById: string,
+    filters: ComplaintQueueFilters,
+    pagination?: PaginationOptions,
+    db: DbClient = prisma,
+  ) {
     return db.complaint.findMany({
-      where: { submittedById },
+      where: buildSubmitterWhere(submittedById, filters),
       include: complaintDetailInclude,
       orderBy: {
         createdAt: "desc",
       },
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
 
-  listReviewQueue(filters: ComplaintQueueFilters, db: DbClient = prisma) {
+  countComplaintsBySubmitter(
+    submittedById: string,
+    filters: ComplaintQueueFilters,
+    db: DbClient = prisma,
+  ) {
+    return db.complaint.count({
+      where: buildSubmitterWhere(submittedById, filters),
+    });
+  },
+
+  listReviewQueue(
+    filters: ComplaintQueueFilters,
+    pagination?: PaginationOptions,
+    db: DbClient = prisma,
+  ) {
     return db.complaint.findMany({
       where: buildQueueWhere(filters),
       include: complaintDetailInclude,
       orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+      ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
+    });
+  },
+
+  countReviewQueue(filters: ComplaintQueueFilters, db: DbClient = prisma) {
+    return db.complaint.count({
+      where: buildQueueWhere(filters),
     });
   },
 

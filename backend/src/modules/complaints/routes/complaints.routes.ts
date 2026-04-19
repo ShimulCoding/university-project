@@ -36,7 +36,11 @@ const requireComplaintReviewer = authorize(
 
 router.use(authenticate);
 
-router.get("/mine", asyncHandler(complaintsController.listMyComplaints));
+router.get(
+  "/mine",
+  validateRequest(listComplaintQueueSchema),
+  asyncHandler(complaintsController.listMyComplaints),
+);
 router.post(
   "/",
   upload.single("evidence"),

@@ -34,7 +34,11 @@ const upload = multer({
 
 router.use(authenticate);
 
-router.get("/budget-requests/mine", asyncHandler(requestsController.listMyBudgetRequests));
+router.get(
+  "/budget-requests/mine",
+  validateRequest(listRequestsSchema),
+  asyncHandler(requestsController.listMyBudgetRequests),
+);
 router.get(
   "/budget-requests",
   authorize(
@@ -69,7 +73,11 @@ router.post(
   asyncHandler(requestsController.submitBudgetRequest),
 );
 
-router.get("/expense-requests/mine", asyncHandler(requestsController.listMyExpenseRequests));
+router.get(
+  "/expense-requests/mine",
+  validateRequest(listRequestsSchema),
+  asyncHandler(requestsController.listMyExpenseRequests),
+);
 router.get(
   "/expense-requests",
   authorize(

@@ -10,6 +10,7 @@ import { prisma } from "../../../config/prisma";
 import { storageProvider } from "../../../storage";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import {
   hasExpenseRecordManagementAccess,
   hasFinanceReadAccess,
@@ -157,18 +158,34 @@ function getRequestSubmissionState(submit: boolean | undefined) {
 }
 
 export const requestsService = {
-  async listMyBudgetRequests(actor: AuthenticatedUser) {
+  async listMyBudgetRequests(actor: AuthenticatedUser, filters: RequestFilters) {
     assertRequestSubmissionPermissions(actor);
 
-    const requests = await requestsRepository.listBudgetRequestsByRequester(actor.id);
-    return requests.map(mapBudgetRequest);
+    const paginationOptions = getPaginationOptions(filters);
+    const [requests, totalItems] = await Promise.all([
+      requestsRepository.listBudgetRequestsByRequester(actor.id, filters, paginationOptions),
+      requestsRepository.countBudgetRequestsByRequester(actor.id, filters),
+    ]);
+
+    return {
+      budgetRequests: requests.map(mapBudgetRequest),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async listBudgetRequests(viewer: AuthenticatedUser, filters: RequestFilters) {
     assertInternalFinanceReadPermissions(viewer);
 
-    const requests = await requestsRepository.listBudgetRequests(filters);
-    return requests.map(mapBudgetRequest);
+    const paginationOptions = getPaginationOptions(filters);
+    const [requests, totalItems] = await Promise.all([
+      requestsRepository.listBudgetRequests(filters, paginationOptions),
+      requestsRepository.countBudgetRequests(filters),
+    ]);
+
+    return {
+      budgetRequests: requests.map(mapBudgetRequest),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getBudgetRequestById(viewer: AuthenticatedUser, budgetRequestId: string) {
@@ -372,18 +389,34 @@ export const requestsService = {
     return mapBudgetRequest(request);
   },
 
-  async listMyExpenseRequests(actor: AuthenticatedUser) {
+  async listMyExpenseRequests(actor: AuthenticatedUser, filters: RequestFilters) {
     assertRequestSubmissionPermissions(actor);
 
-    const requests = await requestsRepository.listExpenseRequestsByRequester(actor.id);
-    return requests.map(mapExpenseRequest);
+    const paginationOptions = getPaginationOptions(filters);
+    const [requests, totalItems] = await Promise.all([
+      requestsRepository.listExpenseRequestsByRequester(actor.id, filters, paginationOptions),
+      requestsRepository.countExpenseRequestsByRequester(actor.id, filters),
+    ]);
+
+    return {
+      expenseRequests: requests.map(mapExpenseRequest),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async listExpenseRequests(viewer: AuthenticatedUser, filters: RequestFilters) {
     assertInternalFinanceReadPermissions(viewer);
 
-    const requests = await requestsRepository.listExpenseRequests(filters);
-    return requests.map(mapExpenseRequest);
+    const paginationOptions = getPaginationOptions(filters);
+    const [requests, totalItems] = await Promise.all([
+      requestsRepository.listExpenseRequests(filters, paginationOptions),
+      requestsRepository.countExpenseRequests(filters),
+    ]);
+
+    return {
+      expenseRequests: requests.map(mapExpenseRequest),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getExpenseRequestById(viewer: AuthenticatedUser, expenseRequestId: string) {
@@ -601,8 +634,16 @@ export const requestsService = {
   async listExpenseRecords(viewer: AuthenticatedUser, filters: ExpenseRecordFilters) {
     assertInternalFinanceReadPermissions(viewer);
 
-    const records = await requestsRepository.listExpenseRecords(filters);
-    return records.map(mapExpenseRecord);
+    const paginationOptions = getPaginationOptions(filters);
+    const [records, totalItems] = await Promise.all([
+      requestsRepository.listExpenseRecords(filters, paginationOptions),
+      requestsRepository.countExpenseRecords(filters),
+    ]);
+
+    return {
+      expenseRecords: records.map(mapExpenseRecord),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getExpenseRecordById(viewer: AuthenticatedUser, expenseRecordId: string) {

@@ -1,7 +1,10 @@
 import { z } from "zod";
 
+import { paginationQuerySchema } from "../../../utils/pagination-validation";
+
 export const listAuditLogsSchema = z.object({
   query: z.object({
+    ...paginationQuerySchema,
     actorId: z.string().cuid().optional(),
     entityType: z.string().trim().min(1).optional(),
     entityId: z.string().trim().min(1).optional(),

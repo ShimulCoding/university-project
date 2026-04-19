@@ -3,6 +3,7 @@ import { BudgetState, Prisma } from "@prisma/client";
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import {
   hasBudgetManagementAccess,
   hasFinanceReadAccess,
@@ -77,8 +78,16 @@ export const budgetsService = {
   async listBudgets(viewer: AuthenticatedUser, filters: BudgetFilters) {
     assertBudgetReadPermissions(viewer);
 
-    const budgets = await budgetsRepository.listBudgets(filters);
-    return budgets.map(mapBudget);
+    const paginationOptions = getPaginationOptions(filters);
+    const [budgets, totalItems] = await Promise.all([
+      budgetsRepository.listBudgets(filters, paginationOptions),
+      budgetsRepository.countBudgets(filters),
+    ]);
+
+    return {
+      budgets: budgets.map(mapBudget),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
+    };
   },
 
   async getBudgetById(viewer: AuthenticatedUser, budgetId: string) {

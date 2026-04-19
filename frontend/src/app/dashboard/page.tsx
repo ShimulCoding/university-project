@@ -49,6 +49,12 @@ export default async function DashboardOverviewPage() {
   ]);
   const canSeeAudit = hasAnyRole(user, ["SYSTEM_ADMIN"]);
 
+  const safeFetch = <T,>(promise: Promise<T>): Promise<T | []> =>
+    promise.catch((error) => {
+      console.error("Dashboard API fetch failed:", error);
+      return [];
+    });
+
   const [
     verificationQueue,
     incomeRecords,
@@ -60,15 +66,15 @@ export default async function DashboardOverviewPage() {
     auditLogs,
     publicSummaries,
   ] = await Promise.all([
-    canSeeFinance ? listPaymentVerificationQueue({}) : Promise.resolve([]),
-    canSeeFinance ? listIncomeRecords({}) : Promise.resolve([]),
-    canSeeRequests ? listBudgetRequests({}) : Promise.resolve([]),
-    canSeeRequests ? listExpenseRequests({}) : Promise.resolve([]),
-    canSeeApprovals ? listApprovalQueue({}) : Promise.resolve([]),
-    canSeeComplaints ? listComplaintReviewQueue({}) : Promise.resolve([]),
-    canSeeReconciliation ? listReconciliationReports({}) : Promise.resolve([]),
-    canSeeAudit ? listAuditLogs({ limit: "5" }) : Promise.resolve([]),
-    listPublicFinancialSummaries(),
+    safeFetch(canSeeFinance ? listPaymentVerificationQueue({}) : Promise.resolve([])),
+    safeFetch(canSeeFinance ? listIncomeRecords({}) : Promise.resolve([])),
+    safeFetch(canSeeRequests ? listBudgetRequests({}) : Promise.resolve([])),
+    safeFetch(canSeeRequests ? listExpenseRequests({}) : Promise.resolve([])),
+    safeFetch(canSeeApprovals ? listApprovalQueue({}) : Promise.resolve([])),
+    safeFetch(canSeeComplaints ? listComplaintReviewQueue({}) : Promise.resolve([])),
+    safeFetch(canSeeReconciliation ? listReconciliationReports({}) : Promise.resolve([])),
+    safeFetch(canSeeAudit ? listAuditLogs({ limit: "5" }) : Promise.resolve([])),
+    safeFetch(listPublicFinancialSummaries()),
   ]);
   const latestPublicSummaries = getLatestPublishedSummariesPerEvent(publicSummaries);
   const historicalPublishedSnapshotCount =

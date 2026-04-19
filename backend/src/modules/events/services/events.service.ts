@@ -1,4 +1,4 @@
-import { EventStatus } from "@prisma/client";
+import { EventStatus, Prisma } from "@prisma/client";
 
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
@@ -148,26 +148,54 @@ export const eventsService = {
     assertEventManagementPermissions(actor);
 
     const nextStatus = input.status ?? EventStatus.DRAFT;
-    const slug = slugify(input.slug ?? input.title);
+    const baseSlug = slugify(input.slug ?? input.title);
 
-    if (!slug) {
+    if (!baseSlug) {
       throw new AppError(400, "Unable to derive a valid event slug.");
     }
 
     assertValidTimeline(input);
 
-    const event = await eventsRepository.createEvent({
-      title: input.title.trim(),
-      slug,
-      description: sanitizeNullableText(input.description),
-      status: nextStatus,
-      registrationOpensAt: input.registrationOpensAt,
-      registrationClosesAt: input.registrationClosesAt,
-      startsAt: input.startsAt,
-      endsAt: input.endsAt,
-      capacity: input.capacity,
-      createdById: actor.id,
-    });
+    let event;
+    let slug = baseSlug;
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      try {
+        event = await eventsRepository.createEvent({
+          title: input.title.trim(),
+          slug,
+          description: sanitizeNullableText(input.description),
+          status: nextStatus,
+          registrationOpensAt: input.registrationOpensAt,
+          registrationClosesAt: input.registrationClosesAt,
+          startsAt: input.startsAt,
+          endsAt: input.endsAt,
+          capacity: input.capacity,
+          createdById: actor.id,
+        });
+        break;
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
+          const target = error.meta?.target as string[] | string | undefined;
+          const isSlugCollision = Array.isArray(target)
+            ? target.includes("slug")
+            : typeof target === "string" && target.includes("slug");
+
+          if (isSlugCollision) {
+            slug = `${baseSlug}-${attempt + 2}`;
+            continue;
+          }
+        }
+        throw error;
+      }
+    }
+
+    if (!event) {
+      throw new AppError(500, "Failed to derive a unique event slug after multiple attempts.");
+    }
 
     await auditService.record({
       actorId: actor.id,

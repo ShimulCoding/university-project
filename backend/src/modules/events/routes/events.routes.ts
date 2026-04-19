@@ -25,14 +25,24 @@ router.get(
 router.get(
   "/manage/list",
   authenticate,
-  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_MANAGEMENT_USER),
+  authorize(
+    RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_MANAGEMENT_USER,
+    RoleCode.FINANCIAL_CONTROLLER,
+    RoleCode.ORGANIZATIONAL_APPROVER,
+  ),
   validateRequest(listManageEventsSchema),
   asyncHandler(eventsController.listManageEvents),
 );
 router.get(
   "/manage/:eventLookupKey",
   authenticate,
-  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_MANAGEMENT_USER),
+  authorize(
+    RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_MANAGEMENT_USER,
+    RoleCode.FINANCIAL_CONTROLLER,
+    RoleCode.ORGANIZATIONAL_APPROVER,
+  ),
   validateRequest(eventLookupParamSchema),
   asyncHandler(eventsController.getManageEvent),
 );

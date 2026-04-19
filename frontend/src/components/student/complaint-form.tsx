@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import type { PublicEvent } from "@/types";
+import type { ComplaintRecord, PublicEvent } from "@/types";
 import { getApiErrorMessage } from "@/lib/api/shared";
 import { postFormData } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
@@ -73,13 +73,13 @@ export function ComplaintForm({ events }: { events: PublicEvent[] }) {
       setFieldErrors({});
       formData.set("subject", subject);
       formData.set("description", description);
-      await postFormData("/complaints", formData);
+      const response = await postFormData<{ complaint: ComplaintRecord }>("/complaints", formData);
 
       formRef.current?.reset();
-      setSuccessMessage("Complaint submitted. Opening your complaint history...");
+      setSuccessMessage("Complaint received. Opening your tracking page...");
       setIsSubmitting(false);
       startTransition(() => {
-        router.push("/complaints");
+        router.push(`/complaints?submittedComplaintId=${response.complaint.id}`);
         router.refresh();
       });
     } catch (error) {

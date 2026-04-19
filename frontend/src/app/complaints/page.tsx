@@ -1,8 +1,17 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, FileWarning, MessageSquareText } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  ExternalLink,
+  FileWarning,
+  MessageSquareText,
+  Route,
+} from "lucide-react";
 
+import type { ComplaintRecord, ComplaintRoutingSummary, ComplaintState } from "@/types";
 import { getCurrentUser, listMyComplaints } from "@/lib/api/student";
-import { ApiError } from "@/lib/api/shared";
+import { ApiError, buildApiUrl } from "@/lib/api/shared";
 import { formatDateTime, formatEnumLabel, getComplaintStateTone } from "@/lib/format";
 import { StudentAccessPanel } from "@/components/student/student-access-panel";
 import { StudentSessionCard } from "@/components/student/student-session-card";
@@ -15,8 +24,112 @@ import { StatePanel } from "@/components/ui/state-panel";
 
 export const dynamic = "force-dynamic";
 
-export default async function MyComplaintsPage() {
+const complaintTrackingCopy: Record<ComplaintState, { title: string; nextStep: string }> = {
+  SUBMITTED: {
+    title: "Complaint received",
+    nextStep: "The complaint is waiting for a reviewer to start the internal review.",
+  },
+  UNDER_REVIEW: {
+    title: "Under review",
+    nextStep: "A reviewer is checking the complaint details and evidence.",
+  },
+  ROUTED: {
+    title: "Routed",
+    nextStep: "The complaint has been routed to the responsible internal role.",
+  },
+  ESCALATED: {
+    title: "Escalated",
+    nextStep: "The complaint has been raised for higher-priority oversight.",
+  },
+  RESOLVED: {
+    title: "Resolved",
+    nextStep: "The review team marked the complaint as resolved. It may be closed afterward.",
+  },
+  CLOSED: {
+    title: "Closed",
+    nextStep: "The complaint lifecycle is complete and remains available for your records.",
+  },
+};
+
+function formatComplaintReference(complaintId: string) {
+  return `CMP-${complaintId.slice(-8).toUpperCase()}`;
+}
+
+function getStudentTrackingEvents(complaint: ComplaintRecord): ComplaintRoutingSummary[] {
+  const hasSubmittedEvent = complaint.routingHistory.some(
+    (routing) => routing.state === "SUBMITTED",
+  );
+
+  if (hasSubmittedEvent) {
+    return complaint.routingHistory;
+  }
+
+  return [
+    {
+      id: `${complaint.id}-submitted`,
+      state: "SUBMITTED",
+      createdAt: complaint.createdAt,
+      note: null,
+      fromRole: null,
+      toRole: null,
+      routedBy: null,
+    },
+    ...complaint.routingHistory,
+  ];
+}
+
+function getLatestTrackingEvent(complaint: ComplaintRecord) {
+  return getStudentTrackingEvents(complaint).at(-1);
+}
+
+function TrackingTimeline({ complaint }: { complaint: ComplaintRecord }) {
+  const trackingEvents = getStudentTrackingEvents(complaint);
+
+  return (
+    <div className="rounded-[1rem] border border-border/70 bg-panel px-4 py-4">
+      <div className="data-kicker">Tracking timeline</div>
+      <div className="mt-4 space-y-4">
+        {trackingEvents.map((routing, index) => (
+          <div key={routing.id} className="flex gap-3">
+            <div className="flex flex-col items-center">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-primary/10 bg-panel-muted text-primary">
+                {index === 0 ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : (
+                  <Route className="h-4 w-4" />
+                )}
+              </div>
+              {index < trackingEvents.length - 1 ? (
+                <div className="mt-2 h-full min-h-6 w-px bg-border" />
+              ) : null}
+            </div>
+            <div className="pb-1 text-sm leading-6">
+              <div className="font-semibold text-foreground">
+                {formatEnumLabel(routing.state)}
+              </div>
+              <div className="text-muted-foreground">
+                {formatDateTime(routing.createdAt)}
+                {routing.toRole ? ` / Sent to ${routing.toRole.name}` : ""}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default async function MyComplaintsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   try {
+    const params = await searchParams;
+    const submittedComplaintId =
+      typeof params.submittedComplaintId === "string"
+        ? params.submittedComplaintId
+        : undefined;
     const user = await getCurrentUser();
 
     if (!user) {
@@ -40,6 +153,9 @@ export default async function MyComplaintsPage() {
     }
 
     const complaints = await listMyComplaints();
+    const acknowledgedComplaint = submittedComplaintId
+      ? complaints.find((complaint) => complaint.id === submittedComplaintId) ?? null
+      : null;
 
     return (
       <PublicPageShell>
@@ -58,6 +174,49 @@ export default async function MyComplaintsPage() {
             }
           />
 
+          {acknowledgedComplaint ? (
+            <Card tone="success" className="mt-8">
+              <CardHeader>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="success">Acknowledgement received</Badge>
+                  <Badge variant={getComplaintStateTone(acknowledgedComplaint.state)}>
+                    {formatEnumLabel(acknowledgedComplaint.state)}
+                  </Badge>
+                </div>
+                <CardTitle className="mt-4 text-2xl">
+                  Complaint received: {formatComplaintReference(acknowledgedComplaint.id)}
+                </CardTitle>
+                <CardDescription>
+                  Your complaint has been saved in the protected review queue. Use this
+                  reference when checking status with the society team.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-3 pt-0 md:grid-cols-3">
+                <div className="rounded-[1rem] border border-success/15 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
+                  <span className="block font-semibold text-foreground">Submitted</span>
+                  {formatDateTime(acknowledgedComplaint.createdAt)}
+                </div>
+                <div className="rounded-[1rem] border border-success/15 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
+                  <span className="block font-semibold text-foreground">Current status</span>
+                  {complaintTrackingCopy[acknowledgedComplaint.state].title}
+                </div>
+                <div className="rounded-[1rem] border border-success/15 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
+                  <span className="block font-semibold text-foreground">Next step</span>
+                  {complaintTrackingCopy[acknowledgedComplaint.state].nextStep}
+                </div>
+              </CardContent>
+            </Card>
+          ) : submittedComplaintId ? (
+            <div className="mt-8">
+              <StatePanel
+                icon={AlertTriangle}
+                tone="warning"
+                title="Complaint acknowledgement is not visible yet"
+                description="The complaint may still be loading or may belong to another student session. Refresh this page after a moment."
+              />
+            </div>
+          ) : null}
+
           <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
             <div className="space-y-6">
               {complaints.length === 0 ? (
@@ -74,15 +233,24 @@ export default async function MyComplaintsPage() {
                 />
               ) : (
                 complaints.map((complaint) => {
-                  const latestRouting = complaint.routingHistory.at(-1);
+                  const latestRouting = getLatestTrackingEvent(complaint);
+                  const trackingCopy = complaintTrackingCopy[complaint.state];
 
                   return (
-                    <Card key={complaint.id}>
+                    <Card
+                      key={complaint.id}
+                      className={
+                        submittedComplaintId === complaint.id
+                          ? "border-success/30 ring-2 ring-success/10"
+                          : undefined
+                      }
+                    >
                       <CardHeader>
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant={getComplaintStateTone(complaint.state)}>
                             {formatEnumLabel(complaint.state)}
                           </Badge>
+                          <Badge variant="info">{formatComplaintReference(complaint.id)}</Badge>
                           {complaint.event ? (
                             <Badge variant="neutral">{complaint.event.title}</Badge>
                           ) : (
@@ -99,28 +267,43 @@ export default async function MyComplaintsPage() {
                           </div>
                           <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm text-muted-foreground">
                             {latestRouting
-                              ? `${formatEnumLabel(latestRouting.state)} on ${formatDateTime(latestRouting.createdAt)}`
+                              ? `${formatEnumLabel(latestRouting.state)} on ${formatDateTime(
+                                  latestRouting.createdAt,
+                                )}`
                               : "Awaiting internal review update"}
                           </div>
                           <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm text-muted-foreground">
                             Evidence files: {complaint.evidence.length}
                           </div>
                         </div>
-                        {complaint.routingHistory.length > 0 ? (
+                        <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
+                          <span className="font-semibold text-foreground">
+                            {trackingCopy.title}.
+                          </span>{" "}
+                          {trackingCopy.nextStep}
+                        </div>
+                        <TrackingTimeline complaint={complaint} />
+                        {complaint.evidence.length > 0 ? (
                           <div className="rounded-[1rem] border border-border/70 bg-panel px-4 py-4">
-                            <div className="data-kicker">Routing history</div>
-                            <div className="mt-3 space-y-3">
-                              {complaint.routingHistory.map((routing) => (
-                                <div
-                                  key={routing.id}
-                                  className="text-sm leading-6 text-muted-foreground"
+                            <div className="data-kicker">Submitted evidence</div>
+                            <div className="mt-3 grid gap-3">
+                              {complaint.evidence.map((document) => (
+                                <Button
+                                  key={document.id}
+                                  asChild
+                                  variant="outline"
+                                  size="sm"
+                                  className="justify-between"
                                 >
-                                  <span className="font-medium text-foreground">
-                                    {formatEnumLabel(routing.state)}
-                                  </span>{" "}
-                                  on {formatDateTime(routing.createdAt)}
-                                  {routing.toRole ? ` to ${routing.toRole.name}` : ""}
-                                </div>
+                                  <a
+                                    href={buildApiUrl(document.viewPath)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    {document.originalName}
+                                    <ExternalLink className="h-4 w-4" />
+                                  </a>
+                                </Button>
                               ))}
                             </div>
                           </div>

@@ -236,6 +236,15 @@ export const complaintsService = {
           tx,
         );
 
+        await complaintsRepository.createRoutingHistory(
+          {
+            complaintId: createdComplaint.id,
+            state: ComplaintState.SUBMITTED,
+            note: "Complaint received and queued for internal review.",
+          },
+          tx,
+        );
+
         if (storedUpload) {
           await complaintsRepository.createSupportingDocument(
             {

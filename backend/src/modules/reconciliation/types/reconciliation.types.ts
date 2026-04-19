@@ -1,4 +1,4 @@
-import type { ReconciliationState } from "@prisma/client";
+import type { EventStatus, ReconciliationState } from "@prisma/client";
 
 import type { PaginationInput } from "../../../utils/pagination";
 
@@ -18,6 +18,12 @@ export type ReconciliationWarning = {
   count?: number | undefined;
 };
 
+export type ReconciliationEventSnapshot = {
+  eventId: string;
+  status: EventStatus;
+  updatedAt: string;
+};
+
 export type ReconciliationBreakdown = {
   verifiedRegistrationIncome: string;
   manualIncome: string;
@@ -32,6 +38,7 @@ export type ReconciliationBreakdown = {
 };
 
 export type ReconciliationPayload = {
+  eventSnapshot?: ReconciliationEventSnapshot | undefined;
   warnings: ReconciliationWarning[];
   breakdown: ReconciliationBreakdown;
 };

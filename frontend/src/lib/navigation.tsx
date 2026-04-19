@@ -184,14 +184,14 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
     label: "Reconciliation",
     description: "Closure reports and warning checks",
     icon: Files,
-    roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER"],
+    roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
   },
   {
     href: "/dashboard/publications",
     label: "Publications",
     description: "Public-safe release boundary",
     icon: Globe2,
-    roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER"],
+    roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
   },
   {
     href: "/dashboard/audit",

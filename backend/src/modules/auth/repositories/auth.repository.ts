@@ -13,25 +13,17 @@ export const authRepository = {
     },
     db: DbClient = prisma,
   ) {
-    const createData = {
-      userId: data.userId,
-      tokenHash: data.tokenHash,
-      expiresAt: data.expiresAt,
-      ...(data.userAgent ? { userAgent: data.userAgent } : {}),
-      ...(data.ipAddress ? { ipAddress: data.ipAddress } : {}),
-    };
+    await authRepository.pruneStaleTokens(db);
 
-    const token = await db.refreshToken.create({
-      data: createData,
+    return db.refreshToken.create({
+      data: {
+        userId: data.userId,
+        tokenHash: data.tokenHash,
+        expiresAt: data.expiresAt,
+        ...(data.userAgent ? { userAgent: data.userAgent } : {}),
+        ...(data.ipAddress ? { ipAddress: data.ipAddress } : {}),
+      },
     });
-
-    // Probabilistic cleanup: ~10% of token creations trigger a prune of
-    // expired and revoked tokens to keep the table from growing unboundedly.
-    if (Math.random() < 0.1) {
-      void authRepository.pruneStaleTokens();
-    }
-
-    return token;
   },
 
   findRefreshTokenByHash(tokenHash: string, db: DbClient = prisma) {
@@ -65,7 +57,7 @@ export const authRepository = {
 
   /**
    * Remove refresh tokens that are expired or were revoked more than 24 hours ago.
-   * Fire-and-forget — errors are silently swallowed so this never blocks auth flows.
+   * Best-effort cleanup runs deterministically before issuing a new refresh token.
    */
   async pruneStaleTokens(db: DbClient = prisma) {
     try {
@@ -80,7 +72,7 @@ export const authRepository = {
         },
       });
     } catch {
-      // Best-effort cleanup only — never block auth flows.
+      // Best-effort cleanup only; never block auth flows.
     }
   },
 };

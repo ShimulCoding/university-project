@@ -88,7 +88,31 @@ function assertReportIsFresh(report: ReconciliationReportWithContext) {
   }
 }
 
-async function buildReconciliationPayload(eventId: string): Promise<{
+function assertReportEventSnapshotIsCurrent(report: ReconciliationReportWithContext) {
+  const snapshot = getReconciliationPayload(report).eventSnapshot;
+
+  if (!snapshot) {
+    throw new AppError(
+      409,
+      "This reconciliation report was generated before event snapshot tracking. Generate a fresh report before advancing it.",
+    );
+  }
+
+  if (
+    snapshot.eventId !== report.event.id ||
+    snapshot.status !== report.event.status ||
+    snapshot.updatedAt !== report.event.updatedAt.toISOString()
+  ) {
+    throw new AppError(
+      409,
+      "This reconciliation report is stale because the event changed after generation. Generate a fresh report before advancing it.",
+    );
+  }
+}
+
+async function buildReconciliationPayload(
+  event: NonNullable<Awaited<ReturnType<typeof eventsRepository.findById>>>,
+): Promise<{
   totalIncome: Prisma.Decimal;
   totalExpense: Prisma.Decimal;
   closingBalance: Prisma.Decimal;
@@ -101,11 +125,11 @@ async function buildReconciliationPayload(eventId: string): Promise<{
     expenseRecords,
     approvedExpenseRequests,
   ] = await Promise.all([
-    reconciliationRepository.listVerifiedPaymentProofs(eventId),
-    reconciliationRepository.countVerifiedRegistrations(eventId),
-    reconciliationRepository.listManualIncomeRecords(eventId),
-    reconciliationRepository.listExpenseRecords(eventId),
-    reconciliationRepository.listApprovedExpenseRequests(eventId),
+    reconciliationRepository.listVerifiedPaymentProofs(event.id),
+    reconciliationRepository.countVerifiedRegistrations(event.id),
+    reconciliationRepository.listManualIncomeRecords(event.id),
+    reconciliationRepository.listExpenseRecords(event.id),
+    reconciliationRepository.listApprovedExpenseRequests(event.id),
   ]);
 
   const verifiedRegistrationIncome = sumDecimals(
@@ -197,6 +221,11 @@ async function buildReconciliationPayload(eventId: string): Promise<{
     totalExpense,
     closingBalance,
     payload: {
+      eventSnapshot: {
+        eventId: event.id,
+        status: event.status,
+        updatedAt: event.updatedAt.toISOString(),
+      },
       warnings,
       breakdown,
     },
@@ -246,7 +275,7 @@ export const reconciliationService = {
 
     assertEventCanBeReconciled(event.status);
 
-    const summary = await buildReconciliationPayload(input.eventId);
+    const summary = await buildReconciliationPayload(event);
     const report = await reconciliationRepository.createReport({
       eventId: input.eventId,
       generatedById: actor.id,
@@ -287,6 +316,7 @@ export const reconciliationService = {
     }
 
     assertReportIsFresh(report);
+    assertReportEventSnapshotIsCurrent(report);
     await assertLatestReport(report);
 
     const reviewedReport = await reconciliationRepository.updateReportStatus(reportId, {
@@ -325,6 +355,7 @@ export const reconciliationService = {
     }
 
     assertReportIsFresh(report);
+    assertReportEventSnapshotIsCurrent(report);
     await assertLatestReport(report);
 
     const finalizedReport = await reconciliationRepository.updateReportStatus(reportId, {

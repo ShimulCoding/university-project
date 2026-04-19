@@ -67,6 +67,7 @@ export function hasReconciliationReadAccess(userRoles: RoleCode[]) {
     RoleCode.SYSTEM_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
+    RoleCode.EVENT_MANAGEMENT_USER,
   ]);
 }
 

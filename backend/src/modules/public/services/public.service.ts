@@ -23,6 +23,30 @@ function assertPublishPermissions(actor: AuthenticatedUser) {
   }
 }
 
+function assertReportEventSnapshotIsCurrent(
+  report: NonNullable<Awaited<ReturnType<typeof reconciliationRepository.findReportById>>>,
+) {
+  const snapshot = getReconciliationPayload(report).eventSnapshot;
+
+  if (!snapshot) {
+    throw new AppError(
+      409,
+      "This reconciliation report was generated before event snapshot tracking. Generate and finalize a fresh report before publishing.",
+    );
+  }
+
+  if (
+    snapshot.eventId !== report.event.id ||
+    snapshot.status !== report.event.status ||
+    snapshot.updatedAt !== report.event.updatedAt.toISOString()
+  ) {
+    throw new AppError(
+      409,
+      "This reconciliation report is stale because the event changed after generation. Generate and finalize a fresh report before publishing.",
+    );
+  }
+}
+
 function buildPublicPayload(
   report: NonNullable<Awaited<ReturnType<typeof reconciliationRepository.findReportById>>>,
 ): PublicFinancialSummaryPayload {
@@ -122,6 +146,8 @@ export const publicService = {
         "This reconciliation report is stale because event financial records changed. Generate and finalize a fresh report before publishing.",
       );
     }
+
+    assertReportEventSnapshotIsCurrent(report);
 
     if (!publishableEventStatuses.includes(report.event.status)) {
       throw new AppError(

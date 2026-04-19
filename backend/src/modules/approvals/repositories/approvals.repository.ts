@@ -90,6 +90,20 @@ export const approvalsRepository = {
     });
   },
 
+  transitionBudgetRequestFromPending(
+    budgetRequestId: string,
+    state: RequestState,
+    db: DbClient = prisma,
+  ) {
+    return db.budgetRequest.updateMany({
+      where: {
+        id: budgetRequestId,
+        state: buildPendingStatesWhere(),
+      },
+      data: { state },
+    });
+  },
+
   updateExpenseRequestState(
     expenseRequestId: string,
     state: RequestState,
@@ -99,6 +113,20 @@ export const approvalsRepository = {
       where: { id: expenseRequestId },
       data: { state },
       include: expenseRequestDetailInclude,
+    });
+  },
+
+  transitionExpenseRequestFromPending(
+    expenseRequestId: string,
+    state: RequestState,
+    db: DbClient = prisma,
+  ) {
+    return db.expenseRequest.updateMany({
+      where: {
+        id: expenseRequestId,
+        state: buildPendingStatesWhere(),
+      },
+      data: { state },
     });
   },
 

@@ -19,7 +19,11 @@ export class ApiError extends Error {
 
 export function getApiErrorMessage(error: unknown, fallback: string) {
   if (error instanceof ApiError) {
-    return error.issues?.formErrors?.[0] ?? error.message;
+    const firstFieldError = Object.values(error.issues?.fieldErrors ?? {})
+      .flat()
+      .find(Boolean);
+
+    return error.issues?.formErrors?.[0] ?? firstFieldError ?? error.message;
   }
 
   return fallback;

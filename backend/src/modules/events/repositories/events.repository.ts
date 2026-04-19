@@ -135,6 +135,16 @@ export const eventsRepository = {
     });
   },
 
+  findBySlug(slug: string, db: DbClient = prisma) {
+    return db.event.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        slug: true,
+      },
+    });
+  },
+
   findPublicByLookupKey(lookupKey: string, db: DbClient = prisma) {
     return db.event.findFirst({
       where: {

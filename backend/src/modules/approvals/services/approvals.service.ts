@@ -106,6 +106,16 @@ export const approvalsService = {
       }
 
       const updatedRequest = await prisma.$transaction(async (tx) => {
+        const transition = await approvalsRepository.transitionBudgetRequestFromPending(
+          entityId,
+          mapDecisionToRequestState(input.decision),
+          tx,
+        );
+
+        if (transition.count !== 1) {
+          throw new AppError(409, "This budget request has already received a decision.");
+        }
+
         await approvalsRepository.createApprovalDecision(
           {
             entityType,
@@ -117,11 +127,13 @@ export const approvalsService = {
           tx,
         );
 
-        return approvalsRepository.updateBudgetRequestState(
-          entityId,
-          mapDecisionToRequestState(input.decision),
-          tx,
-        );
+        const reloadedRequest = await approvalsRepository.findBudgetRequestById(entityId, tx);
+
+        if (!reloadedRequest) {
+          throw new AppError(500, "Failed to reload the decided budget request.");
+        }
+
+        return reloadedRequest;
       });
 
       await auditService.record({
@@ -159,6 +171,16 @@ export const approvalsService = {
     }
 
     const updatedRequest = await prisma.$transaction(async (tx) => {
+      const transition = await approvalsRepository.transitionExpenseRequestFromPending(
+        entityId,
+        mapDecisionToRequestState(input.decision),
+        tx,
+      );
+
+      if (transition.count !== 1) {
+        throw new AppError(409, "This expense request has already received a decision.");
+      }
+
       await approvalsRepository.createApprovalDecision(
         {
           entityType,
@@ -170,11 +192,13 @@ export const approvalsService = {
         tx,
       );
 
-      return approvalsRepository.updateExpenseRequestState(
-        entityId,
-        mapDecisionToRequestState(input.decision),
-        tx,
-      );
+      const reloadedRequest = await approvalsRepository.findExpenseRequestById(entityId, tx);
+
+      if (!reloadedRequest) {
+        throw new AppError(500, "Failed to reload the decided expense request.");
+      }
+
+      return reloadedRequest;
     });
 
     await auditService.record({

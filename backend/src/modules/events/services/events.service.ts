@@ -12,6 +12,7 @@ import { sanitizeNullableText } from "../../../utils/text-utils";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { mapManageEvent, mapPublicEvent, publicEventStatuses } from "../events.mappers";
+import { reconciliationRepository } from "../../reconciliation/repositories/reconciliation.repository";
 import { eventsRepository } from "../repositories/events.repository";
 import type { CreateEventInput, EventListFilters, UpdateEventInput } from "../types/events.types";
 
@@ -92,6 +93,33 @@ function assertEventManagementPermissions(viewer: AuthenticatedUser) {
   }
 }
 
+function isSlugCollisionError(error: unknown) {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") {
+    return false;
+  }
+
+  const target = error.meta?.target as string[] | string | undefined;
+  return Array.isArray(target)
+    ? target.includes("slug")
+    : typeof target === "string" && target.includes("slug");
+}
+
+async function deriveUniqueEventSlug(baseSlug: string, existingEventId?: string | undefined) {
+  let slug = baseSlug;
+
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const existingEvent = await eventsRepository.findBySlug(slug);
+
+    if (!existingEvent || existingEvent.id === existingEventId) {
+      return slug;
+    }
+
+    slug = `${baseSlug}-${attempt + 2}`;
+  }
+
+  throw new AppError(500, "Failed to derive a unique event slug.");
+}
+
 export const eventsService = {
   async listPublicEvents(filters: EventListFilters) {
     assertPublicStatusFilter(filters.status);
@@ -158,9 +186,9 @@ export const eventsService = {
     assertValidTimeline(input);
 
     let event;
-    let slug = baseSlug;
+    let slug = await deriveUniqueEventSlug(baseSlug);
 
-    for (let attempt = 0; attempt < 5; attempt += 1) {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
       try {
         event = await eventsRepository.createEvent({
           title: input.title.trim(),
@@ -176,19 +204,9 @@ export const eventsService = {
         });
         break;
       } catch (error) {
-        if (
-          error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === "P2002"
-        ) {
-          const target = error.meta?.target as string[] | string | undefined;
-          const isSlugCollision = Array.isArray(target)
-            ? target.includes("slug")
-            : typeof target === "string" && target.includes("slug");
-
-          if (isSlugCollision) {
-            slug = `${baseSlug}-${attempt + 2}`;
-            continue;
-          }
+        if (isSlugCollisionError(error)) {
+          slug = await deriveUniqueEventSlug(baseSlug);
+          continue;
         }
         throw error;
       }
@@ -229,9 +247,9 @@ export const eventsService = {
     }
 
     const nextStatus = input.status ?? event.status;
-    const nextSlug = input.slug ? slugify(input.slug) : undefined;
+    const nextSlugBase = input.slug ? slugify(input.slug) : undefined;
 
-    if (input.slug && !nextSlug) {
+    if (input.slug && !nextSlugBase) {
       throw new AppError(400, "Unable to derive a valid event slug.");
     }
 
@@ -244,16 +262,40 @@ export const eventsService = {
       endsAt: input.endsAt ?? event.endsAt ?? undefined,
     });
 
-    const updatedEvent = await eventsRepository.updateEvent(event.id, {
-      title: input.title?.trim(),
-      slug: nextSlug,
-      description: sanitizeNullableText(input.description),
-      status: nextStatus,
-      registrationOpensAt: input.registrationOpensAt,
-      registrationClosesAt: input.registrationClosesAt,
-      startsAt: input.startsAt,
-      endsAt: input.endsAt,
-      capacity: input.capacity,
+    let updatedEvent;
+    let nextSlug = nextSlugBase ? await deriveUniqueEventSlug(nextSlugBase, event.id) : undefined;
+
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      try {
+        updatedEvent = await eventsRepository.updateEvent(event.id, {
+          title: input.title?.trim(),
+          slug: nextSlug,
+          description: sanitizeNullableText(input.description),
+          status: nextStatus,
+          registrationOpensAt: input.registrationOpensAt,
+          registrationClosesAt: input.registrationClosesAt,
+          startsAt: input.startsAt,
+          endsAt: input.endsAt,
+          capacity: input.capacity,
+        });
+        break;
+      } catch (error) {
+        if (nextSlugBase && isSlugCollisionError(error)) {
+          nextSlug = await deriveUniqueEventSlug(nextSlugBase, event.id);
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    if (!updatedEvent) {
+      throw new AppError(500, "Failed to derive a unique event slug after multiple attempts.");
+    }
+
+    const staleResult = await reconciliationRepository.markReportsStaleForEvent({
+      eventId: updatedEvent.id,
+      reason: `Event ${updatedEvent.id} changed after reconciliation generation; regenerate before review, finalization, or publication.`,
+      staledAt: new Date(),
     });
 
     await auditService.record({
@@ -267,6 +309,7 @@ export const eventsService = {
         nextStatus: updatedEvent.status,
         updatedFields: Object.keys(input),
         slug: updatedEvent.slug,
+        staleReconciliationReports: staleResult.count,
       },
       ...auditMetadata,
     });

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { EventStatus, Prisma } from "@prisma/client";
 
 import type { ReconciliationPayload } from "./types/reconciliation.types";
 
@@ -15,6 +15,7 @@ export const reconciliationReportDetailInclude = Prisma.validator<Prisma.Reconci
       title: true,
       slug: true,
       status: true,
+      updatedAt: true,
     },
   },
   generatedBy: {
@@ -40,6 +41,7 @@ export type ReconciliationReportWithContext = Prisma.ReconciliationReportGetPayl
 }>;
 
 const emptyPayload: ReconciliationPayload = {
+  eventSnapshot: undefined,
   warnings: [],
   breakdown: {
     verifiedRegistrationIncome: "0.00",
@@ -55,6 +57,29 @@ const emptyPayload: ReconciliationPayload = {
   },
 };
 
+function parseEventSnapshot(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const snapshot = value as Record<string, unknown>;
+
+  if (
+    typeof snapshot.eventId !== "string" ||
+    typeof snapshot.status !== "string" ||
+    typeof snapshot.updatedAt !== "string" ||
+    !Object.values(EventStatus).includes(snapshot.status as EventStatus)
+  ) {
+    return undefined;
+  }
+
+  return {
+    eventId: snapshot.eventId,
+    status: snapshot.status as EventStatus,
+    updatedAt: snapshot.updatedAt,
+  };
+}
+
 function parsePayload(value: Prisma.JsonValue | null): ReconciliationPayload {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return emptyPayload;
@@ -63,6 +88,7 @@ function parsePayload(value: Prisma.JsonValue | null): ReconciliationPayload {
   const payload = value as Partial<ReconciliationPayload>;
 
   return {
+    eventSnapshot: parseEventSnapshot(payload.eventSnapshot),
     warnings: Array.isArray(payload.warnings) ? payload.warnings : [],
     breakdown: {
       ...emptyPayload.breakdown,
@@ -104,6 +130,7 @@ export function mapReconciliationReport(report: ReconciliationReportWithContext)
       title: report.event.title,
       slug: report.event.slug,
       status: report.event.status,
+      updatedAt: report.event.updatedAt,
     },
     generatedBy: mapActor(report.generatedBy),
     reviewedBy: mapActor(report.reviewedBy),

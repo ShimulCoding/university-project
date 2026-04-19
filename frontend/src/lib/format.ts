@@ -47,11 +47,12 @@ export function formatDateTime(value: string | null | undefined) {
 export function formatMoney(value: string | number) {
   const amount = Number(value);
 
-  return new Intl.NumberFormat("en-BD", {
-    style: "currency",
-    currency: "BDT",
+  const formatted = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
+
+  return `৳ ${formatted}`;
 }
 
 export function formatFileSize(value: number) {

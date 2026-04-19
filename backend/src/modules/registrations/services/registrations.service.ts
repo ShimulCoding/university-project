@@ -64,7 +64,19 @@ async function createRegistrationWithUniqueCode(data: CreateRegistrationInput & 
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        continue;
+        const target = error.meta?.target as string[] | string | undefined;
+        const isRegistrationCodeCollision = Array.isArray(target)
+          ? target.includes("registrationCode")
+          : typeof target === "string" && target.includes("registrationCode");
+
+        if (isRegistrationCodeCollision) {
+          continue;
+        }
+
+        throw new AppError(
+          409,
+          "A registration with this student ID already exists for this event.",
+        );
       }
 
       throw error;

@@ -14,8 +14,6 @@ import type {
 } from "@/types";
 
 import { apiFetchServer } from "@/lib/api/server";
-import { ApiError } from "@/lib/api/shared";
-import { listPublicEvents } from "@/lib/api/public";
 
 type QueryValue = string | undefined;
 
@@ -31,29 +29,14 @@ export async function listManagedEvents(query?: {
 }
 
 export async function listInternalEventOptions() {
-  try {
-    const events = await listManagedEvents();
+  const events = await listManagedEvents();
 
-    return events.map((event) => ({
-      id: event.id,
-      title: event.title,
-      slug: event.slug,
-      status: event.status,
-    }));
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 403) {
-      const events = await listPublicEvents();
-
-      return events.map((event) => ({
-        id: event.id,
-        title: event.title,
-        slug: event.slug,
-        status: event.status,
-      }));
-    }
-
-    throw error;
-  }
+  return events.map((event) => ({
+    id: event.id,
+    title: event.title,
+    slug: event.slug,
+    status: event.status,
+  }));
 }
 
 export async function listPaymentVerificationQueue(query?: {

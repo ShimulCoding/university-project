@@ -436,6 +436,9 @@ export type ReconciliationReport = {
   totalIncome: string;
   totalExpense: string;
   closingBalance: string;
+  isStale: boolean;
+  staleReason: string | null;
+  staledAt: string | null;
   warnings: string[];
   breakdown: ReconciliationBreakdown;
   createdAt: string;

@@ -28,6 +28,12 @@ type UpdateReconciliationReportStatusData = {
   finalizedAt?: Date | null | undefined;
 };
 
+type MarkReportsStaleForEventData = {
+  eventId: string;
+  reason: string;
+  staledAt: Date;
+};
+
 function buildReportWhere(filters: ReconciliationFilters): Prisma.ReconciliationReportWhereInput {
   const where: Prisma.ReconciliationReportWhereInput = {};
 
@@ -97,6 +103,20 @@ export const reconciliationRepository = {
         ...(data.finalizedAt !== undefined ? { finalizedAt: data.finalizedAt } : {}),
       },
       include: reconciliationReportDetailInclude,
+    });
+  },
+
+  markReportsStaleForEvent(data: MarkReportsStaleForEventData, db: DbClient = prisma) {
+    return db.reconciliationReport.updateMany({
+      where: {
+        eventId: data.eventId,
+        isStale: false,
+      },
+      data: {
+        isStale: true,
+        staleReason: data.reason,
+        staledAt: data.staledAt,
+      },
     });
   },
 

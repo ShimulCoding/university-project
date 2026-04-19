@@ -462,6 +462,9 @@ model ReconciliationReport {
   totalExpense           Decimal                 @default(0) @db.Decimal(12, 2)
   closingBalance         Decimal                 @default(0) @db.Decimal(12, 2)
   payload                Json?                   @map("warnings")
+  isStale                Boolean                 @default(false)
+  staleReason            String?
+  staledAt               DateTime?
   generatedById          String?
   reviewedById           String?
   createdAt              DateTime                @default(now())

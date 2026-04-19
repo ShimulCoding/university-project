@@ -75,6 +75,7 @@ export default async function ReconciliationPage({
     const isPublishEligible =
       selectedReport &&
       selectedReport.status === "FINALIZED" &&
+      !selectedReport.isStale &&
       (selectedReport.event.status === "COMPLETED" || selectedReport.event.status === "CLOSED");
 
     return (
@@ -173,6 +174,7 @@ export default async function ReconciliationPage({
                             ) : (
                               <Badge variant="success">No warnings</Badge>
                             )}
+                            {report.isStale ? <Badge variant="danger">Stale</Badge> : null}
                           </div>
                         </TableCell>
                         <TableCell>{formatMoney(report.totalIncome)}</TableCell>
@@ -208,7 +210,24 @@ export default async function ReconciliationPage({
                       {hasPublishedSnapshot ? (
                         <Badge variant="success">Public summary published</Badge>
                       ) : null}
+                      {selectedReport.isStale ? (
+                        <Badge variant="danger">Stale data</Badge>
+                      ) : null}
                     </div>
+                    {selectedReport.isStale ? (
+                      <div className="rounded-[1rem] border border-destructive/15 bg-destructive/5 px-4 py-4 text-sm leading-6 text-destructive">
+                        <div className="font-semibold">Financial records changed after this report was generated.</div>
+                        <div className="mt-1">
+                          {selectedReport.staleReason ??
+                            "Generate a new reconciliation report before review, finalization, or publication."}
+                        </div>
+                        {selectedReport.staledAt ? (
+                          <div className="mt-1 text-destructive/80">
+                            Marked stale {formatDateTime(selectedReport.staledAt)}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
                     <div className="grid gap-3 md:grid-cols-3">
                       <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4">
                         <div className="data-kicker">Income</div>
@@ -348,7 +367,7 @@ export default async function ReconciliationPage({
                   </Card>
                 ) : null}
 
-                {canManage || canFinalize ? (
+                {(canManage || canFinalize) && !selectedReport.isStale ? (
                   <ReconciliationActionPanel
                     reportId={selectedReport.id}
                     canReview={canManage}
@@ -364,8 +383,16 @@ export default async function ReconciliationPage({
                 {!isPublishEligible && selectedReport.status === "FINALIZED" ? (
                   <StatePanel
                     icon={TriangleAlert}
-                    title="This report is finalized but not yet publish-eligible"
-                    description="Public summaries can only be published after the event is completed or closed."
+                    title={
+                      selectedReport.isStale
+                        ? "This finalized report is stale"
+                        : "This report is finalized but not yet publish-eligible"
+                    }
+                    description={
+                      selectedReport.isStale
+                        ? "A settled expense changed after generation. Generate, review, and finalize a fresh report before publishing."
+                        : "Public summaries can only be published after the event is completed or closed."
+                    }
                     tone="warning"
                   />
                 ) : null}

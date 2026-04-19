@@ -71,6 +71,13 @@ export const publicService = {
       throw new AppError(409, "Only finalized reconciliation reports can be published publicly.");
     }
 
+    if (report.isStale) {
+      throw new AppError(
+        409,
+        "This reconciliation report is stale because event financial records changed. Generate and finalize a fresh report before publishing.",
+      );
+    }
+
     if (!publishableEventStatuses.includes(report.event.status)) {
       throw new AppError(
         409,

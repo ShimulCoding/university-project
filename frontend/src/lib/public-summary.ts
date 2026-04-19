@@ -1,5 +1,9 @@
 import type { PublicFinancialSummary } from "@/types";
 
+function getPublishedTimestamp(value: string | null) {
+  return value ? new Date(value).getTime() : 0;
+}
+
 export function getLatestPublishedSummariesPerEvent(
   summaries: PublicFinancialSummary[],
 ) {
@@ -12,8 +16,8 @@ export function getLatestPublishedSummariesPerEvent(
     // rather than relying on the API response order.
     if (
       !existing ||
-      new Date(summary.publishedAt).getTime() >
-        new Date(existing.publishedAt).getTime()
+      getPublishedTimestamp(summary.publishedAt) >
+        getPublishedTimestamp(existing.publishedAt)
     ) {
       latestByEventSlug.set(summary.event.slug, summary);
     }

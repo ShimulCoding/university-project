@@ -18,6 +18,7 @@ import {
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { eventsRepository } from "../../events/repositories/events.repository";
+import { reconciliationRepository } from "../../reconciliation/repositories/reconciliation.repository";
 import {
   mapBudgetRequest,
   mapExpenseRecord,
@@ -782,12 +783,34 @@ export const requestsService = {
       throw new AppError(409, "Expense record is already voided.");
     }
 
-    const record = await requestsRepository.updateExpenseRecordState(
-      expenseRecordId,
-      {
-        state: ExpenseRecordState.VOIDED,
-      },
-    );
+    const wasSettled = existingRecord.state === ExpenseRecordState.SETTLED;
+    const staleReason = `Settled expense record ${existingRecord.id} was voided; reconciliation must be regenerated.`;
+    const staledAt = new Date();
+
+    const { record, staleReportCount } = await prisma.$transaction(async (tx) => {
+      const voidedRecord = await requestsRepository.updateExpenseRecordState(
+        expenseRecordId,
+        {
+          state: ExpenseRecordState.VOIDED,
+        },
+        tx,
+      );
+      const staleResult = wasSettled
+        ? await reconciliationRepository.markReportsStaleForEvent(
+            {
+              eventId: existingRecord.eventId,
+              reason: staleReason,
+              staledAt,
+            },
+            tx,
+          )
+        : { count: 0 };
+
+      return {
+        record: voidedRecord,
+        staleReportCount: staleResult.count,
+      };
+    });
 
     await auditService.record({
       actorId: actor.id,
@@ -800,6 +823,7 @@ export const requestsService = {
         previousState: existingRecord.state,
         nextState: record.state,
         reason: input.reason,
+        staleReconciliationReports: staleReportCount,
       },
       ...auditMetadata,
     });

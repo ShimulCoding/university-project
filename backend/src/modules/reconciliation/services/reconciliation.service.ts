@@ -61,6 +61,15 @@ async function assertLatestReport(report: ReconciliationReportWithContext) {
   }
 }
 
+function assertReportIsFresh(report: ReconciliationReportWithContext) {
+  if (report.isStale) {
+    throw new AppError(
+      409,
+      "This reconciliation report is stale because event financial records changed. Generate a new reconciliation report before advancing it.",
+    );
+  }
+}
+
 async function buildReconciliationPayload(eventId: string): Promise<{
   totalIncome: Prisma.Decimal;
   totalExpense: Prisma.Decimal;
@@ -249,6 +258,7 @@ export const reconciliationService = {
       throw new AppError(409, "Only draft reconciliation reports can be marked as reviewed.");
     }
 
+    assertReportIsFresh(report);
     await assertLatestReport(report);
 
     const reviewedReport = await reconciliationRepository.updateReportStatus(reportId, {
@@ -286,6 +296,7 @@ export const reconciliationService = {
       throw new AppError(409, "Only reviewed reconciliation reports can be finalized.");
     }
 
+    assertReportIsFresh(report);
     await assertLatestReport(report);
 
     const finalizedReport = await reconciliationRepository.updateReportStatus(reportId, {

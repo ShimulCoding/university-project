@@ -31,6 +31,7 @@ export const dynamic = "force-dynamic";
 
 const publicationChecklist = [
   "Reconciliation status must be Finalized.",
+  "Reconciliation data must not be stale.",
   "Event status must be Completed or Closed.",
   "Only public-safe summary data may cross the boundary.",
   "A published snapshot is immutable evidence of what was released.",
@@ -81,6 +82,7 @@ export default async function DashboardPublicationsPage({
   const isPublishEligible =
     selectedReport &&
     selectedReport.status === "FINALIZED" &&
+    !selectedReport.isStale &&
     (selectedReport.event.status === "COMPLETED" || selectedReport.event.status === "CLOSED");
 
   return (
@@ -137,6 +139,7 @@ export default async function DashboardPublicationsPage({
                       {formatEnumLabel(publishedForSelected.status)}
                     </Badge>
                   ) : null}
+                  {selectedReport.isStale ? <Badge variant="danger">Stale data</Badge> : null}
                 </div>
                 <div className="mt-3">
                   Finalized {formatDateTime(selectedReport.finalizedAt)}.
@@ -144,6 +147,12 @@ export default async function DashboardPublicationsPage({
                     ? ` Published ${formatDateTime(publishedForSelected.publishedAt)}.`
                     : " No public snapshot has been published yet."}
                 </div>
+                {selectedReport.isStale ? (
+                  <div className="mt-3 rounded-[1rem] border border-destructive/15 bg-destructive/5 px-4 py-4 text-sm leading-6 text-destructive">
+                    {selectedReport.staleReason ??
+                      "A financial record changed after this report was generated. Generate and finalize a fresh report before publication."}
+                  </div>
+                ) : null}
                 {selectedReportHasHistoricalSnapshot ? (
                   <div className="mt-3 rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
                     This report has an earlier published snapshot on record. The public page
@@ -204,6 +213,7 @@ export default async function DashboardPublicationsPage({
                       <Badge variant={getEventStatusTone(report.event.status)}>
                         {formatEnumLabel(report.event.status)}
                       </Badge>
+                      {report.isStale ? <Badge variant="danger">Stale</Badge> : null}
                     </div>
                     <div
                       className={

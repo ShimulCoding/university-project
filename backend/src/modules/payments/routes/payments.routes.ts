@@ -57,6 +57,12 @@ router.get(
   asyncHandler(paymentsController.getIncomeRecordById),
 );
 router.post(
+  "/income-records/:incomeRecordId/verify",
+  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER),
+  validateRequest(incomeRecordIdParamSchema),
+  asyncHandler(paymentsController.verifyIncomeRecord),
+);
+router.post(
   "/income-records/:incomeRecordId/void",
   authorize(RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER),
   validateRequest(voidIncomeRecordSchema),

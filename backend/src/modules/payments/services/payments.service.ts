@@ -389,6 +389,73 @@ export const paymentsService = {
     return mapIncomeRecord(incomeRecord);
   },
 
+  async verifyIncomeRecord(
+    actor: AuthenticatedUser,
+    incomeRecordId: string,
+    auditMetadata?: AuditMetadata,
+  ) {
+    assertFinancePermissions(actor);
+
+    const existingRecord = await paymentsRepository.findIncomeRecordById(incomeRecordId);
+
+    if (!existingRecord) {
+      throw new AppError(404, "Income record not found.");
+    }
+
+    if (existingRecord.state === IncomeState.VERIFIED) {
+      throw new AppError(409, "Income record is already verified.");
+    }
+
+    if (existingRecord.state === IncomeState.REJECTED) {
+      throw new AppError(409, "Voided or rejected income records cannot be verified.");
+    }
+
+    const staleReason = `Manual income record ${existingRecord.id} was verified; reconciliation must be regenerated.`;
+    const staledAt = new Date();
+
+    const { incomeRecord, staleReportCount } = await prisma.$transaction(async (tx) => {
+      const verifiedRecord = await paymentsRepository.updateIncomeRecordState(
+        incomeRecordId,
+        {
+          state: IncomeState.VERIFIED,
+          verifiedById: actor.id,
+        },
+        tx,
+      );
+
+      const staleResult = await reconciliationRepository.markReportsStaleForEvent(
+        {
+          eventId: existingRecord.eventId,
+          reason: staleReason,
+          staledAt,
+        },
+        tx,
+      );
+
+      return {
+        incomeRecord: verifiedRecord,
+        staleReportCount: staleResult.count,
+      };
+    });
+
+    await auditService.record({
+      actorId: actor.id,
+      action: "income.verify",
+      entityType: "IncomeRecord",
+      entityId: incomeRecord.id,
+      summary: `Verified income record for ${incomeRecord.event.title}`,
+      context: {
+        eventId: incomeRecord.event.id,
+        previousState: existingRecord.state,
+        nextState: incomeRecord.state,
+        staleReconciliationReports: staleReportCount,
+      },
+      ...auditMetadata,
+    });
+
+    return mapIncomeRecord(incomeRecord);
+  },
+
   async listIncomeRecords(viewer: AuthenticatedUser, filters: IncomeRecordFilters) {
     assertFinancePermissions(viewer);
 

@@ -184,9 +184,11 @@ export function IncomeRecordForm({
 
 export function IncomeRecordStatePanel({
   incomeRecordId,
+  allowVerify,
   allowVoid,
 }: {
   incomeRecordId: string;
+  allowVerify: boolean;
   allowVoid: boolean;
 }) {
   const [reason, setReason] = useState("");
@@ -197,10 +199,31 @@ export function IncomeRecordStatePanel({
       <CardHeader>
         <CardTitle className="text-xl">Income record state</CardTitle>
         <CardDescription>
-          Void incorrect manual income without deleting evidence or history. Verified records mark related reconciliation reports stale.
+          Verify trusted manual income before reconciliation, or void incorrect records without deleting evidence or history.
         </CardDescription>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="space-y-4 pt-0">
+        {allowVerify ? (
+          <div className="rounded-[1rem] border border-success/15 bg-success-muted px-4 py-4 text-sm leading-6 text-success">
+            <div className="font-semibold">Ready to verify</div>
+            <div className="mt-1 text-success/85">
+              Confirm this evidence-backed income so it can be counted in the next reconciliation report.
+            </div>
+            <Button
+              type="button"
+              className="mt-4"
+              disabled={isPending}
+              onClick={() => {
+                void runAction(
+                  () => postJson(`/payments/income-records/${incomeRecordId}/verify`, {}),
+                  "Income record verified. Generate a fresh reconciliation report to include it.",
+                );
+              }}
+            >
+              {isPending ? "Verifying income..." : "Verify income record"}
+            </Button>
+          </div>
+        ) : null}
         {allowVoid ? (
           <form
             className="grid gap-4"
@@ -231,7 +254,6 @@ export function IncomeRecordStatePanel({
                 required
               />
             </Field>
-            <FeedbackMessage feedback={feedback} />
             <Button type="submit" variant="danger" disabled={isPending || reason.trim().length < 3}>
               {isPending ? "Voiding record..." : "Void income record"}
             </Button>
@@ -241,6 +263,7 @@ export function IncomeRecordStatePanel({
             This income record is already voided or rejected. The audit trail remains available in protected views.
           </div>
         )}
+        <FeedbackMessage feedback={feedback} />
       </CardContent>
     </Card>
   );

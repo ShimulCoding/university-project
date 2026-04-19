@@ -218,6 +218,7 @@ export default async function IncomeRecordsPage({
                 />
                 <IncomeRecordStatePanel
                   incomeRecordId={selectedIncome.id}
+                  allowVerify={selectedIncome.state === "RECORDED"}
                   allowVoid={selectedIncome.state !== "REJECTED"}
                 />
               </div>

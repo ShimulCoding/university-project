@@ -4,6 +4,7 @@ import { getRequestMetadata } from "../../../utils/request-metadata";
 import { paymentsService } from "../services/payments.service";
 import {
   createIncomeRecordSchema,
+  incomeRecordIdParamSchema,
   submitPaymentProofSchema,
   voidIncomeRecordSchema,
 } from "../validations/payments.validation";
@@ -55,6 +56,20 @@ export const paymentsController = {
     );
 
     response.status(201).json({ incomeRecord });
+  },
+
+  async verifyIncomeRecord(request: Request, response: Response) {
+    const parsedRequest = incomeRecordIdParamSchema.parse({
+      params: request.params,
+    });
+
+    const incomeRecord = await paymentsService.verifyIncomeRecord(
+      request.auth!.user,
+      parsedRequest.params.incomeRecordId,
+      getRequestMetadata(request),
+    );
+
+    response.status(200).json({ incomeRecord });
   },
 
   async voidIncomeRecord(request: Request, response: Response) {

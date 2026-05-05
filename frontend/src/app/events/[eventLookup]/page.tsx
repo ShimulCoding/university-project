@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CalendarDays, ShieldAlert, UsersRound } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarDays, CheckCircle, ShieldAlert, UsersRound } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { getPublicEvent } from "@/lib/api/public";
+import { getCurrentUser, listMyRegistrations } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/shared";
 import {
   formatDate,
@@ -28,7 +29,15 @@ export default async function PublicEventDetailsPage({
   const { eventLookup } = await params;
 
   try {
-    const event = await getPublicEvent(eventLookup);
+    const [event, user] = await Promise.all([
+      getPublicEvent(eventLookup),
+      getCurrentUser(),
+    ]);
+
+    const myRegistrations = user ? await listMyRegistrations() : [];
+    const existingRegistration = myRegistrations.find(
+      (registration) => registration.event.id === event.id,
+    );
 
     return (
       <PublicPageShell>
@@ -112,7 +121,21 @@ export default async function PublicEventDetailsPage({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {isRegistrationOpen(event) ? (
+                {existingRegistration ? (
+                  <>
+                    <div className="rounded-[1.15rem] border border-success/15 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
+                      You are already registered for this event. You can view your registration
+                      details, check payment status, and manage your participation from your
+                      registration page.
+                    </div>
+                    <Button asChild className="w-full">
+                      <Link href={`/registrations/${existingRegistration.id}`}>
+                        <CheckCircle className="h-4 w-4" />
+                        View my registration
+                      </Link>
+                    </Button>
+                  </>
+                ) : isRegistrationOpen(event) ? (
                   <>
                     <div className="rounded-[1.15rem] border border-success/15 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
                       Registration is open. Student access is required before a participant
@@ -172,3 +195,4 @@ export default async function PublicEventDetailsPage({
     );
   }
 }
+

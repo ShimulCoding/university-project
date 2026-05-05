@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, UsersRound } from "lucide-react";
+import { ArrowRight, CalendarDays, CheckCircle, UsersRound } from "lucide-react";
 
 import type { PublicEvent } from "@/types";
 import {
@@ -13,7 +13,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function PublicEventCard({ event }: { event: PublicEvent }) {
+type StudentEventContext = {
+  isSignedIn: boolean;
+  /** Map from event ID → registration ID, if the student already registered */
+  registrationByEventId: Record<string, string>;
+};
+
+export function PublicEventCard({
+  event,
+  studentCtx,
+}: {
+  event: PublicEvent;
+  studentCtx?: StudentEventContext;
+}) {
+  const existingRegistrationId = studentCtx?.registrationByEventId[event.id];
+  const signedIn = studentCtx?.isSignedIn ?? false;
   return (
     <Card className="h-full">
       <CardHeader>
@@ -59,7 +73,21 @@ export function PublicEventCard({ event }: { event: PublicEvent }) {
             <Button asChild variant="outline" size="sm">
               <Link href={`/events/${event.slug}`}>View details</Link>
             </Button>
-            {isRegistrationOpen(event) ? (
+            {existingRegistrationId ? (
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/registrations/${existingRegistrationId}`}>
+                  <CheckCircle className="h-4 w-4" />
+                  View my registration
+                </Link>
+              </Button>
+            ) : signedIn && isRegistrationOpen(event) ? (
+              <Button asChild size="sm">
+                <Link href={`/events/${event.slug}/register`}>
+                  Register now
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            ) : !signedIn && isRegistrationOpen(event) ? (
               <Button asChild size="sm">
                 <Link href={`/events/${event.slug}/register`}>
                   Register now

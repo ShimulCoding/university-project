@@ -1,6 +1,7 @@
 import { AlertTriangle, CalendarRange, ShieldCheck, TicketCheck } from "lucide-react";
 
 import { listPublicEvents } from "@/lib/api/public";
+import { getCurrentUser, listMyRegistrations } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/shared";
 import { formatEnumLabel } from "@/lib/format";
 import { PublicEventCard } from "@/components/public/public-event-card";
@@ -14,7 +15,19 @@ export const dynamic = "force-dynamic";
 
 export default async function PublicEventsPage() {
   try {
-    const events = await listPublicEvents();
+    const [events, user] = await Promise.all([listPublicEvents(), getCurrentUser()]);
+    const myRegistrations = user ? await listMyRegistrations() : [];
+
+    // Build a lookup map: event ID → registration ID
+    const registrationByEventId: Record<string, string> = {};
+    for (const reg of myRegistrations) {
+      registrationByEventId[reg.event.id] = reg.id;
+    }
+
+    const studentCtx = user
+      ? { isSignedIn: true, registrationByEventId }
+      : undefined;
+
     const openEvents = events.filter((event) => event.registrationWindow.state === "OPEN").length;
     const closedEvents = events.filter(
       (event) => event.status === "COMPLETED" || event.status === "CLOSED",
@@ -81,7 +94,7 @@ export default async function PublicEventsPage() {
           ) : (
             <div className="mt-10 grid gap-6 lg:grid-cols-2">
               {events.map((event) => (
-                <PublicEventCard key={event.id} event={event} />
+                <PublicEventCard key={event.id} event={event} studentCtx={studentCtx} />
               ))}
             </div>
           )}

@@ -55,6 +55,7 @@ export function InternalAccessPanel() {
       setIsSubmitting(false);
 
       startTransition(() => {
+        window.scrollTo({ top: 0, behavior: "instant" });
         router.refresh();
       });
     } catch (error) {

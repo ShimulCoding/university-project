@@ -97,12 +97,14 @@ export function ExpenseBudgetActualChart({
   const CHART_RIGHT = 16;
   const CHART_TOP = 8;
   const CHART_BOTTOM = 44;
-  const SVG_WIDTH = 520;
-  const SVG_HEIGHT = 280;
-  const plotW = SVG_WIDTH - CHART_LEFT - CHART_RIGHT;
+  const MIN_GROUP_WIDTH = 70;
+  const colCount = pairs.length || 1;
+  const dynamicPlotW = Math.max(colCount * MIN_GROUP_WIDTH, 440);
+  const SVG_WIDTH = CHART_LEFT + dynamicPlotW + CHART_RIGHT;
+  const SVG_HEIGHT = 300;
+  const plotW = dynamicPlotW;
   const plotH = SVG_HEIGHT - CHART_TOP - CHART_BOTTOM;
 
-  const colCount = pairs.length || 1;
   const groupWidth = plotW / colCount;
   const barPadding = Math.max(groupWidth * 0.2, 6);
   const barAreaWidth = groupWidth - barPadding;
@@ -143,7 +145,8 @@ export function ExpenseBudgetActualChart({
           <div className="mt-4 w-full overflow-x-auto">
             <svg
               viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-              className="mx-auto w-full max-w-[520px]"
+              className="w-full"
+              style={{ minWidth: `${Math.min(SVG_WIDTH, 520)}px` }}
               role="img"
               aria-label="Expense budget vs actual stacked column chart"
             >

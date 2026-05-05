@@ -13,6 +13,10 @@ const PIE_COLORS = [
   "hsl(192, 91%, 36%)",   // cyan
   "hsl(25, 95%, 53%)",    // orange
   "hsl(142, 71%, 45%)",   // green
+  "hsl(330, 70%, 50%)",   // magenta
+  "hsl(200, 80%, 50%)",   // sky
+  "hsl(60, 80%, 42%)",    // olive
+  "hsl(10, 85%, 55%)",    // red-orange
 ];
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
@@ -65,11 +69,12 @@ export function IncomePieChart({
           No public-safe breakdown lines are available for this side of the report yet.
         </div>
       ) : (
-        <div className="mt-5 flex flex-col items-center gap-5">
-          <div className="relative">
+        <div className="mt-5 flex flex-col items-center gap-6 md:flex-row md:items-start">
+          {/* Pie chart */}
+          <div className="shrink-0">
             <svg
-              viewBox="0 0 200 200"
-              className="h-48 w-48 drop-shadow-sm"
+              viewBox="0 0 220 220"
+              className="h-52 w-52 drop-shadow-sm md:h-56 md:w-56"
               role="img"
               aria-label="Income source pie chart"
             >
@@ -90,13 +95,13 @@ export function IncomePieChart({
                     return (
                       <circle
                         key={item.key}
-                        cx="100"
-                        cy="100"
-                        r="80"
+                        cx="110"
+                        cy="110"
+                        r="90"
                         fill={PIE_COLORS[index % PIE_COLORS.length]}
-                        opacity={hoveredIndex !== null && !isHovered ? 0.45 : 1}
+                        opacity={hoveredIndex !== null && !isHovered ? 0.4 : 1}
                         className="transition-all duration-200"
-                        style={{ transformOrigin: "100px 100px", transform: scale }}
+                        style={{ transformOrigin: "110px 110px", transform: scale }}
                         onMouseEnter={() => setHoveredIndex(index)}
                         onMouseLeave={() => setHoveredIndex(null)}
                       />
@@ -106,13 +111,13 @@ export function IncomePieChart({
                   return (
                     <path
                       key={item.key}
-                      d={describeArc(100, 100, 80, startAngle, endAngle)}
+                      d={describeArc(110, 110, 90, startAngle, endAngle)}
                       fill={PIE_COLORS[index % PIE_COLORS.length]}
                       stroke="hsl(var(--panel-muted))"
                       strokeWidth="2"
-                      opacity={hoveredIndex !== null && !isHovered ? 0.45 : 1}
+                      opacity={hoveredIndex !== null && !isHovered ? 0.4 : 1}
                       className="cursor-pointer transition-all duration-200"
-                      style={{ transformOrigin: "100px 100px", transform: scale }}
+                      style={{ transformOrigin: "110px 110px", transform: scale }}
                       onMouseEnter={() => setHoveredIndex(index)}
                       onMouseLeave={() => setHoveredIndex(null)}
                     />
@@ -120,23 +125,23 @@ export function IncomePieChart({
                 });
               })()}
               <circle
-                cx="100"
-                cy="100"
-                r="44"
+                cx="110"
+                cy="110"
+                r="50"
                 fill="hsl(var(--panel-muted))"
                 className="pointer-events-none"
               />
               <text
-                x="100"
-                y="96"
+                x="110"
+                y="105"
                 textAnchor="middle"
                 className="fill-foreground text-[11px] font-semibold"
               >
                 Total
               </text>
               <text
-                x="100"
-                y="112"
+                x="110"
+                y="122"
                 textAnchor="middle"
                 className="fill-primary text-[10px] font-semibold"
               >
@@ -145,29 +150,38 @@ export function IncomePieChart({
             </svg>
           </div>
 
-          <div className="w-full space-y-2">
-            {items.map((item, index) => {
-              const pct = ((Number(item.amount) / numericTotal) * 100).toFixed(1);
-              return (
-                <div
-                  key={item.key}
-                  className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-panel"
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                >
-                  <div className="flex items-center gap-2 font-semibold text-foreground">
-                    <span
-                      className="h-3 w-3 shrink-0 rounded-full"
-                      style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
-                    />
-                    {item.label}
+          {/* Legend — scrollable when many items */}
+          <div className="w-full min-w-0 flex-1">
+            <div className="max-h-[260px] space-y-1 overflow-y-auto pr-1">
+              {items.map((item, index) => {
+                const pct = ((Number(item.amount) / numericTotal) * 100).toFixed(1);
+                const isHovered = hoveredIndex === index;
+                return (
+                  <div
+                    key={item.key}
+                    className={
+                      "flex items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-sm transition-colors" +
+                      (isHovered ? " bg-panel" : " hover:bg-panel/60")
+                    }
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                  >
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span
+                        className="h-3 w-3 shrink-0 rounded-full"
+                        style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
+                      />
+                      <span className="truncate font-semibold text-foreground">
+                        {item.label}
+                      </span>
+                    </div>
+                    <div className="shrink-0 whitespace-nowrap tabular-nums text-muted-foreground">
+                      {formatMoney(item.amount)} ({pct}%)
+                    </div>
                   </div>
-                  <div className="whitespace-nowrap tabular-nums text-muted-foreground">
-                    {formatMoney(item.amount)} ({pct}%)
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

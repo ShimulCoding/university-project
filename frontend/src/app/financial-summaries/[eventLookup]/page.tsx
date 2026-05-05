@@ -111,20 +111,19 @@ export default async function PublicFinancialSummaryDetailsPage({
                   </TableBody>
                 </Table>
 
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <IncomePieChart
-                    title="Income source breakdown"
-                    description="Segment-wise pie chart showing where public-safe income came from."
-                    total={summary.totals.collected}
-                    items={summary.payload?.incomeBreakdown ?? []}
-                  />
-                  <ExpenseBudgetActualChart
-                    title="Expense: Budget vs Actual"
-                    description="Stacked comparison of budgeted amounts against actual settled spending per category."
-                    expenseItems={summary.payload?.expenseBreakdown ?? []}
-                    budgetItems={summary.payload?.budgetBreakdown ?? []}
-                  />
-                </div>
+                <IncomePieChart
+                  title="Income source breakdown"
+                  description="Segment-wise pie chart showing where public-safe income came from."
+                  total={summary.totals.collected}
+                  items={summary.payload?.incomeBreakdown ?? []}
+                />
+
+                <ExpenseBudgetActualChart
+                  title="Expense: Budget vs Actual"
+                  description="Stacked comparison of budgeted amounts against actual settled spending per category."
+                  expenseItems={summary.payload?.expenseBreakdown ?? []}
+                  budgetItems={summary.payload?.budgetBreakdown ?? []}
+                />
 
                 <div className="grid gap-4 lg:grid-cols-2">
                   <SummaryBreakdownChart

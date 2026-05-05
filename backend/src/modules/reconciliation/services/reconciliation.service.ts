@@ -207,13 +207,15 @@ async function buildReconciliationPayload(
   }
 
   for (const record of settledExpenseRecords) {
-    const category = record.category.trim() || "Uncategorized expense";
+    const description = record.description.trim() || "Unspecified expense";
+    const category = record.category.trim() || "Uncategorized";
 
-    addBreakdownAmount(expenseBreakdown, {
-      key: `expense-${category.toLowerCase()}`,
-      label: category,
+    expenseBreakdown.set(`expense-${record.id}`, {
+      key: `expense-${record.id}`,
+      label: description,
       segment: category,
-      amount: record.amount,
+      amount: decimalToMoney(record.amount),
+      recordCount: 1,
     });
   }
 

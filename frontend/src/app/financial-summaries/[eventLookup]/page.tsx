@@ -117,8 +117,8 @@ export default async function PublicFinancialSummaryDetailsPage({
                     items={summary.payload?.incomeBreakdown ?? []}
                   />
                   <SummaryBreakdownChart
-                    title="Expense segment breakdown"
-                    description="Shows how settled spending was distributed across event expense categories."
+                    title="Expense itemized breakdown"
+                    description="Shows exactly where settled spending went, listed by individual expense description."
                     total={summary.totals.spent}
                     items={summary.payload?.expenseBreakdown ?? []}
                   />

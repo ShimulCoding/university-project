@@ -116,7 +116,7 @@ function buildFallbackExpenseBreakdown(
   return [
     {
       key: "settled-expenses",
-      label: "Settled expense records",
+      label: "Settled expense records (itemized data unavailable)",
       segment: "SETTLED_EXPENSE",
       amount: settledExpense,
       recordCount: 0,

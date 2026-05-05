@@ -187,6 +187,7 @@ export const reconciliationRepository = {
         id: true,
         amount: true,
         category: true,
+        description: true,
         state: true,
         expenseRequestId: true,
       },

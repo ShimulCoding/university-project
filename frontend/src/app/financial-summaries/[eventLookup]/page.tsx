@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { IncomePieChart } from "@/components/public/income-pie-chart";
+import { ExpenseBudgetActualChart } from "@/components/public/expense-budget-actual-chart";
 import { SummaryBreakdownChart } from "@/components/public/summary-breakdown-chart";
 import { StatePanel } from "@/components/ui/state-panel";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -110,8 +112,23 @@ export default async function PublicFinancialSummaryDetailsPage({
                 </Table>
 
                 <div className="grid gap-4 lg:grid-cols-2">
-                  <SummaryBreakdownChart
+                  <IncomePieChart
                     title="Income source breakdown"
+                    description="Segment-wise pie chart showing where public-safe income came from."
+                    total={summary.totals.collected}
+                    items={summary.payload?.incomeBreakdown ?? []}
+                  />
+                  <ExpenseBudgetActualChart
+                    title="Expense: Budget vs Actual"
+                    description="Stacked comparison of budgeted amounts against actual settled spending per category."
+                    expenseItems={summary.payload?.expenseBreakdown ?? []}
+                    budgetItems={summary.payload?.budgetBreakdown ?? []}
+                  />
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <SummaryBreakdownChart
+                    title="Income source details"
                     description="Shows where public-safe income came from, including student registration and verified manual income sources."
                     total={summary.totals.collected}
                     items={summary.payload?.incomeBreakdown ?? []}

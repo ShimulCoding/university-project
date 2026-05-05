@@ -22,4 +22,5 @@ export type PublicFinancialSummaryPayload = {
   };
   incomeBreakdown: PublicFinancialSummaryBreakdownLine[];
   expenseBreakdown: PublicFinancialSummaryBreakdownLine[];
+  budgetBreakdown: PublicFinancialSummaryBreakdownLine[];
 };

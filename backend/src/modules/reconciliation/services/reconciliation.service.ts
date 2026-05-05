@@ -159,12 +159,14 @@ async function buildReconciliationPayload(
     manualIncomeRecords,
     expenseRecords,
     approvedExpenseRequests,
+    activeBudgetItems,
   ] = await Promise.all([
     reconciliationRepository.listVerifiedPaymentProofs(event.id),
     reconciliationRepository.countVerifiedRegistrations(event.id),
     reconciliationRepository.listManualIncomeRecords(event.id),
     reconciliationRepository.listExpenseRecords(event.id),
     reconciliationRepository.listApprovedExpenseRequests(event.id),
+    reconciliationRepository.listActiveBudgetItems(event.id),
   ]);
 
   const verifiedRegistrationIncome = sumDecimals(
@@ -216,6 +218,19 @@ async function buildReconciliationPayload(
       segment: category,
       amount: decimalToMoney(record.amount),
       recordCount: 1,
+    });
+  }
+
+  const budgetBreakdown = new Map<string, ReconciliationBreakdownLine>();
+
+  for (const item of activeBudgetItems) {
+    const category = item.category.trim() || "Uncategorized";
+
+    addBreakdownAmount(budgetBreakdown, {
+      key: `budget-${category.toLowerCase()}`,
+      label: category,
+      segment: category,
+      amount: item.amount,
     });
   }
 
@@ -304,6 +319,7 @@ async function buildReconciliationPayload(
       breakdown,
       incomeBreakdown: Array.from(incomeBreakdown.values()),
       expenseBreakdown: Array.from(expenseBreakdown.values()),
+      budgetBreakdown: Array.from(budgetBreakdown.values()),
     },
   };
 }

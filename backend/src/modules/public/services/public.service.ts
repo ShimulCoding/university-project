@@ -62,6 +62,7 @@ function buildPublicPayload(
     },
     incomeBreakdown: reconciliationPayload.incomeBreakdown,
     expenseBreakdown: reconciliationPayload.expenseBreakdown,
+    budgetBreakdown: reconciliationPayload.budgetBreakdown,
   };
 }
 

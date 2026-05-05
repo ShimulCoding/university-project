@@ -212,4 +212,21 @@ export const reconciliationRepository = {
       },
     });
   },
+
+  listActiveBudgetItems(eventId: string, db: DbClient = prisma) {
+    return db.budgetItem.findMany({
+      where: {
+        budget: {
+          eventId,
+          isActive: true,
+        },
+      },
+      select: {
+        id: true,
+        category: true,
+        label: true,
+        amount: true,
+      },
+    });
+  },
 };

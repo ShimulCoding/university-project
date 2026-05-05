@@ -51,4 +51,5 @@ export type ReconciliationPayload = {
   breakdown: ReconciliationBreakdown;
   incomeBreakdown: ReconciliationBreakdownLine[];
   expenseBreakdown: ReconciliationBreakdownLine[];
+  budgetBreakdown: ReconciliationBreakdownLine[];
 };

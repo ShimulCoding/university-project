@@ -41,6 +41,7 @@ function parsePayload(value: Prisma.JsonValue | null): PublicFinancialSummaryPay
 
   const incomeBreakdown = parseBreakdownLines(payload.incomeBreakdown);
   const expenseBreakdown = parseBreakdownLines(payload.expenseBreakdown);
+  const budgetBreakdown = parseBreakdownLines(payload.budgetBreakdown);
   const registrationIncome = String(payload.breakdown?.registrationIncome ?? "0.00");
   const manualIncome = String(payload.breakdown?.manualIncome ?? "0.00");
   const settledExpense = String(payload.breakdown?.settledExpense ?? "0.00");
@@ -61,6 +62,7 @@ function parsePayload(value: Prisma.JsonValue | null): PublicFinancialSummaryPay
       expenseBreakdown.length > 0
         ? expenseBreakdown
         : buildFallbackExpenseBreakdown(settledExpense),
+    budgetBreakdown,
   };
 }
 

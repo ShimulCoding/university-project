@@ -132,6 +132,7 @@ export type PublicFinancialSummary = {
     };
     incomeBreakdown: PublicFinancialSummaryBreakdownLine[];
     expenseBreakdown: PublicFinancialSummaryBreakdownLine[];
+    budgetBreakdown: PublicFinancialSummaryBreakdownLine[];
   } | null;
 };
 

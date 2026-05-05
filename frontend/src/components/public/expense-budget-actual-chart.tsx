@@ -4,9 +4,8 @@ import { useState } from "react";
 import type { PublicFinancialSummaryBreakdownLine } from "@/types";
 import { formatMoney } from "@/lib/format";
 
-const BUDGET_COLOR = "hsl(217, 91%, 60%)";
-const ACTUAL_COLOR = "hsl(160, 84%, 39%)";
-const OVER_BUDGET_COLOR = "hsl(350, 89%, 60%)";
+const BUDGET_COLOR = "hsl(220, 15%, 55%)";
+const ACTUAL_COLOR = "hsl(168, 65%, 47%)";
 
 type CategoryPair = {
   category: string;
@@ -20,7 +19,6 @@ function buildCategoryPairs(
 ): CategoryPair[] {
   const categories = new Map<string, CategoryPair>();
 
-  // Build actual amounts per category from segment field
   for (const item of expenseItems) {
     const cat = item.segment.trim() || "Uncategorized";
     const existing = categories.get(cat);
@@ -31,7 +29,6 @@ function buildCategoryPairs(
     }
   }
 
-  // Build budget amounts per category
   for (const item of budgetItems) {
     const cat = item.label.trim() || "Uncategorized";
     const existing = categories.get(cat);
@@ -49,6 +46,31 @@ function buildCategoryPairs(
   });
 }
 
+function niceMax(value: number): number {
+  if (value <= 0) return 100;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(value)));
+  const normalized = value / magnitude;
+  if (normalized <= 1) return magnitude;
+  if (normalized <= 2) return 2 * magnitude;
+  if (normalized <= 5) return 5 * magnitude;
+  return 10 * magnitude;
+}
+
+function buildYTicks(maxVal: number, tickCount: number): number[] {
+  const step = maxVal / tickCount;
+  const ticks: number[] = [];
+  for (let i = 0; i <= tickCount; i++) {
+    ticks.push(Math.round(step * i));
+  }
+  return ticks;
+}
+
+function formatAxisValue(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(value >= 10_000 ? 0 : 1)}K`;
+  return value.toString();
+}
+
 export function ExpenseBudgetActualChart({
   title,
   description,
@@ -62,13 +84,29 @@ export function ExpenseBudgetActualChart({
 }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const pairs = buildCategoryPairs(expenseItems, budgetItems);
-  const maxValue = Math.max(
-    ...pairs.map((p) => Math.max(p.budget, p.actual)),
-    1,
-  );
 
   const hasBudgetData = pairs.some((p) => p.budget > 0);
   const hasActualData = pairs.some((p) => p.actual > 0);
+
+  const rawMax = Math.max(...pairs.map((p) => Math.max(p.budget, p.actual)), 1);
+  const yMax = niceMax(rawMax);
+  const yTicks = buildYTicks(yMax, 4);
+
+  /* ---- Layout constants ---- */
+  const CHART_LEFT = 60;
+  const CHART_RIGHT = 16;
+  const CHART_TOP = 8;
+  const CHART_BOTTOM = 44;
+  const SVG_WIDTH = 520;
+  const SVG_HEIGHT = 280;
+  const plotW = SVG_WIDTH - CHART_LEFT - CHART_RIGHT;
+  const plotH = SVG_HEIGHT - CHART_TOP - CHART_BOTTOM;
+
+  const colCount = pairs.length || 1;
+  const groupWidth = plotW / colCount;
+  const barPadding = Math.max(groupWidth * 0.2, 6);
+  const barAreaWidth = groupWidth - barPadding;
+  const singleBarWidth = barAreaWidth / 2;
 
   return (
     <div className="rounded-[1.4rem] border border-border/70 bg-panel-muted p-5">
@@ -84,102 +122,218 @@ export function ExpenseBudgetActualChart({
       ) : (
         <>
           {/* Legend */}
-          <div className="mt-4 flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-5">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
               <span
-                className="h-3 w-3 rounded-sm"
+                className="inline-block h-3.5 w-5 rounded-sm"
                 style={{ backgroundColor: BUDGET_COLOR }}
               />
               Budget
             </div>
-            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
               <span
-                className="h-3 w-3 rounded-sm"
+                className="inline-block h-3.5 w-5 rounded-sm"
                 style={{ backgroundColor: ACTUAL_COLOR }}
               />
               Actual
             </div>
-            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-              <span
-                className="h-3 w-3 rounded-sm"
-                style={{ backgroundColor: OVER_BUDGET_COLOR }}
-              />
-              Over budget
-            </div>
           </div>
 
-          {/* Bars */}
-          <div className="mt-5 space-y-4">
-            {pairs.map((pair, index) => {
-              const budgetPct = (pair.budget / maxValue) * 100;
-              const actualPct = (pair.actual / maxValue) * 100;
-              const isOverBudget = pair.budget > 0 && pair.actual > pair.budget;
-              const isHovered = hoveredIndex === index;
+          {/* SVG chart */}
+          <div className="mt-4 w-full overflow-x-auto">
+            <svg
+              viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+              className="mx-auto w-full max-w-[520px]"
+              role="img"
+              aria-label="Expense budget vs actual stacked column chart"
+            >
+              {/* Y-axis grid lines and labels */}
+              {yTicks.map((tick) => {
+                const y = CHART_TOP + plotH - (tick / yMax) * plotH;
+                return (
+                  <g key={`y-${tick}`}>
+                    <line
+                      x1={CHART_LEFT}
+                      y1={y}
+                      x2={SVG_WIDTH - CHART_RIGHT}
+                      y2={y}
+                      stroke="hsl(var(--border))"
+                      strokeWidth="0.8"
+                      strokeDasharray={tick === 0 ? "0" : "4 3"}
+                      opacity={tick === 0 ? 0.7 : 0.4}
+                    />
+                    <text
+                      x={CHART_LEFT - 8}
+                      y={y + 4}
+                      textAnchor="end"
+                      className="fill-muted-foreground"
+                      style={{ fontSize: "10px" }}
+                    >
+                      {formatAxisValue(tick)}
+                    </text>
+                  </g>
+                );
+              })}
 
+              {/* Y-axis label */}
+              <text
+                x="14"
+                y={CHART_TOP + plotH / 2}
+                textAnchor="middle"
+                className="fill-muted-foreground"
+                style={{ fontSize: "10px", fontWeight: 600 }}
+                transform={`rotate(-90 14 ${CHART_TOP + plotH / 2})`}
+              >
+                Amount (৳)
+              </text>
+
+              {/* Bars per category */}
+              {pairs.map((pair, index) => {
+                const groupX = CHART_LEFT + index * groupWidth + barPadding / 2;
+                const budgetH = (pair.budget / yMax) * plotH;
+                const actualH = (pair.actual / yMax) * plotH;
+                const budgetY = CHART_TOP + plotH - budgetH;
+                const actualY = CHART_TOP + plotH - actualH;
+                const isHovered = hoveredIndex === index;
+                const dimmed = hoveredIndex !== null && !isHovered;
+
+                return (
+                  <g
+                    key={pair.category}
+                    opacity={dimmed ? 0.35 : 1}
+                    className="transition-opacity duration-200"
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {/* Budget bar */}
+                    {pair.budget > 0 && (
+                      <rect
+                        x={groupX}
+                        y={budgetY}
+                        width={singleBarWidth}
+                        height={Math.max(budgetH, 1)}
+                        rx="3"
+                        fill={BUDGET_COLOR}
+                      />
+                    )}
+
+                    {/* Actual bar */}
+                    {pair.actual > 0 && (
+                      <rect
+                        x={groupX + singleBarWidth}
+                        y={actualY}
+                        width={singleBarWidth}
+                        height={Math.max(actualH, 1)}
+                        rx="3"
+                        fill={ACTUAL_COLOR}
+                      />
+                    )}
+
+                    {/* Value labels on hover */}
+                    {isHovered && pair.budget > 0 && (
+                      <text
+                        x={groupX + singleBarWidth / 2}
+                        y={budgetY - 5}
+                        textAnchor="middle"
+                        className="fill-foreground"
+                        style={{ fontSize: "9px", fontWeight: 700 }}
+                      >
+                        {formatAxisValue(pair.budget)}
+                      </text>
+                    )}
+                    {isHovered && pair.actual > 0 && (
+                      <text
+                        x={groupX + singleBarWidth + singleBarWidth / 2}
+                        y={actualY - 5}
+                        textAnchor="middle"
+                        className="fill-foreground"
+                        style={{ fontSize: "9px", fontWeight: 700 }}
+                      >
+                        {formatAxisValue(pair.actual)}
+                      </text>
+                    )}
+
+                    {/* X-axis category label */}
+                    <text
+                      x={groupX + barAreaWidth / 2}
+                      y={CHART_TOP + plotH + 16}
+                      textAnchor="middle"
+                      className="fill-muted-foreground"
+                      style={{ fontSize: "10px" }}
+                    >
+                      {pair.category.length > 12
+                        ? pair.category.slice(0, 11) + "…"
+                        : pair.category}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* X-axis baseline */}
+              <line
+                x1={CHART_LEFT}
+                y1={CHART_TOP + plotH}
+                x2={SVG_WIDTH - CHART_RIGHT}
+                y2={CHART_TOP + plotH}
+                stroke="hsl(var(--border))"
+                strokeWidth="1"
+                opacity="0.6"
+              />
+
+              {/* X-axis label */}
+              <text
+                x={CHART_LEFT + plotW / 2}
+                y={SVG_HEIGHT - 4}
+                textAnchor="middle"
+                className="fill-muted-foreground"
+                style={{ fontSize: "10px", fontWeight: 600 }}
+              >
+                Category
+              </text>
+            </svg>
+          </div>
+
+          {/* Detail table below chart */}
+          <div className="mt-5 space-y-2.5">
+            {pairs.map((pair, index) => {
+              const diff = pair.actual - pair.budget;
+              const isOverBudget = pair.budget > 0 && diff > 0;
+              const isUnderBudget = pair.budget > 0 && diff < 0;
               return (
                 <div
                   key={pair.category}
-                  className="space-y-2 transition-opacity"
-                  style={{
-                    opacity:
-                      hoveredIndex !== null && !isHovered ? 0.5 : 1,
-                  }}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-panel"
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
                 >
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-semibold text-foreground">
-                      {pair.category}
-                    </span>
-                    <span className="tabular-nums text-muted-foreground">
-                      {pair.budget > 0 && (
-                        <span>
-                          B: {formatMoney(pair.budget)}
-                          <span className="mx-1 text-border">|</span>
-                        </span>
-                      )}
-                      A: {formatMoney(pair.actual)}
-                      {isOverBudget && (
-                        <span className="ml-1.5 text-xs font-semibold" style={{ color: OVER_BUDGET_COLOR }}>
-                          +{formatMoney(pair.actual - pair.budget)}
-                        </span>
-                      )}
-                    </span>
-                  </div>
-
-                  {/* Budget bar */}
-                  {pair.budget > 0 && (
-                    <div className="h-3.5 overflow-hidden rounded-full bg-panel shadow-inset">
-                      <div
-                        className="h-full rounded-full transition-all duration-300"
-                        style={{
-                          width: `${Math.max(budgetPct, 1)}%`,
-                          backgroundColor: BUDGET_COLOR,
-                          opacity: 0.45,
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Actual bar */}
-                  <div className="h-3.5 overflow-hidden rounded-full bg-panel shadow-inset">
-                    <div
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{
-                        width: `${Math.max(actualPct, 1)}%`,
-                        backgroundColor: isOverBudget
-                          ? OVER_BUDGET_COLOR
-                          : ACTUAL_COLOR,
-                      }}
-                    />
-                  </div>
+                  <span className="font-semibold text-foreground">{pair.category}</span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {pair.budget > 0 && (
+                      <>
+                        <span style={{ color: BUDGET_COLOR }}>B: {formatMoney(pair.budget)}</span>
+                        <span className="mx-1.5 text-border">|</span>
+                      </>
+                    )}
+                    <span style={{ color: ACTUAL_COLOR }}>A: {formatMoney(pair.actual)}</span>
+                    {isOverBudget && (
+                      <span className="ml-1.5 text-xs font-semibold text-destructive">
+                        +{formatMoney(diff)}
+                      </span>
+                    )}
+                    {isUnderBudget && (
+                      <span className="ml-1.5 text-xs font-semibold text-success">
+                        {formatMoney(diff)}
+                      </span>
+                    )}
+                  </span>
                 </div>
               );
             })}
           </div>
 
           {/* Totals */}
-          <div className="mt-5 flex flex-wrap gap-4 border-t border-border/50 pt-4">
+          <div className="mt-4 flex flex-wrap gap-4 border-t border-border/50 pt-4">
             {hasBudgetData && (
               <div className="text-sm">
                 <span className="text-muted-foreground">Total budget: </span>

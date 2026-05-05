@@ -42,9 +42,6 @@ export function PublicHeader() {
             <div className="hidden rounded-full border border-success/15 bg-success-muted px-3 py-1 text-xs font-medium text-success lg:block">
               Public-safe views only
             </div>
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <Link href="/financial-summaries">Financial summaries</Link>
-            </Button>
             <Button asChild size="sm">
               <Link href="/dashboard">Internal preview</Link>
             </Button>

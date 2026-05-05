@@ -6,20 +6,20 @@ import "./globals.css";
 const publicSans = Public_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
-  display: "swap",
+  display: "block",
 });
 
 const fraunces = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
-  display: "swap",
+  display: "block",
 });
 
 const plexMono = IBM_Plex_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
-  display: "swap",
+  display: "block",
 });
 
 export const metadata: Metadata = {
@@ -38,6 +38,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              body {
+                background: hsl(210, 38%, 98%);
+                color: hsl(221, 39%, 16%);
+                font-family: 'Public Sans', 'Segoe UI', system-ui, sans-serif;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+              }
+            `,
+          }}
+        />
+      </head>
       <body className={`${publicSans.variable} ${fraunces.variable} ${plexMono.variable}`}>
         {children}
       </body>

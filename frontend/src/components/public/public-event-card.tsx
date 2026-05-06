@@ -88,9 +88,9 @@ export function PublicEventCard({
                 </Link>
               </Button>
             ) : !signedIn && isRegistrationOpen(event) ? (
-              <Button asChild size="sm">
+              <Button asChild size="sm" variant="outline">
                 <Link href={`/events/${event.slug}/register`}>
-                  Register now
+                  Sign in to register
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

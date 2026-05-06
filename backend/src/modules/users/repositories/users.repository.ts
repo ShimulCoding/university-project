@@ -83,4 +83,12 @@ export const usersRepository = {
       include: userWithActiveRolesInclude,
     });
   },
+
+  updatePassword(userId: string, passwordHash: string, db: DbClient = prisma) {
+    return db.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+      include: userWithActiveRolesInclude,
+    });
+  },
 };

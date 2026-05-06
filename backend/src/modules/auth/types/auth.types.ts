@@ -11,8 +11,14 @@ export type RegisterInput = {
 };
 
 export type LoginInput = {
-  email: string;
+  studentId: string;
   password: string;
+};
+
+export type ResetPasswordInput = {
+  studentId: string;
+  email: string;
+  newPassword: string;
 };
 
 export type AuthSessionResult = {

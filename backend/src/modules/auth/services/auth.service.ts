@@ -14,7 +14,7 @@ import { auditService } from "../../audit/services/audit.service";
 import { rolesRepository } from "../../roles/repositories/roles.repository";
 import { mapUserProfile } from "../../users/users.mappers";
 import { usersRepository } from "../../users/repositories/users.repository";
-import type { AuthSessionResult, LoginInput, RegisterInput } from "../types/auth.types";
+import type { AuthSessionResult, LoginInput, RegisterInput, ResetPasswordInput } from "../types/auth.types";
 import { authRepository } from "../repositories/auth.repository";
 
 function getRefreshTokenExpiryDate() {
@@ -194,6 +194,41 @@ export const authService = {
   },
 
   async login(input: LoginInput, auditMetadata?: AuditMetadata): Promise<AuthSessionResult> {
+    const user = await usersRepository.findByStudentId(input.studentId.trim());
+
+    if (!user) {
+      throw new AppError(401, "Invalid Student ID or password.");
+    }
+
+    const passwordMatches = await verifyPassword(input.password, user.passwordHash);
+
+    if (!passwordMatches) {
+      throw new AppError(401, "Invalid Student ID or password.");
+    }
+
+    if (user.status !== AccountStatus.ACTIVE) {
+      throw new AppError(403, "This account is not active.");
+    }
+
+    const updatedUser = await usersRepository.updateLastLogin(user.id);
+    const tokens = await issueSession(user.id, auditMetadata);
+
+    await auditService.record({
+      actorId: user.id,
+      action: "auth.login",
+      entityType: "User",
+      entityId: user.id,
+      summary: `Student login via ID ${input.studentId}`,
+      ...auditMetadata,
+    });
+
+    return {
+      user: mapUserProfile(updatedUser),
+      ...tokens,
+    };
+  },
+
+  async internalLogin(input: { email: string; password: string }, auditMetadata?: AuditMetadata): Promise<AuthSessionResult> {
     const email = normalizeEmail(input.email);
     const user = await usersRepository.findByEmail(email);
 
@@ -216,10 +251,10 @@ export const authService = {
 
     await auditService.record({
       actorId: user.id,
-      action: "auth.login",
+      action: "auth.internal_login",
       entityType: "User",
       entityId: user.id,
-      summary: `Logged in as ${user.email}`,
+      summary: `Internal login as ${user.email}`,
       ...auditMetadata,
     });
 
@@ -227,6 +262,33 @@ export const authService = {
       user: mapUserProfile(updatedUser),
       ...tokens,
     };
+  },
+
+  async resetPassword(input: ResetPasswordInput, auditMetadata?: AuditMetadata) {
+    const user = await usersRepository.findByStudentId(input.studentId.trim());
+
+    if (!user) {
+      throw new AppError(404, "No account found with this Student ID.");
+    }
+
+    const normalizedInputEmail = normalizeEmail(input.email);
+    if (user.email !== normalizedInputEmail) {
+      throw new AppError(400, "The email does not match the account registered with this Student ID.");
+    }
+
+    const newPasswordHash = await hashPassword(input.newPassword);
+    await usersRepository.updatePassword(user.id, newPasswordHash);
+
+    await auditService.record({
+      actorId: user.id,
+      action: "auth.reset_password",
+      entityType: "User",
+      entityId: user.id,
+      summary: `Password reset for Student ID ${input.studentId}`,
+      ...auditMetadata,
+    });
+
+    return { message: "Password has been reset successfully. You can now sign in with your new password." };
   },
 
   async refreshSession(refreshToken: string | undefined, auditMetadata?: AuditMetadata): Promise<AuthSessionResult> {

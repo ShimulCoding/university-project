@@ -8,8 +8,10 @@ import { asyncHandler } from "../../../utils/async-handler";
 import { authController } from "../controllers/auth.controller";
 import {
   bootstrapAdminSchema,
+  internalLoginSchema,
   loginSchema,
   registerSchema,
+  resetPasswordSchema,
   updateEmailSchema,
 } from "../validations/auth.validation";
 
@@ -32,6 +34,18 @@ router.post(
   authRateLimiter,
   validateRequest(loginSchema),
   asyncHandler(authController.login),
+);
+router.post(
+  "/internal-login",
+  authRateLimiter,
+  validateRequest(internalLoginSchema),
+  asyncHandler(authController.internalLogin),
+);
+router.post(
+  "/reset-password",
+  authRateLimiter,
+  validateRequest(resetPasswordSchema),
+  asyncHandler(authController.resetPassword),
 );
 router.post("/refresh", sessionRateLimiter, asyncHandler(authController.refresh));
 router.post(

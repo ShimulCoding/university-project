@@ -24,7 +24,25 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  body: credentialsSchema,
+  body: z.object({
+    studentId: z.string().trim().min(1, "Student ID is required."),
+    password: z.string().min(8).max(72),
+  }),
+});
+
+export const internalLoginSchema = z.object({
+  body: z.object({
+    email: z.string().trim().email(),
+    password: z.string().min(8).max(72),
+  }),
+});
+
+export const resetPasswordSchema = z.object({
+  body: z.object({
+    studentId: z.string().trim().min(1, "Student ID is required."),
+    email: z.string().trim().email("Please enter a valid email."),
+    newPassword: z.string().min(8, "New password must be at least 8 characters.").max(72),
+  }),
 });
 
 export const updateEmailSchema = z.object({

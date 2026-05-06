@@ -121,4 +121,28 @@ export const authController = {
 
     response.status(200).json({ user });
   },
+
+  async internalLogin(request: Request, response: Response) {
+    const session = await authService.internalLogin(request.body, {
+      ipAddress: request.ip || undefined,
+      userAgent: request.get("user-agent") || undefined,
+      route: request.originalUrl,
+      method: request.method,
+    });
+
+    writeSessionCookies(response, session);
+
+    response.status(200).json({ user: session.user });
+  },
+
+  async resetPassword(request: Request, response: Response) {
+    const result = await authService.resetPassword(request.body, {
+      ipAddress: request.ip || undefined,
+      userAgent: request.get("user-agent") || undefined,
+      route: request.originalUrl,
+      method: request.method,
+    });
+
+    response.status(200).json(result);
+  },
 };

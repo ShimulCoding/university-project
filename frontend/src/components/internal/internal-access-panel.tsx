@@ -46,7 +46,7 @@ export function InternalAccessPanel() {
       setIsSubmitting(true);
       setErrorMessage(null);
       setSuccessMessage(null);
-      await postJson("/auth/login", {
+      await postJson("/auth/internal-login", {
         email: email.trim(),
         password,
       });

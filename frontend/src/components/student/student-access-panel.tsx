@@ -53,14 +53,21 @@ export function StudentAccessPanel({
   const [, startTransition] = useTransition();
   const isBusy = isSubmitting;
 
+  /* Only two top-level tabs — forgot is reached via inline link */
   const options = useMemo(
     () => [
       { value: "register", label: "Create access", meta: "New student account" },
       { value: "login", label: "Sign in", meta: "Student ID + password" },
-      { value: "forgot", label: "Forgot password", meta: "Reset via email" },
     ],
     [],
   );
+
+  const switchMode = (next: AccessMode) => {
+    setMode(next);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setFieldErrors({});
+  };
 
   const clearFieldError = (field: FieldKey) => {
     setErrorMessage(null);
@@ -198,16 +205,31 @@ export function StudentAccessPanel({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <SegmentedControl
-          value={mode}
-          onValueChange={(value) => {
-            setMode(value as AccessMode);
-            setErrorMessage(null);
-            setSuccessMessage(null);
-            setFieldErrors({});
-          }}
-          options={options}
-        />
+        {/* Show segmented control only for register / login; hide when in forgot mode */}
+        {mode !== "forgot" ? (
+          <SegmentedControl
+            value={mode}
+            onValueChange={(value) => switchMode(value as AccessMode)}
+            options={options}
+          />
+        ) : (
+          <div className="flex items-center gap-3 rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-3">
+            <KeyRound className="h-4 w-4 text-primary shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-foreground">Reset your password</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Verify your identity using Student ID + registered email, then set a new password.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => switchMode("login")}
+              className="text-xs font-medium text-primary hover:underline shrink-0"
+            >
+              Back to sign in
+            </button>
+          </div>
+        )}
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           {/* ─── Register mode fields ─── */}
           {mode === "register" ? (
@@ -356,6 +378,16 @@ export function StudentAccessPanel({
                   required
                 />
               </Field>
+              {/* Forgot password link below the password field */}
+              <div className="md:col-span-2 -mt-2">
+                <button
+                  type="button"
+                  onClick={() => switchMode("forgot")}
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
             </>
           ) : null}
 

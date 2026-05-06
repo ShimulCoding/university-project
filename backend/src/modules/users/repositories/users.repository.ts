@@ -15,6 +15,10 @@ export const usersRepository = {
       fullName: string;
       email: string;
       passwordHash: string;
+      studentId?: string;
+      batch?: string;
+      department?: string;
+      section?: string;
       status?: AccountStatus;
     },
     db: DbClient = prisma,
@@ -28,6 +32,13 @@ export const usersRepository = {
   findByEmail(email: string, db: DbClient = prisma) {
     return db.user.findUnique({
       where: { email },
+      include: userWithActiveRolesInclude,
+    });
+  },
+
+  findByStudentId(studentId: string, db: DbClient = prisma) {
+    return db.user.findUnique({
+      where: { studentId },
       include: userWithActiveRolesInclude,
     });
   },
@@ -61,6 +72,14 @@ export const usersRepository = {
     return db.user.update({
       where: { id: userId },
       data: { lastLoginAt: new Date() },
+      include: userWithActiveRolesInclude,
+    });
+  },
+
+  updateEmail(userId: string, email: string, db: DbClient = prisma) {
+    return db.user.update({
+      where: { id: userId },
+      data: { email },
       include: userWithActiveRolesInclude,
     });
   },

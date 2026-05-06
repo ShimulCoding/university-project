@@ -4,6 +4,10 @@ export type RegisterInput = {
   fullName: string;
   email: string;
   password: string;
+  studentId: string;
+  batch: string;
+  department: string;
+  section: string;
 };
 
 export type LoginInput = {

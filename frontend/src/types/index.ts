@@ -73,6 +73,10 @@ export type UserProfile = {
   id: string;
   fullName: string;
   email: string;
+  studentId: string | null;
+  batch: string | null;
+  department: string | null;
+  section: string | null;
   status: string;
   roles: AppRole[];
   lastLoginAt: string | null;

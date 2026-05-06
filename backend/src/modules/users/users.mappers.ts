@@ -19,6 +19,10 @@ export type UserProfile = {
   id: string;
   fullName: string;
   email: string;
+  studentId: string | null;
+  batch: string | null;
+  department: string | null;
+  section: string | null;
   status: AccountStatus;
   roles: RoleCode[];
   lastLoginAt: Date | null;
@@ -31,6 +35,10 @@ export function mapUserProfile(user: UserWithActiveRoles): UserProfile {
     id: user.id,
     fullName: user.fullName,
     email: user.email,
+    studentId: user.studentId ?? null,
+    batch: user.batch ?? null,
+    department: user.department ?? null,
+    section: user.section ?? null,
     status: user.status,
     roles: user.roles.map((assignment) => assignment.role.code),
     lastLoginAt: user.lastLoginAt ?? null,

@@ -127,6 +127,12 @@ export const authService = {
   async register(input: RegisterInput, auditMetadata?: AuditMetadata): Promise<AuthSessionResult> {
     const email = normalizeEmail(input.email);
     const passwordHash = await hashPassword(input.password);
+    const studentId = input.studentId.trim();
+
+    const existingStudent = await usersRepository.findByStudentId(studentId);
+    if (existingStudent) {
+      throw new AppError(409, "An account with this Student ID already exists.");
+    }
 
     const session = await prisma.$transaction(async (tx) => {
       await rolesRepository.syncCatalog(tx);
@@ -136,6 +142,10 @@ export const authService = {
           fullName: input.fullName.trim(),
           email,
           passwordHash,
+          studentId,
+          batch: input.batch.trim(),
+          department: input.department.trim(),
+          section: input.section.trim(),
           status: AccountStatus.ACTIVE,
         },
         tx,
@@ -319,5 +329,27 @@ export const authService = {
     }
 
     return mapUserProfile(user);
+  },
+
+  async updateEmail(userId: string, newEmail: string, auditMetadata?: AuditMetadata) {
+    const email = normalizeEmail(newEmail);
+
+    const existingUser = await usersRepository.findByEmail(email);
+    if (existingUser && existingUser.id !== userId) {
+      throw new AppError(409, "This email is already in use by another account.");
+    }
+
+    const updatedUser = await usersRepository.updateEmail(userId, email);
+
+    await auditService.record({
+      actorId: userId,
+      action: "auth.update_email",
+      entityType: "User",
+      entityId: userId,
+      summary: `Updated email to ${email}`,
+      ...auditMetadata,
+    });
+
+    return mapUserProfile(updatedUser);
   },
 };

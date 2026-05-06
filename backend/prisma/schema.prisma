@@ -126,6 +126,10 @@ model User {
   fullName                       String
   email                          String                  @unique
   passwordHash                   String
+  studentId                      String?                 @unique
+  batch                          String?
+  department                     String?
+  section                        String?
   status                         AccountStatus           @default(ACTIVE)
   lastLoginAt                    DateTime?
   createdAt                      DateTime                @default(now())

@@ -106,4 +106,19 @@ export const authController = {
 
     response.status(200).json({ user });
   },
+
+  async updateEmail(request: Request, response: Response) {
+    const user = await authService.updateEmail(
+      request.auth!.userId,
+      request.body.email,
+      {
+        ipAddress: request.ip || undefined,
+        userAgent: request.get("user-agent") || undefined,
+        route: request.originalUrl,
+        method: request.method,
+      },
+    );
+
+    response.status(200).json({ user });
+  },
 };

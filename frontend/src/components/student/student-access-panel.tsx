@@ -18,7 +18,9 @@ type StudentAccessPanelProps = {
   description: string;
 };
 
-type StudentAccessFieldErrors = Partial<Record<"fullName" | "email" | "password", string>>;
+type StudentAccessFieldErrors = Partial<
+  Record<"fullName" | "email" | "password" | "studentId" | "batch" | "department" | "section", string>
+>;
 
 export function StudentAccessPanel({
   title,
@@ -27,6 +29,10 @@ export function StudentAccessPanel({
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "register">("register");
   const [fullName, setFullName] = useState("");
+  const [studentId, setStudentId] = useState("");
+  const [batch, setBatch] = useState("");
+  const [department, setDepartment] = useState("");
+  const [section, setSection] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<StudentAccessFieldErrors>({});
@@ -59,8 +65,22 @@ export function StudentAccessPanel({
     const normalizedEmail = email.trim();
     const nextFieldErrors: StudentAccessFieldErrors = {};
 
-    if (mode === "register" && trimmedFullName.length < 3) {
-      nextFieldErrors.fullName = "Use at least 3 characters for your name.";
+    if (mode === "register") {
+      if (trimmedFullName.length < 3) {
+        nextFieldErrors.fullName = "Use at least 3 characters for your name.";
+      }
+      if (!studentId.trim()) {
+        nextFieldErrors.studentId = "Student ID is required.";
+      }
+      if (!batch.trim()) {
+        nextFieldErrors.batch = "Batch is required.";
+      }
+      if (!department.trim()) {
+        nextFieldErrors.department = "Department is required.";
+      }
+      if (!section.trim()) {
+        nextFieldErrors.section = "Section is required.";
+      }
     }
 
     if (!normalizedEmail) {
@@ -86,6 +106,10 @@ export function StudentAccessPanel({
       if (mode === "register") {
         await postJson("/auth/register", {
           fullName: trimmedFullName,
+          studentId: studentId.trim(),
+          batch: batch.trim(),
+          department: department.trim(),
+          section: section.trim(),
           email: normalizedEmail,
           password,
         });
@@ -141,24 +165,90 @@ export function StudentAccessPanel({
         />
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           {mode === "register" ? (
-            <Field
-              className="md:col-span-2"
-              label="Full name"
-              description="This becomes the student-owned profile name for registrations and complaints."
-              error={fieldErrors.fullName}
-            >
-              <Input
-                value={fullName}
-                onChange={(event) => {
-                  clearFieldError("fullName");
-                  setFullName(event.target.value);
-                }}
-                placeholder="Enter your full name"
-                minLength={3}
-                aria-invalid={Boolean(fieldErrors.fullName)}
-                required
-              />
-            </Field>
+            <>
+              <Field
+                className="md:col-span-2"
+                label="Full name"
+                description="This becomes the student-owned profile name for registrations and complaints."
+                error={fieldErrors.fullName}
+              >
+                <Input
+                  value={fullName}
+                  onChange={(event) => {
+                    clearFieldError("fullName");
+                    setFullName(event.target.value);
+                  }}
+                  placeholder="Enter your full name"
+                  minLength={3}
+                  aria-invalid={Boolean(fieldErrors.fullName)}
+                  required
+                />
+              </Field>
+              <Field
+                label="Student ID"
+                description="Your unique university student ID. Each ID can only register once."
+                error={fieldErrors.studentId}
+              >
+                <Input
+                  value={studentId}
+                  onChange={(event) => {
+                    clearFieldError("studentId");
+                    setStudentId(event.target.value);
+                  }}
+                  placeholder="e.g. 2021-3-60-001"
+                  aria-invalid={Boolean(fieldErrors.studentId)}
+                  required
+                />
+              </Field>
+              <Field
+                label="Batch"
+                description="Your intake batch number."
+                error={fieldErrors.batch}
+              >
+                <Input
+                  value={batch}
+                  onChange={(event) => {
+                    clearFieldError("batch");
+                    setBatch(event.target.value);
+                  }}
+                  placeholder="e.g. 60"
+                  aria-invalid={Boolean(fieldErrors.batch)}
+                  required
+                />
+              </Field>
+              <Field
+                label="Department"
+                description="Your department or program."
+                error={fieldErrors.department}
+              >
+                <Input
+                  value={department}
+                  onChange={(event) => {
+                    clearFieldError("department");
+                    setDepartment(event.target.value);
+                  }}
+                  placeholder="e.g. CSE"
+                  aria-invalid={Boolean(fieldErrors.department)}
+                  required
+                />
+              </Field>
+              <Field
+                label="Section"
+                description="Your class section."
+                error={fieldErrors.section}
+              >
+                <Input
+                  value={section}
+                  onChange={(event) => {
+                    clearFieldError("section");
+                    setSection(event.target.value);
+                  }}
+                  placeholder="e.g. A"
+                  aria-invalid={Boolean(fieldErrors.section)}
+                  required
+                />
+              </Field>
+            </>
           ) : null}
           <Field
             className={mode === "register" ? "" : "md:col-span-2"}

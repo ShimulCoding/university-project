@@ -10,6 +10,7 @@ import {
   bootstrapAdminSchema,
   loginSchema,
   registerSchema,
+  updateEmailSchema,
 } from "../validations/auth.validation";
 
 const router = Router();
@@ -40,5 +41,11 @@ router.post(
   asyncHandler(authController.logout),
 );
 router.get("/me", authenticate, asyncHandler(authController.getCurrentUser));
+router.patch(
+  "/update-email",
+  authenticate,
+  validateRequest(updateEmailSchema),
+  asyncHandler(authController.updateEmail),
+);
 
 export { router as authRouter };

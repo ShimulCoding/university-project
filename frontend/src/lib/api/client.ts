@@ -6,6 +6,7 @@ export async function apiFetchClient<T>(
   path: string,
   options?: RequestInit & {
     query?: Record<string, string | undefined> | undefined;
+    _isRetry?: boolean;
   },
 ) {
   const headers = new Headers(options?.headers);
@@ -33,7 +34,26 @@ export async function apiFetchClient<T>(
       signal: controller.signal,
     });
 
-    return parseApiResponse<T>(response);
+    if (
+      response.status === 401 &&
+      !options?._isRetry &&
+      path !== "/auth/refresh" &&
+      path !== "/auth/login" &&
+      path !== "/auth/internal-login"
+    ) {
+      const refreshResponse = await fetch(buildApiUrl("/auth/refresh"), {
+        method: "POST",
+        credentials: "include",
+        headers: { accept: "application/json" },
+      });
+
+      if (refreshResponse.ok) {
+        // Token successfully refreshed, retry the original request
+        return await apiFetchClient<T>(path, { ...options, _isRetry: true });
+      }
+    }
+
+    return await parseApiResponse<T>(response);
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       throw new ApiError("The request took too long. Please try again.", 408);

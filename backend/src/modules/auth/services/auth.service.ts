@@ -1,6 +1,7 @@
 import { AccountStatus, RoleCode } from "@prisma/client";
 
 import { env } from "../../../config/env";
+import { mailer } from "../../../config/mailer";
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
 import { AppError } from "../../../utils/app-error";
@@ -14,7 +15,7 @@ import { auditService } from "../../audit/services/audit.service";
 import { rolesRepository } from "../../roles/repositories/roles.repository";
 import { mapUserProfile } from "../../users/users.mappers";
 import { usersRepository } from "../../users/repositories/users.repository";
-import type { AuthSessionResult, LoginInput, RegisterInput, ResetPasswordInput } from "../types/auth.types";
+import type { AuthSessionResult, ForgotPasswordInput, LoginInput, RegisterInput, ResetPasswordInput } from "../types/auth.types";
 import { authRepository } from "../repositories/auth.repository";
 
 function getRefreshTokenExpiryDate() {
@@ -264,7 +265,7 @@ export const authService = {
     };
   },
 
-  async resetPassword(input: ResetPasswordInput, auditMetadata?: AuditMetadata) {
+  async forgotPassword(input: ForgotPasswordInput, auditMetadata?: AuditMetadata) {
     const user = await usersRepository.findByStudentId(input.studentId.trim());
 
     if (!user) {
@@ -276,15 +277,68 @@ export const authService = {
       throw new AppError(400, "The email does not match the account registered with this Student ID.");
     }
 
-    const newPasswordHash = await hashPassword(input.newPassword);
-    await usersRepository.updatePassword(user.id, newPasswordHash);
+    if (user.status !== AccountStatus.ACTIVE) {
+      throw new AppError(403, "This account is not active.");
+    }
+
+    // Generate token
+    const { randomBytes } = await import("crypto");
+    const rawToken = randomBytes(32).toString("hex");
+    const tokenHash = hashValue(rawToken);
+
+    // Set expiry to 1 hour from now
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await authRepository.createPasswordResetToken({
+      userId: user.id,
+      tokenHash,
+      expiresAt,
+    });
+
+    const resetLink = `${env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+
+    await mailer.sendPasswordResetEmail(user.email, resetLink);
 
     await auditService.record({
       actorId: user.id,
-      action: "auth.reset_password",
+      action: "auth.forgot_password_request",
       entityType: "User",
       entityId: user.id,
-      summary: `Password reset for Student ID ${input.studentId}`,
+      summary: `Password reset requested for Student ID ${input.studentId}`,
+      ...auditMetadata,
+    });
+
+    return { message: "If the details are correct, a password reset link has been sent to your email." };
+  },
+
+  async resetPassword(input: ResetPasswordInput, auditMetadata?: AuditMetadata) {
+    const tokenHash = hashValue(input.token);
+    const tokenRecord = await authRepository.findPasswordResetTokenByHash(tokenHash);
+
+    if (!tokenRecord) {
+      throw new AppError(400, "Invalid or expired reset token.");
+    }
+
+    if (tokenRecord.usedAt) {
+      throw new AppError(400, "This reset token has already been used.");
+    }
+
+    if (tokenRecord.expiresAt < new Date()) {
+      throw new AppError(400, "This reset token has expired.");
+    }
+
+    const newPasswordHash = await hashPassword(input.newPassword);
+    
+    // Perform update and mark token used
+    await usersRepository.updatePassword(tokenRecord.userId, newPasswordHash);
+    await authRepository.markPasswordResetTokenAsUsed(tokenRecord.id);
+
+    await auditService.record({
+      actorId: tokenRecord.userId,
+      action: "auth.reset_password",
+      entityType: "User",
+      entityId: tokenRecord.userId,
+      summary: `Password reset completed using token`,
       ...auditMetadata,
     });
 

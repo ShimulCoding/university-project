@@ -8,6 +8,7 @@ import { asyncHandler } from "../../../utils/async-handler";
 import { authController } from "../controllers/auth.controller";
 import {
   bootstrapAdminSchema,
+  forgotPasswordSchema,
   internalLoginSchema,
   loginSchema,
   registerSchema,
@@ -40,6 +41,12 @@ router.post(
   authRateLimiter,
   validateRequest(internalLoginSchema),
   asyncHandler(authController.internalLogin),
+);
+router.post(
+  "/forgot-password",
+  authRateLimiter,
+  validateRequest(forgotPasswordSchema),
+  asyncHandler(authController.forgotPassword),
 );
 router.post(
   "/reset-password",

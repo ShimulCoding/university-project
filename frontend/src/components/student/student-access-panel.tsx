@@ -21,12 +21,10 @@ type StudentAccessPanelProps = {
 type FieldKey =
   | "fullName"
   | "email"
-  | "password"
   | "studentId"
   | "batch"
   | "department"
-  | "section"
-  | "newPassword";
+  | "section";
 
 type StudentAccessFieldErrors = Partial<Record<FieldKey, string>>;
 
@@ -45,7 +43,6 @@ export function StudentAccessPanel({
   const [section, setSection] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<StudentAccessFieldErrors>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -125,9 +122,6 @@ export function StudentAccessPanel({
       if (!normalizedEmail) {
         nextFieldErrors.email = "Email is required to verify your identity.";
       }
-      if (newPassword.length < 8) {
-        nextFieldErrors.newPassword = "New password must be at least 8 characters.";
-      }
     }
 
     if (Object.keys(nextFieldErrors).length > 0) {
@@ -168,14 +162,12 @@ export function StudentAccessPanel({
           router.refresh();
         });
       } else {
-        const result = await postJson<{ message: string }>("/auth/reset-password", {
+        const result = await postJson<{ message: string }>("/auth/forgot-password", {
           studentId: trimmedStudentId,
           email: normalizedEmail,
-          newPassword,
         });
         setSuccessMessage(result.message);
         setIsSubmitting(false);
-        setNewPassword("");
       }
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, "Unable to complete the request."));
@@ -429,25 +421,6 @@ export function StudentAccessPanel({
                   required
                 />
               </Field>
-              <Field
-                className="md:col-span-2"
-                label="New password"
-                description="Choose a new password (at least 8 characters)."
-                error={fieldErrors.newPassword}
-              >
-                <Input
-                  type="password"
-                  value={newPassword}
-                  onChange={(event) => {
-                    clearFieldError("newPassword");
-                    setNewPassword(event.target.value);
-                  }}
-                  placeholder="Enter your new password"
-                  minLength={8}
-                  aria-invalid={Boolean(fieldErrors.newPassword)}
-                  required
-                />
-              </Field>
             </>
           ) : null}
 
@@ -473,7 +446,7 @@ export function StudentAccessPanel({
                   ? "Create student access"
                   : mode === "login"
                     ? "Sign in"
-                    : "Reset password"}
+                    : "Send reset link"}
             </Button>
             <p className="text-sm leading-6 text-muted-foreground">
               {mode === "forgot"

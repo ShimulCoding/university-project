@@ -135,6 +135,17 @@ export const authController = {
     response.status(200).json({ user: session.user });
   },
 
+  async forgotPassword(request: Request, response: Response) {
+    const result = await authService.forgotPassword(request.body, {
+      ipAddress: request.ip || undefined,
+      userAgent: request.get("user-agent") || undefined,
+      route: request.originalUrl,
+      method: request.method,
+    });
+
+    response.status(200).json(result);
+  },
+
   async resetPassword(request: Request, response: Response) {
     const result = await authService.resetPassword(request.body, {
       ipAddress: request.ip || undefined,

@@ -75,4 +75,32 @@ export const authRepository = {
       // Best-effort cleanup only; never block auth flows.
     }
   },
+
+  createPasswordResetToken(
+    data: {
+      userId: string;
+      tokenHash: string;
+      expiresAt: Date;
+    },
+    db: DbClient = prisma,
+  ) {
+    return db.passwordResetToken.create({
+      data,
+    });
+  },
+
+  findPasswordResetTokenByHash(tokenHash: string, db: DbClient = prisma) {
+    return db.passwordResetToken.findUnique({
+      where: { tokenHash },
+    });
+  },
+
+  markPasswordResetTokenAsUsed(tokenId: string, db: DbClient = prisma) {
+    return db.passwordResetToken.update({
+      where: { id: tokenId },
+      data: {
+        usedAt: new Date(),
+      },
+    });
+  },
 };

@@ -154,6 +154,7 @@ model User {
   documentsUploaded              SupportingDocument[]
   auditLogs                      AuditLog[]              @relation("AuditActor")
   roleAssignmentsCreated         UserRole[]              @relation("RoleAssigner")
+  passwordResetTokens            PasswordResetToken[]
 }
 
 model Role {
@@ -193,6 +194,18 @@ model RefreshToken {
   revokedAt  DateTime?
   userAgent  String?
   ipAddress  String?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
   createdAt  DateTime  @default(now())
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 

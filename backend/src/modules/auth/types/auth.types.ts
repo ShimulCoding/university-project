@@ -15,9 +15,13 @@ export type LoginInput = {
   password: string;
 };
 
-export type ResetPasswordInput = {
+export type ForgotPasswordInput = {
   studentId: string;
   email: string;
+};
+
+export type ResetPasswordInput = {
+  token: string;
   newPassword: string;
 };
 

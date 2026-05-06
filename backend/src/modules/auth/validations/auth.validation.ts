@@ -37,10 +37,16 @@ export const internalLoginSchema = z.object({
   }),
 });
 
-export const resetPasswordSchema = z.object({
+export const forgotPasswordSchema = z.object({
   body: z.object({
     studentId: z.string().trim().min(1, "Student ID is required."),
     email: z.string().trim().email("Please enter a valid email."),
+  }),
+});
+
+export const resetPasswordSchema = z.object({
+  body: z.object({
+    token: z.string().min(1, "Reset token is required."),
     newPassword: z.string().min(8, "New password must be at least 8 characters.").max(72),
   }),
 });

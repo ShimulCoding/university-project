@@ -48,7 +48,7 @@ function BudgetItemEditor({
     <div className="space-y-4">
       {items.map((item, index) => (
         <div
-          key={`${index}-${item.label}`}
+          key={index}
           className="rounded-[1.15rem] border border-border/70 bg-panel-muted p-4"
         >
           <div className="flex items-center justify-between gap-3">

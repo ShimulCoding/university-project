@@ -78,7 +78,7 @@ export function BudgetRequestForm({
               <Input
                 name="supportingDocument"
                 type="file"
-                accept="image/*,.pdf"
+                multiple
                 onChange={clearFeedback}
               />
             </Field>
@@ -208,7 +208,7 @@ export function ExpenseRequestForm({
             <Input
               name="supportingDocument"
               type="file"
-              accept="image/*,.pdf"
+              multiple
               onChange={clearFeedback}
             />
           </Field>
@@ -351,7 +351,7 @@ export function ExpenseRecordForm({
               <Input
                 name="supportingDocument"
                 type="file"
-                accept="image/*,.pdf"
+                multiple
                 onChange={clearFeedback}
               />
             </Field>

@@ -20,7 +20,7 @@ export const paymentsController = {
       request.auth!.user,
       parsedRequest.params.registrationId,
       parsedRequest.body,
-      request.file,
+      request.files as Express.Multer.File[] | undefined,
       getRequestMetadata(request),
     );
 
@@ -51,7 +51,7 @@ export const paymentsController = {
     const incomeRecord = await paymentsService.createIncomeRecord(
       request.auth!.user,
       parsedRequest.body,
-      request.file,
+      request.files as Express.Multer.File[] | undefined,
       getRequestMetadata(request),
     );
 

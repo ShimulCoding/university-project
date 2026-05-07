@@ -147,7 +147,7 @@ export const requestsService = {
   async createBudgetRequest(
     actor: AuthenticatedUser,
     input: CreateBudgetRequestInput,
-    file: Express.Multer.File | undefined,
+    files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
     assertRequestSubmissionPermissions(actor);
@@ -158,7 +158,7 @@ export const requestsService = {
       throw new AppError(404, "Event not found.");
     }
 
-    const storedUpload = file ? await storeSupportingDocument(file) : undefined;
+    const storedUploads = files && files.length > 0 ? await Promise.all(files.map(storeSupportingDocument)) : [];
 
     try {
       const request = await prisma.$transaction(async (tx) => {
@@ -172,19 +172,23 @@ export const requestsService = {
           tx,
         );
 
-        if (storedUpload) {
-          await requestsRepository.createSupportingDocument(
-            {
-              category: storedUpload.category,
-              originalName: storedUpload.originalName,
-              mimeType: storedUpload.mimeType,
-              storedName: storedUpload.storedName,
-              relativePath: storedUpload.relativePath,
-              sizeBytes: BigInt(storedUpload.sizeBytes),
-              uploadedById: actor.id,
-              budgetRequestId: createdRequest.id,
-            },
-            tx,
+        if (storedUploads && storedUploads.length > 0) {
+          await Promise.all(
+            storedUploads.map((upload) =>
+              requestsRepository.createSupportingDocument(
+                {
+                  category: upload.category,
+                  originalName: upload.originalName,
+                  mimeType: upload.mimeType,
+                  storedName: upload.storedName,
+                  relativePath: upload.relativePath,
+                  sizeBytes: BigInt(upload.sizeBytes),
+                  uploadedById: actor.id,
+                  budgetRequestId: createdRequest.id,
+                },
+                tx,
+              )
+            )
           );
         }
 
@@ -213,7 +217,9 @@ export const requestsService = {
 
       return mapBudgetRequest(request);
     } catch (error) {
-      await cleanupStoredUpload(storedUpload);
+      if (storedUploads && storedUploads.length > 0) {
+        await cleanupStoredUploads(storedUploads.map((u) => ({ relativePath: u.relativePath })));
+      }
       throw error;
     }
   },
@@ -222,7 +228,7 @@ export const requestsService = {
     actor: AuthenticatedUser,
     budgetRequestId: string,
     input: UpdateBudgetRequestInput,
-    file: Express.Multer.File | undefined,
+    files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
     assertRequestSubmissionPermissions(actor);
@@ -235,9 +241,9 @@ export const requestsService = {
 
     assertRequestOwnership(actor, existingRequest.requestedById);
     assertEditableRequestState(existingRequest.state);
-    assertUpdatePayloadOrFile(input, file, "budget request");
+    assertUpdatePayloadOrFile(input, files && files.length > 0 ? files[0] : undefined, "budget request");
 
-    const storedUpload = file ? await storeSupportingDocument(file) : undefined;
+    const storedUploads = files && files.length > 0 ? await Promise.all(files.map(storeSupportingDocument)) : [];
 
     try {
       const request = await prisma.$transaction(async (tx) => {
@@ -250,19 +256,23 @@ export const requestsService = {
           tx,
         );
 
-        if (storedUpload) {
-          await requestsRepository.createSupportingDocument(
-            {
-              category: storedUpload.category,
-              originalName: storedUpload.originalName,
-              mimeType: storedUpload.mimeType,
-              storedName: storedUpload.storedName,
-              relativePath: storedUpload.relativePath,
-              sizeBytes: BigInt(storedUpload.sizeBytes),
-              uploadedById: actor.id,
-              budgetRequestId,
-            },
-            tx,
+        if (storedUploads && storedUploads.length > 0) {
+          await Promise.all(
+            storedUploads.map((upload) =>
+              requestsRepository.createSupportingDocument(
+                {
+                  category: upload.category,
+                  originalName: upload.originalName,
+                  mimeType: upload.mimeType,
+                  storedName: upload.storedName,
+                  relativePath: upload.relativePath,
+                  sizeBytes: BigInt(upload.sizeBytes),
+                  uploadedById: actor.id,
+                  budgetRequestId,
+                },
+                tx,
+              )
+            )
           );
         }
 
@@ -291,7 +301,9 @@ export const requestsService = {
 
       return mapBudgetRequest(request);
     } catch (error) {
-      await cleanupStoredUpload(storedUpload);
+      if (storedUploads && storedUploads.length > 0) {
+        await cleanupStoredUploads(storedUploads.map((u) => ({ relativePath: u.relativePath })));
+      }
       throw error;
     }
   },
@@ -378,12 +390,12 @@ export const requestsService = {
   async createExpenseRequest(
     actor: AuthenticatedUser,
     input: CreateExpenseRequestInput,
-    file: Express.Multer.File | undefined,
+    files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
     assertRequestSubmissionPermissions(actor);
 
-    if (!file) {
+    if (!files || files.length === 0) {
       throw new AppError(400, "Expense requests require at least one supporting document.");
     }
 
@@ -393,7 +405,7 @@ export const requestsService = {
       throw new AppError(404, "Event not found.");
     }
 
-    const storedUpload = await storeSupportingDocument(file);
+    const storedUploads = await Promise.all(files.map(storeSupportingDocument));
 
     try {
       const request = await prisma.$transaction(async (tx) => {
@@ -407,18 +419,22 @@ export const requestsService = {
           tx,
         );
 
-        await requestsRepository.createSupportingDocument(
-          {
-            category: storedUpload.category,
-            originalName: storedUpload.originalName,
-            mimeType: storedUpload.mimeType,
-            storedName: storedUpload.storedName,
-            relativePath: storedUpload.relativePath,
-            sizeBytes: BigInt(storedUpload.sizeBytes),
-            uploadedById: actor.id,
-            expenseRequestId: createdRequest.id,
-          },
-          tx,
+        await Promise.all(
+          storedUploads.map((upload) =>
+            requestsRepository.createSupportingDocument(
+              {
+                category: upload.category,
+                originalName: upload.originalName,
+                mimeType: upload.mimeType,
+                storedName: upload.storedName,
+                relativePath: upload.relativePath,
+                sizeBytes: BigInt(upload.sizeBytes),
+                uploadedById: actor.id,
+                expenseRequestId: createdRequest.id,
+              },
+              tx,
+            )
+          )
         );
 
         const reloadedRequest = await requestsRepository.findExpenseRequestById(createdRequest.id, tx);
@@ -447,7 +463,9 @@ export const requestsService = {
 
       return mapExpenseRequest(request);
     } catch (error) {
-      await cleanupStoredUpload(storedUpload);
+      if (storedUploads && storedUploads.length > 0) {
+        await cleanupStoredUploads(storedUploads.map((u) => ({ relativePath: u.relativePath })));
+      }
       throw error;
     }
   },
@@ -456,7 +474,7 @@ export const requestsService = {
     actor: AuthenticatedUser,
     expenseRequestId: string,
     input: UpdateExpenseRequestInput,
-    file: Express.Multer.File | undefined,
+    files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
     assertRequestSubmissionPermissions(actor);
@@ -469,14 +487,14 @@ export const requestsService = {
 
     assertRequestOwnership(actor, existingRequest.requestedById);
     assertEditableRequestState(existingRequest.state);
-    assertUpdatePayloadOrFile(input, file, "expense request");
+    assertUpdatePayloadOrFile(input, files && files.length > 0 ? files[0] : undefined, "expense request");
 
-    if (!file && existingRequest.documents.length === 0) {
+    if ((!files || files.length === 0) && existingRequest.documents.length === 0) {
       throw new AppError(400, "Expense requests require at least one supporting document.");
     }
 
-    const storedUpload = file ? await storeSupportingDocument(file) : undefined;
-    const previousDocumentUploads = storedUpload
+    const storedUploads = files && files.length > 0 ? await Promise.all(files.map(storeSupportingDocument)) : [];
+    const previousDocumentUploads = storedUploads && storedUploads.length > 0
       ? existingRequest.documents.map((document) => ({ relativePath: document.relativePath }))
       : [];
 
@@ -491,20 +509,24 @@ export const requestsService = {
           tx,
         );
 
-        if (storedUpload) {
+        if (storedUploads && storedUploads.length > 0) {
           await requestsRepository.deleteSupportingDocumentsForExpenseRequest(expenseRequestId, tx);
-          await requestsRepository.createSupportingDocument(
-            {
-              category: storedUpload.category,
-              originalName: storedUpload.originalName,
-              mimeType: storedUpload.mimeType,
-              storedName: storedUpload.storedName,
-              relativePath: storedUpload.relativePath,
-              sizeBytes: BigInt(storedUpload.sizeBytes),
-              uploadedById: actor.id,
-              expenseRequestId,
-            },
-            tx,
+          await Promise.all(
+            storedUploads.map((upload) =>
+              requestsRepository.createSupportingDocument(
+                {
+                  category: upload.category,
+                  originalName: upload.originalName,
+                  mimeType: upload.mimeType,
+                  storedName: upload.storedName,
+                  relativePath: upload.relativePath,
+                  sizeBytes: BigInt(upload.sizeBytes),
+                  uploadedById: actor.id,
+                  expenseRequestId,
+                },
+                tx,
+              )
+            )
           );
         }
 
@@ -537,7 +559,9 @@ export const requestsService = {
 
       return mapExpenseRequest(request);
     } catch (error) {
-      await cleanupStoredUpload(storedUpload);
+      if (storedUploads && storedUploads.length > 0) {
+        await cleanupStoredUploads(storedUploads.map((u) => ({ relativePath: u.relativePath })));
+      }
       throw error;
     }
   },
@@ -614,7 +638,7 @@ export const requestsService = {
   async createExpenseRecord(
     actor: AuthenticatedUser,
     input: CreateExpenseRecordInput,
-    file: Express.Multer.File | undefined,
+    files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
     assertExpenseRecordManagementPermissions(actor);
@@ -646,14 +670,14 @@ export const requestsService = {
       }
     }
 
-    if (!file && !linkedExpenseRequest) {
+    if ((!files || files.length === 0) && !linkedExpenseRequest) {
       throw new AppError(
         400,
         "Provide a supporting document or link this record to an approved expense request.",
       );
     }
 
-    const storedUpload = file ? await storeSupportingDocument(file) : undefined;
+    const storedUploads = files && files.length > 0 ? await Promise.all(files.map(storeSupportingDocument)) : [];
 
     try {
       const record = await prisma.$transaction(async (tx) => {
@@ -664,19 +688,23 @@ export const requestsService = {
           tx,
         );
 
-        if (storedUpload) {
-          await requestsRepository.createSupportingDocument(
-            {
-              category: storedUpload.category,
-              originalName: storedUpload.originalName,
-              mimeType: storedUpload.mimeType,
-              storedName: storedUpload.storedName,
-              relativePath: storedUpload.relativePath,
-              sizeBytes: BigInt(storedUpload.sizeBytes),
-              uploadedById: actor.id,
-              expenseRecordId: createdRecord.id,
-            },
-            tx,
+        if (storedUploads && storedUploads.length > 0) {
+          await Promise.all(
+            storedUploads.map((upload) =>
+              requestsRepository.createSupportingDocument(
+                {
+                  category: upload.category,
+                  originalName: upload.originalName,
+                  mimeType: upload.mimeType,
+                  storedName: upload.storedName,
+                  relativePath: upload.relativePath,
+                  sizeBytes: BigInt(upload.sizeBytes),
+                  uploadedById: actor.id,
+                  expenseRecordId: createdRecord.id,
+                },
+                tx,
+              )
+            )
           );
         }
 
@@ -706,7 +734,9 @@ export const requestsService = {
 
       return mapExpenseRecord(record);
     } catch (error) {
-      await cleanupStoredUpload(storedUpload);
+      if (storedUploads && storedUploads.length > 0) {
+        await cleanupStoredUploads(storedUploads.map((u) => ({ relativePath: u.relativePath })));
+      }
       throw error;
     }
   },

@@ -157,7 +157,7 @@ export function ComplaintForm({ events }: { events: PublicEvent[] }) {
             <Input
               name="evidence"
               type="file"
-              accept="image/*,.pdf"
+              multiple
               onChange={() => clearFieldError("evidence")}
               aria-invalid={Boolean(fieldErrors.evidence)}
             />

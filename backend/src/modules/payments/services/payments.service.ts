@@ -6,7 +6,7 @@ import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { sanitizeOptionalText } from "../../../utils/text-utils";
-import { cleanupStoredUpload, storeValidatedUpload } from "../../../utils/upload-utils";
+import { cleanupStoredUpload, cleanupStoredUploads, storeValidatedUpload } from "../../../utils/upload-utils";
 import { hasFinanceAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
@@ -52,7 +52,7 @@ export const paymentsService = {
     actor: AuthenticatedUser,
     registrationId: string,
     input: SubmitPaymentProofInput,
-    file: Express.Multer.File | undefined,
+    files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
     const registration = await registrationsRepository.findById(registrationId);
@@ -84,11 +84,11 @@ export const paymentsService = {
     const transactionReference = sanitizeOptionalText(input.transactionReference);
     const referenceText = sanitizeOptionalText(input.referenceText);
 
-    if (!transactionReference && !referenceText && !file) {
+    if (!transactionReference && !referenceText && (!files || files.length === 0)) {
       throw new AppError(400, "Provide a transaction reference, reference text, or a proof file.");
     }
 
-    const storedUpload = file ? await storeUpload(file, "PAYMENT_PROOF") : undefined;
+    const storedUploads = files && files.length > 0 ? await Promise.all(files.map(f => storeUpload(f, "PAYMENT_PROOF"))) : [];
 
     try {
       const paymentProof = await prisma.$transaction(async (tx) => {
@@ -103,19 +103,23 @@ export const paymentsService = {
           tx,
         );
 
-        if (storedUpload) {
-          await paymentsRepository.createSupportingDocument(
-            {
-              category: storedUpload.category,
-              originalName: storedUpload.originalName,
-              mimeType: storedUpload.mimeType,
-              storedName: storedUpload.storedName,
-              relativePath: storedUpload.relativePath,
-              sizeBytes: BigInt(storedUpload.sizeBytes),
-              uploadedById: actor.id,
-              paymentProofId: createdProof.id,
-            },
-            tx,
+        if (storedUploads && storedUploads.length > 0) {
+          await Promise.all(
+            storedUploads.map((upload) =>
+              paymentsRepository.createSupportingDocument(
+                {
+                  category: upload.category,
+                  originalName: upload.originalName,
+                  mimeType: upload.mimeType,
+                  storedName: upload.storedName,
+                  relativePath: upload.relativePath,
+                  sizeBytes: BigInt(upload.sizeBytes),
+                  uploadedById: actor.id,
+                  paymentProofId: createdProof.id,
+                },
+                tx,
+              )
+            )
           );
         }
 
@@ -150,7 +154,9 @@ export const paymentsService = {
 
       return mapSubmittedPaymentProof(paymentProof);
     } catch (error) {
-      await cleanupStoredUpload(storedUpload);
+      if (storedUploads && storedUploads.length > 0) {
+        await cleanupStoredUploads(storedUploads.map((u) => ({ relativePath: u.relativePath })));
+      }
       throw error;
     }
   },
@@ -246,7 +252,7 @@ export const paymentsService = {
   async createIncomeRecord(
     actor: AuthenticatedUser,
     input: CreateIncomeRecordInput,
-    file: Express.Multer.File | undefined,
+    files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
     assertFinancePermissions(actor);
@@ -259,11 +265,11 @@ export const paymentsService = {
 
     const referenceText = sanitizeOptionalText(input.referenceText);
 
-    if (!referenceText && !file) {
+    if (!referenceText && (!files || files.length === 0)) {
       throw new AppError(400, "Provide a reference note or an evidence file for the income record.");
     }
 
-    const storedUpload = file ? await storeUpload(file, "SUPPORTING_DOCUMENT") : undefined;
+    const storedUploads = files && files.length > 0 ? await Promise.all(files.map(f => storeUpload(f, "SUPPORTING_DOCUMENT"))) : [];
 
     try {
       const incomeRecord = await prisma.$transaction(async (tx) => {
@@ -272,19 +278,23 @@ export const paymentsService = {
           referenceText,
         }, tx);
 
-        if (storedUpload) {
-          await paymentsRepository.createSupportingDocument(
-            {
-              category: storedUpload.category,
-              originalName: storedUpload.originalName,
-              mimeType: storedUpload.mimeType,
-              storedName: storedUpload.storedName,
-              relativePath: storedUpload.relativePath,
-              sizeBytes: BigInt(storedUpload.sizeBytes),
-              uploadedById: actor.id,
-              incomeRecordId: createdIncomeRecord.id,
-            },
-            tx,
+        if (storedUploads && storedUploads.length > 0) {
+          await Promise.all(
+            storedUploads.map((upload) =>
+              paymentsRepository.createSupportingDocument(
+                {
+                  category: upload.category,
+                  originalName: upload.originalName,
+                  mimeType: upload.mimeType,
+                  storedName: upload.storedName,
+                  relativePath: upload.relativePath,
+                  sizeBytes: BigInt(upload.sizeBytes),
+                  uploadedById: actor.id,
+                  incomeRecordId: createdIncomeRecord.id,
+                },
+                tx,
+              )
+            )
           );
         }
 
@@ -316,7 +326,9 @@ export const paymentsService = {
 
       return mapIncomeRecord(incomeRecord);
     } catch (error) {
-      await cleanupStoredUpload(storedUpload);
+      if (storedUploads && storedUploads.length > 0) {
+        await cleanupStoredUploads(storedUploads.map((u) => ({ relativePath: u.relativePath })));
+      }
       throw error;
     }
   },

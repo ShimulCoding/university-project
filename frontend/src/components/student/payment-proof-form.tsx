@@ -183,7 +183,7 @@ export function PaymentProofForm({ registrationId }: { registrationId: string })
             <Input
               name="proofFile"
               type="file"
-              accept="image/*,.pdf"
+              multiple
               onChange={() => clearFieldError("proofFile")}
               aria-invalid={Boolean(fieldErrors.proofFile)}
             />

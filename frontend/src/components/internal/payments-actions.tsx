@@ -158,7 +158,7 @@ export function IncomeRecordForm({
               <Input
                 name="evidenceFile"
                 type="file"
-                accept="image/*,.pdf"
+                multiple
                 onChange={clearFeedback}
               />
             </Field>

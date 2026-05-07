@@ -6,7 +6,7 @@ import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { sanitizeOptionalText } from "../../../utils/text-utils";
-import { cleanupStoredUpload, storeValidatedUpload } from "../../../utils/upload-utils";
+import { cleanupStoredUpload, cleanupStoredUploads, storeValidatedUpload } from "../../../utils/upload-utils";
 import { hasComplaintReviewAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
@@ -211,7 +211,7 @@ export const complaintsService = {
   async createComplaint(
     actor: AuthenticatedUser,
     input: CreateComplaintInput,
-    file: Express.Multer.File | undefined,
+    files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
     if (input.eventId) {
@@ -222,7 +222,7 @@ export const complaintsService = {
       }
     }
 
-    const storedUpload = file ? await storeComplaintEvidence(file) : undefined;
+    const storedUploads = files && files.length > 0 ? await Promise.all(files.map(storeComplaintEvidence)) : [];
 
     try {
       const complaint = await prisma.$transaction(async (tx) => {
@@ -245,19 +245,23 @@ export const complaintsService = {
           tx,
         );
 
-        if (storedUpload) {
-          await complaintsRepository.createSupportingDocument(
-            {
-              category: storedUpload.category,
-              originalName: storedUpload.originalName,
-              mimeType: storedUpload.mimeType,
-              storedName: storedUpload.storedName,
-              relativePath: storedUpload.relativePath,
-              sizeBytes: BigInt(storedUpload.sizeBytes),
-              uploadedById: actor.id,
-              complaintId: createdComplaint.id,
-            },
-            tx,
+        if (storedUploads && storedUploads.length > 0) {
+          await Promise.all(
+            storedUploads.map((upload) =>
+              complaintsRepository.createSupportingDocument(
+                {
+                  category: upload.category,
+                  originalName: upload.originalName,
+                  mimeType: upload.mimeType,
+                  storedName: upload.storedName,
+                  relativePath: upload.relativePath,
+                  sizeBytes: BigInt(upload.sizeBytes),
+                  uploadedById: actor.id,
+                  complaintId: createdComplaint.id,
+                },
+                tx,
+              )
+            )
           );
         }
 
@@ -289,7 +293,9 @@ export const complaintsService = {
 
       return mapComplaintForSubmitter(complaint);
     } catch (error) {
-      await cleanupStoredUpload(storedUpload);
+      if (storedUploads && storedUploads.length > 0) {
+        await cleanupStoredUploads(storedUploads.map((u) => ({ relativePath: u.relativePath })));
+      }
       throw error;
     }
   },

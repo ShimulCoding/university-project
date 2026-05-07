@@ -21,6 +21,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         ref={ref}
         aria-invalid={ariaInvalid}
+        onWheel={(e) => {
+          if (type === "number") {
+            (e.target as HTMLInputElement).blur();
+          }
+          if (props.onWheel) {
+            props.onWheel(e);
+          }
+        }}
         {...props}
       />
     );

@@ -29,7 +29,7 @@ router.use(authenticate);
 
 router.post(
   "/registrations/:registrationId/proofs",
-  upload.single("proofFile"),
+  upload.array("proofFile", 15),
   asyncHandler(paymentsController.submitPaymentProof),
 );
 router.get(
@@ -71,7 +71,7 @@ router.post(
 router.post(
   "/income-records",
   authorize(RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER),
-  upload.single("evidenceFile"),
+  upload.array("evidenceFile", 15),
   asyncHandler(paymentsController.createIncomeRecord),
 );
 

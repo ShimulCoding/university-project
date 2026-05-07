@@ -27,7 +27,7 @@ export const requestsController = {
     const budgetRequest = await requestsService.createBudgetRequest(
       request.auth!.user,
       request.body,
-      request.file,
+      request.files as Express.Multer.File[] | undefined,
       getRequestMetadata(request),
     );
 
@@ -39,7 +39,7 @@ export const requestsController = {
       request.auth!.user,
       String(request.params.budgetRequestId),
       request.body,
-      request.file,
+      request.files as Express.Multer.File[] | undefined,
       getRequestMetadata(request),
     );
 
@@ -83,7 +83,7 @@ export const requestsController = {
     const expenseRequest = await requestsService.createExpenseRequest(
       request.auth!.user,
       request.body,
-      request.file,
+      request.files as Express.Multer.File[] | undefined,
       getRequestMetadata(request),
     );
 
@@ -95,7 +95,7 @@ export const requestsController = {
       request.auth!.user,
       String(request.params.expenseRequestId),
       request.body,
-      request.file,
+      request.files as Express.Multer.File[] | undefined,
       getRequestMetadata(request),
     );
 
@@ -134,7 +134,7 @@ export const requestsController = {
     const expenseRecord = await requestsService.createExpenseRecord(
       request.auth!.user,
       request.body,
-      request.file,
+      request.files as Express.Multer.File[] | undefined,
       getRequestMetadata(request),
     );
 

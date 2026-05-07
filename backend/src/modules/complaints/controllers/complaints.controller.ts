@@ -22,7 +22,7 @@ export const complaintsController = {
     const complaint = await complaintsService.createComplaint(
       request.auth!.user,
       request.body,
-      request.file,
+      request.files as Express.Multer.File[] | undefined,
       getRequestMetadata(request),
     );
 

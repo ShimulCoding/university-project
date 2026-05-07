@@ -57,13 +57,13 @@ router.get(
 );
 router.post(
   "/budget-requests",
-  upload.single("supportingDocument"),
+  upload.array("supportingDocument", 15),
   validateRequest(createBudgetRequestSchema),
   asyncHandler(requestsController.createBudgetRequest),
 );
 router.patch(
   "/budget-requests/:budgetRequestId",
-  upload.single("supportingDocument"),
+  upload.array("supportingDocument", 15),
   validateRequest(updateBudgetRequestSchema),
   asyncHandler(requestsController.updateBudgetRequest),
 );
@@ -96,13 +96,13 @@ router.get(
 );
 router.post(
   "/expense-requests",
-  upload.single("supportingDocument"),
+  upload.array("supportingDocument", 15),
   validateRequest(createExpenseRequestSchema),
   asyncHandler(requestsController.createExpenseRequest),
 );
 router.patch(
   "/expense-requests/:expenseRequestId",
-  upload.single("supportingDocument"),
+  upload.array("supportingDocument", 15),
   validateRequest(updateExpenseRequestSchema),
   asyncHandler(requestsController.updateExpenseRequest),
 );
@@ -137,7 +137,7 @@ router.get(
 router.post(
   "/expense-records",
   authorize(RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER),
-  upload.single("supportingDocument"),
+  upload.array("supportingDocument", 15),
   validateRequest(createExpenseRecordSchema),
   asyncHandler(requestsController.createExpenseRecord),
 );

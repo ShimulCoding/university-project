@@ -43,7 +43,7 @@ router.get(
 );
 router.post(
   "/",
-  upload.single("evidence"),
+  upload.array("evidence", 15),
   validateRequest(createComplaintSchema),
   asyncHandler(complaintsController.createComplaint),
 );

@@ -113,7 +113,7 @@ export default async function PaymentVerificationQueuePage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            href={buildRelativeHref("/dashboard/payments", params, {
+                            scroll={false} href={buildRelativeHref("/dashboard/payments", params, {
                               proofId: item.id,
                             })}
                             className={

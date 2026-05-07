@@ -134,7 +134,7 @@ export default async function ComplaintsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            href={buildRelativeHref("/dashboard/complaints", params, {
+                            scroll={false} href={buildRelativeHref("/dashboard/complaints", params, {
                               complaintId: complaint.id,
                             })}
                             className={

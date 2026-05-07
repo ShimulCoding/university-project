@@ -193,7 +193,7 @@ export default async function DashboardPublicationsPage({
                 reports.map((report) => (
                   <Link
                     key={report.id}
-                    href={buildRelativeHref("/dashboard/publications", params, {
+                    scroll={false} href={buildRelativeHref("/dashboard/publications", params, {
                       reportId: report.id,
                     })}
                     className={

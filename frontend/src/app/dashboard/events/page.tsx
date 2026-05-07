@@ -124,7 +124,7 @@ export default async function DashboardEventsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            href={buildRelativeHref("/dashboard/events", params, {
+                            scroll={false} href={buildRelativeHref("/dashboard/events", params, {
                               eventId: event.id,
                             })}
                             className={

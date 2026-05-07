@@ -140,7 +140,7 @@ export default async function ExpenseRecordsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            href={buildRelativeHref("/dashboard/expense-records", params, {
+                            scroll={false} href={buildRelativeHref("/dashboard/expense-records", params, {
                               expenseRecordId: record.id,
                             })}
                             className={

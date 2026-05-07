@@ -24,7 +24,8 @@ type FieldKey =
   | "studentId"
   | "batch"
   | "department"
-  | "section";
+  | "section"
+  | "password";
 
 type StudentAccessFieldErrors = Partial<Record<FieldKey, string>>;
 

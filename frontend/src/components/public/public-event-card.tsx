@@ -24,7 +24,7 @@ export function PublicEventCard({
   studentCtx,
 }: {
   event: PublicEvent;
-  studentCtx?: StudentEventContext;
+  studentCtx?: StudentEventContext | undefined;
 }) {
   const existingRegistrationId = studentCtx?.registrationByEventId[event.id];
   const signedIn = studentCtx?.isSignedIn ?? false;

@@ -138,10 +138,10 @@ export default async function ApprovalsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            href={`\$\{buildRelativeHref("/dashboard/approvals", params, {
+                            href={`${buildRelativeHref("/dashboard/approvals", params, {
                               entityType: item.entityType,
                               entityId: item.entityId,
-                            })\}#details-panel`}
+                            })}#details-panel`}
                             className={
                               item.entityId === selectedItem?.entityId &&
                               item.entityType === selectedItem.entityType

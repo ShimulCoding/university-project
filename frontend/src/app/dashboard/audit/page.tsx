@@ -108,9 +108,9 @@ export default async function AuditPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            href={`\$\{buildRelativeHref("/dashboard/audit", params, {
+                            href={`${buildRelativeHref("/dashboard/audit", params, {
                               auditLogId: log.id,
-                            })\}#details-panel`}
+                            })}#details-panel`}
                             className={
                               log.id === selectedAuditLogId
                                 ? "focus-ring rounded-sm font-semibold text-primary"

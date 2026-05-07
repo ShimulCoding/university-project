@@ -129,9 +129,9 @@ export default async function IncomeRecordsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            href={`\$\{buildRelativeHref("/dashboard/income-records", params, {
+                            href={`${buildRelativeHref("/dashboard/income-records", params, {
                               incomeRecordId: record.id,
-                            })\}#details-panel`}
+                            })}#details-panel`}
                             className={
                               record.id === selectedIncomeRecordId
                                 ? "focus-ring rounded-sm font-semibold text-primary"

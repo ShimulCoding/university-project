@@ -113,9 +113,9 @@ export default async function PaymentVerificationQueuePage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            href={`\$\{buildRelativeHref("/dashboard/payments", params, {
+                            href={`${buildRelativeHref("/dashboard/payments", params, {
                               proofId: item.id,
-                            })\}#details-panel`}
+                            })}#details-panel`}
                             className={
                               item.id === selectedProofId
                                 ? "focus-ring rounded-sm font-semibold text-primary"

@@ -193,9 +193,9 @@ export default async function DashboardPublicationsPage({
                 reports.map((report) => (
                   <Link
                     key={report.id}
-                    href={`\$\{buildRelativeHref("/dashboard/publications", params, {
+                    href={`${buildRelativeHref("/dashboard/publications", params, {
                       reportId: report.id,
-                    })\}#details-panel`}
+                    })}#details-panel`}
                     className={
                       report.id === selectedReportId
                         ? "focus-ring block rounded-[1.1rem] border border-primary/20 bg-panel-muted px-4 py-4 transition-colors"

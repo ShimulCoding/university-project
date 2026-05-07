@@ -124,9 +124,9 @@ export default async function DashboardEventsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            href={`\$\{buildRelativeHref("/dashboard/events", params, {
+                            href={`${buildRelativeHref("/dashboard/events", params, {
                               eventId: event.id,
-                            })\}#details-panel`}
+                            })}#details-panel`}
                             className={
                               event.id === selectedEvent?.id
                                 ? "focus-ring rounded-sm font-semibold text-primary"

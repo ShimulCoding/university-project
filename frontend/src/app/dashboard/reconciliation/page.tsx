@@ -157,9 +157,9 @@ export default async function ReconciliationPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            href={`\$\{buildRelativeHref("/dashboard/reconciliation", params, {
+                            href={`${buildRelativeHref("/dashboard/reconciliation", params, {
                               reportId: report.id,
-                            })\}#details-panel`}
+                            })}#details-panel`}
                             className={
                               report.id === selectedReportId
                                 ? "focus-ring rounded-sm font-semibold text-primary"

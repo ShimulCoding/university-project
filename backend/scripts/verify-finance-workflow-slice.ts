@@ -774,7 +774,7 @@ async function main() {
               amount: "420.00",
               purpose: "Stage setup",
             },
-            createUploadFile(),
+            [createUploadFile()],
             {
               route: "/api/requests/budget-requests",
               method: "POST",
@@ -912,6 +912,11 @@ async function main() {
           },
           {
             target: requestsRepository as unknown as Record<string, unknown>,
+            key: "deleteSupportingDocumentsForExpenseRequest",
+            value: async () => undefined,
+          },
+          {
+            target: requestsRepository as unknown as Record<string, unknown>,
             key: "createSupportingDocument",
             value: async (input: Record<string, unknown>) => {
               createdDocuments.push(input);
@@ -944,9 +949,9 @@ async function main() {
             eventManagerActor,
             makeCuid("returnedexpenserequest"),
             {},
-            createUploadFile({
+            [createUploadFile({
               originalname: "replacement-proof.pdf",
-            }),
+            })],
           ),
       );
 
@@ -1185,9 +1190,9 @@ async function main() {
               description: "Equipment transport",
               paidAt: new Date("2026-04-07T14:00:00.000Z"),
             },
-            createUploadFile({
+            [createUploadFile({
               originalname: "expense-record-proof.pdf",
-            }),
+            })],
           ),
       );
 
@@ -1249,18 +1254,40 @@ async function main() {
       const createdDecisionInputs: Array<Record<string, unknown>> = [];
       const auditEntries: Array<Record<string, unknown>> = [];
 
+      let findBudgetRequestCallCount = 0;
+      let findExpenseApprovalCallCount = 0;
+
       const approvedBudget = await withPatches(
         [
           {
             target: approvalsRepository as unknown as Record<string, unknown>,
             key: "findBudgetRequestById",
-            value: async () =>
-              createBudgetRequestContext({
+            value: async () => {
+              findBudgetRequestCallCount += 1;
+              if (findBudgetRequestCallCount === 1) {
+                return createBudgetRequestContext({
+                  id: makeCuid("budgetapprovalrequest"),
+                  requestedById: eventManagerActor.id,
+                  state: RequestState.SUBMITTED,
+                  approvalDecisions: [],
+                });
+              }
+              return createBudgetRequestContext({
                 id: makeCuid("budgetapprovalrequest"),
                 requestedById: eventManagerActor.id,
-                state: RequestState.SUBMITTED,
-                approvalDecisions: [],
-              }),
+                state: RequestState.APPROVED,
+                approvalDecisions: [
+                  createApprovalDecision({
+                    actor: {
+                      id: approverActor.id,
+                      fullName: approverActor.fullName,
+                      email: approverActor.email,
+                    },
+                    comment: null,
+                  }),
+                ],
+              });
+            },
           },
           {
             target: approvalsRepository as unknown as Record<string, unknown>,
@@ -1275,6 +1302,11 @@ async function main() {
                 },
               });
             },
+          },
+          {
+            target: approvalsRepository as unknown as Record<string, unknown>,
+            key: "transitionBudgetRequestFromPending",
+            value: async () => ({ count: 1 }),
           },
           {
             target: approvalsRepository as unknown as Record<string, unknown>,
@@ -1339,14 +1371,36 @@ async function main() {
           {
             target: approvalsRepository as unknown as Record<string, unknown>,
             key: "findExpenseRequestById",
-            value: async () =>
-              createExpenseRequestContext({
+            value: async () => {
+              findExpenseApprovalCallCount += 1;
+              if (findExpenseApprovalCallCount === 1) {
+                return createExpenseRequestContext({
+                  id: makeCuid("expenseapprovalrequest"),
+                  requestedById: eventManagerActor.id,
+                  state: RequestState.SUBMITTED,
+                  approvalDecisions: [],
+                  expenseRecords: [],
+                });
+              }
+              return createExpenseRequestContext({
                 id: makeCuid("expenseapprovalrequest"),
                 requestedById: eventManagerActor.id,
-                state: RequestState.SUBMITTED,
-                approvalDecisions: [],
+                state: RequestState.RETURNED,
+                approvalDecisions: [
+                  createApprovalDecision({
+                    entityType: ApprovalEntityType.EXPENSE_REQUEST,
+                    decision: ApprovalDecisionType.RETURNED,
+                    comment: "Please attach the signed receipt.",
+                    actor: {
+                      id: approverActor.id,
+                      fullName: approverActor.fullName,
+                      email: approverActor.email,
+                    },
+                  }),
+                ],
                 expenseRecords: [],
-              }),
+              });
+            },
           },
           {
             target: approvalsRepository as unknown as Record<string, unknown>,
@@ -1364,6 +1418,11 @@ async function main() {
                 },
               });
             },
+          },
+          {
+            target: approvalsRepository as unknown as Record<string, unknown>,
+            key: "transitionExpenseRequestFromPending",
+            value: async () => ({ count: 1 }),
           },
           {
             target: approvalsRepository as unknown as Record<string, unknown>,

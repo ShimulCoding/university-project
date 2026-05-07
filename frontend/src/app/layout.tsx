@@ -53,7 +53,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${publicSans.variable} ${fraunces.variable} ${plexMono.variable}`}>
+      <body className={`${publicSans.variable} ${fraunces.variable} ${plexMono.variable}`} suppressHydrationWarning>
         {children}
       </body>
     </html>

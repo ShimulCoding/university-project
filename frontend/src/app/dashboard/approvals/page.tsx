@@ -138,10 +138,10 @@ export default async function ApprovalsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            scroll={false} href={buildRelativeHref("/dashboard/approvals", params, {
+                            href={`\$\{buildRelativeHref("/dashboard/approvals", params, {
                               entityType: item.entityType,
                               entityId: item.entityId,
-                            })}
+                            })\}#details-panel`}
                             className={
                               item.entityId === selectedItem?.entityId &&
                               item.entityType === selectedItem.entityType
@@ -176,7 +176,7 @@ export default async function ApprovalsPage({
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <div id="details-panel" className="space-y-6">
             {selectedItem && selectedRecord ? (
               <div
                 key={`${selectedItem.entityType}-${selectedItem.entityId}`}

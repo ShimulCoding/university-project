@@ -140,9 +140,9 @@ export default async function ExpenseRecordsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            scroll={false} href={buildRelativeHref("/dashboard/expense-records", params, {
+                            href={`\$\{buildRelativeHref("/dashboard/expense-records", params, {
                               expenseRecordId: record.id,
-                            })}
+                            })\}#details-panel`}
                             className={
                               record.id === selectedExpenseRecordId
                                 ? "focus-ring rounded-sm font-semibold text-primary"
@@ -171,7 +171,7 @@ export default async function ExpenseRecordsPage({
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <div id="details-panel" className="space-y-6">
             {selectedRecord ? (
               <div key={selectedRecord.id} className="space-y-6">
                 <Card>

@@ -108,9 +108,9 @@ export default async function AuditPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            scroll={false} href={buildRelativeHref("/dashboard/audit", params, {
+                            href={`\$\{buildRelativeHref("/dashboard/audit", params, {
                               auditLogId: log.id,
-                            })}
+                            })\}#details-panel`}
                             className={
                               log.id === selectedAuditLogId
                                 ? "focus-ring rounded-sm font-semibold text-primary"
@@ -138,7 +138,7 @@ export default async function AuditPage({
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <div id="details-panel" className="space-y-6">
             {selectedLog ? (
               <div key={selectedLog.id} className="space-y-6">
                 <Card>

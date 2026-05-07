@@ -129,9 +129,9 @@ export default async function IncomeRecordsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            scroll={false} href={buildRelativeHref("/dashboard/income-records", params, {
+                            href={`\$\{buildRelativeHref("/dashboard/income-records", params, {
                               incomeRecordId: record.id,
-                            })}
+                            })\}#details-panel`}
                             className={
                               record.id === selectedIncomeRecordId
                                 ? "focus-ring rounded-sm font-semibold text-primary"
@@ -162,7 +162,7 @@ export default async function IncomeRecordsPage({
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <div id="details-panel" className="space-y-6">
             {selectedIncome ? (
               <div key={selectedIncome.id} className="space-y-6">
                 <Card>

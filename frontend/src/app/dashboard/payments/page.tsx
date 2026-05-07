@@ -113,9 +113,9 @@ export default async function PaymentVerificationQueuePage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            scroll={false} href={buildRelativeHref("/dashboard/payments", params, {
+                            href={`\$\{buildRelativeHref("/dashboard/payments", params, {
                               proofId: item.id,
-                            })}
+                            })\}#details-panel`}
                             className={
                               item.id === selectedProofId
                                 ? "focus-ring rounded-sm font-semibold text-primary"
@@ -145,7 +145,7 @@ export default async function PaymentVerificationQueuePage({
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <div id="details-panel" className="space-y-6">
             {!selectedProof ? null : (
               <div key={selectedProof.id} className="space-y-6">
                 <Card>

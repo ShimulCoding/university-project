@@ -124,9 +124,9 @@ export default async function DashboardEventsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            scroll={false} href={buildRelativeHref("/dashboard/events", params, {
+                            href={`\$\{buildRelativeHref("/dashboard/events", params, {
                               eventId: event.id,
-                            })}
+                            })\}#details-panel`}
                             className={
                               event.id === selectedEvent?.id
                                 ? "focus-ring rounded-sm font-semibold text-primary"
@@ -157,7 +157,7 @@ export default async function DashboardEventsPage({
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <div id="details-panel" className="space-y-6">
             {selectedEvent ? (
               <Card>
                 <CardHeader>

@@ -142,9 +142,9 @@ export default async function BudgetsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            scroll={false} href={buildRelativeHref("/dashboard/budgets", params, {
+                            href={`\$\{buildRelativeHref("/dashboard/budgets", params, {
                               budgetId: budget.id,
-                            })}
+                            })\}#details-panel`}
                             className={
                               budget.id === selectedBudgetId
                                 ? "focus-ring rounded-sm font-semibold text-primary"
@@ -176,7 +176,7 @@ export default async function BudgetsPage({
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <div id="details-panel" className="space-y-6">
             {selectedBudget ? (
               <div key={selectedBudget.id} className="space-y-6">
                 <Card>

@@ -163,9 +163,9 @@ export default async function BudgetRequestsPage({
                       >
                         <TableCell className="align-top">
                           <Link
-                            scroll={false} href={buildRelativeHref("/dashboard/budget-requests", params, {
+                            href={`\$\{buildRelativeHref("/dashboard/budget-requests", params, {
                               budgetRequestId: request.id,
-                            })}
+                            })\}#details-panel`}
                             className={
                               request.id === selectedBudgetRequestId
                                 ? "focus-ring rounded-sm font-semibold text-primary"
@@ -196,7 +196,7 @@ export default async function BudgetRequestsPage({
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
+          <div id="details-panel" className="space-y-6">
             {selectedRequest ? (
               <div key={selectedRequest.id} className="space-y-6">
                 <Card>

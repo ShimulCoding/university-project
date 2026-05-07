@@ -5,7 +5,9 @@ import { hasAnyRole } from "@/lib/access";
 import { listPublicFinancialSummaries } from "@/lib/api/public";
 import {
   listApprovalQueue,
+  listBudgetRequests,
   listComplaintReviewQueue,
+  listExpenseRequests,
   listPaymentVerificationQueue,
   listReconciliationReports,
 } from "@/lib/api/internal";
@@ -32,6 +34,12 @@ export default async function DashboardOverviewPage() {
     "ORGANIZATIONAL_APPROVER",
     "COMPLAINT_REVIEW_AUTHORITY",
   ]);
+  const canSeeBudgetRequests = hasAnyRole(user, [
+    "SYSTEM_ADMIN",
+    "FINANCIAL_CONTROLLER",
+    "ORGANIZATIONAL_APPROVER",
+    "EVENT_MANAGEMENT_USER",
+  ]);
   const canSeeReconciliation = hasAnyRole(user, [
     "SYSTEM_ADMIN",
     "FINANCIAL_CONTROLLER",
@@ -43,14 +51,23 @@ export default async function DashboardOverviewPage() {
       return fallback;
     });
 
-  const [verificationQueue, approvalQueue, complaints, reconciliationReports, publicSummaries] =
-    await Promise.all([
-      safeFetch(canSeeFinance ? listPaymentVerificationQueue({}) : Promise.resolve([]), []),
-      safeFetch(canSeeApprovals ? listApprovalQueue({}) : Promise.resolve([]), []),
-      safeFetch(canSeeComplaints ? listComplaintReviewQueue({}) : Promise.resolve([]), []),
-      safeFetch(canSeeReconciliation ? listReconciliationReports({}) : Promise.resolve([]), []),
-      safeFetch(listPublicFinancialSummaries(), []),
-    ]);
+  const [
+    verificationQueue,
+    approvalQueue,
+    complaints,
+    reconciliationReports,
+    publicSummaries,
+    budgetRequests,
+    expenseRequests,
+  ] = await Promise.all([
+    safeFetch(canSeeFinance ? listPaymentVerificationQueue({}) : Promise.resolve([]), []),
+    safeFetch(canSeeApprovals ? listApprovalQueue({}) : Promise.resolve([]), []),
+    safeFetch(canSeeComplaints ? listComplaintReviewQueue({}) : Promise.resolve([]), []),
+    safeFetch(canSeeReconciliation ? listReconciliationReports({}) : Promise.resolve([]), []),
+    safeFetch(listPublicFinancialSummaries(), []),
+    safeFetch(canSeeBudgetRequests ? listBudgetRequests({}) : Promise.resolve([]), []),
+    safeFetch(canSeeBudgetRequests ? listExpenseRequests({}) : Promise.resolve([]), []),
+  ]);
   const latestPublicSummaries = getLatestPublishedSummariesPerEvent(publicSummaries);
   const historicalPublishedSnapshotCount =
     getHistoricalPublishedSnapshotCount(publicSummaries);
@@ -86,11 +103,11 @@ export default async function DashboardOverviewPage() {
     },
   ].filter((metric) => metric.visible);
 
-  const budgetRequestQueueCount = approvalQueue.filter(
-    (item) => item.entityType === "BUDGET_REQUEST",
+  const budgetRequestQueueCount = budgetRequests.filter(
+    (item) => item.state !== "APPROVED" && item.state !== "REJECTED",
   ).length;
-  const expenseRequestQueueCount = approvalQueue.filter(
-    (item) => item.entityType === "EXPENSE_REQUEST",
+  const expenseRequestQueueCount = expenseRequests.filter(
+    (item) => item.state !== "APPROVED" && item.state !== "REJECTED",
   ).length;
 
   const queueRows = [
@@ -106,14 +123,14 @@ export default async function DashboardOverviewPage() {
       label: "Budget requests",
       count: budgetRequestQueueCount,
       detail: "Funding requests waiting in the protected approval workflow.",
-      visible: canSeeApprovals,
+      visible: canSeeBudgetRequests,
     },
     {
       href: "/dashboard/expense-requests",
       label: "Expense requests",
       count: expenseRequestQueueCount,
       detail: "Expense requests waiting in the protected approval workflow.",
-      visible: canSeeApprovals,
+      visible: canSeeBudgetRequests,
     },
     {
       href: "/dashboard/approvals",

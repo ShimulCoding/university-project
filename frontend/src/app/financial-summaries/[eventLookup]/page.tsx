@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AlertTriangle, ArrowRight, CheckCircle2, EyeOff } from "lucide-react";
 import { notFound } from "next/navigation";
 
+import { SummaryPdfDownloadButton } from "@/components/public/summary-pdf-download-button";
+
 import {
   disclosureBoundary,
   publicationChecklist,
@@ -40,9 +42,12 @@ export default async function PublicFinancialSummaryDetailsPage({
             title={summary.event.title}
             description="This view resolves to the latest public-safe summary released for the event and exposes only the publication-safe disclosure layer."
             action={
-              <Badge variant="success">
-                Latest published {formatDate(summary.publishedAt)}
-              </Badge>
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge variant="success">
+                  Latest published {formatDate(summary.publishedAt)}
+                </Badge>
+                <SummaryPdfDownloadButton summary={summary} />
+              </div>
             }
           />
 

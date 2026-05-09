@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type { BudgetRecord, EventSummary } from "@/types";
-import { patchJson, postEmpty, postJson } from "@/lib/api/client";
+import { patchJson, postJson } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -158,10 +158,10 @@ export function BudgetComposerForm({
     <Card>
       <CardHeader>
         <CardTitle className="text-xl">
-          {budget ? "Create budget revision" : "Create budget version"}
+          {budget ? "Create budget revision" : "Create budget request"}
         </CardTitle>
         <CardDescription>
-          Build budgets through explicit versions so historical values remain visible.
+          Event managers submit full budget versions with item-level detail for approver review.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 pt-0">
@@ -251,12 +251,12 @@ export function BudgetStateForm({
   budget,
   canSubmit,
   canApprove,
-  canActivate,
+  canReturn,
 }: {
   budget: BudgetRecord;
   canSubmit: boolean;
   canApprove: boolean;
-  canActivate: boolean;
+  canReturn: boolean;
 }) {
   const availableOptions = useMemo(() => {
     if (budget.state === "DRAFT" && canSubmit) {
@@ -264,27 +264,29 @@ export function BudgetStateForm({
     }
 
     if (budget.state === "SUBMITTED" && canApprove) {
-      return [{ value: "APPROVED", label: "Approved" }] as const;
+      return [
+        { value: "APPROVED", label: "Approve as final budget" },
+        ...(canReturn ? [{ value: "REVISED" as const, label: "Return for revision" }] : []),
+      ] as const;
     }
 
     return [];
-  }, [budget.state, canApprove, canSubmit]);
-  const [state, setState] = useState<"SUBMITTED" | "APPROVED" | "">(
+  }, [budget.state, canApprove, canSubmit, canReturn]);
+  const [state, setState] = useState<"SUBMITTED" | "APPROVED" | "REVISED" | "">(
     availableOptions[0]?.value ?? "",
   );
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
-  const canActivateSelectedBudget = canActivate && budget.state === "APPROVED" && !budget.isActive;
   const guidanceMessage =
     budget.state === "DRAFT" && !canSubmit
-      ? "Finance or system admin must submit this budget version before approval."
+      ? "The event manager must submit this budget version before approval."
       : budget.state === "SUBMITTED" && !canApprove
-        ? "This budget version is waiting for an organizational approver. Finance can activate it only after approval."
-        : budget.state === "APPROVED" && !budget.isActive && !canActivate
-          ? "This budget is approved. Finance or system admin can activate it as the event reference version."
-          : budget.isActive
-            ? "This budget version is already active for the event."
+        ? "This budget version is waiting for an organizational approver."
+        : budget.isActive
+          ? "This approved budget is the final budget for the event."
+          : budget.state === "APPROVED"
+            ? "This budget is approved and should appear under the final budgets view."
             : budget.state === "REVISED"
-              ? "This historical version has been revised. Use the latest version for approval or activation."
+              ? "This budget was returned for revision. Create a new revision and resubmit it."
               : null;
 
   useEffect(() => {
@@ -307,7 +309,7 @@ export function BudgetStateForm({
                 value={state}
                 onChange={(event) => {
                   clearFeedback();
-                  setState(event.target.value as "SUBMITTED" | "APPROVED");
+                  setState(event.target.value as "SUBMITTED" | "APPROVED" | "REVISED");
                 }}
                 options={[...availableOptions]}
               />
@@ -321,7 +323,11 @@ export function BudgetStateForm({
                       patchJson(`/budgets/${budget.id}/state`, {
                         state,
                       }),
-                    "Budget state updated.",
+                    state === "APPROVED"
+                      ? "Budget approved and finalized."
+                      : state === "REVISED"
+                        ? "Budget returned for revision."
+                        : "Budget submitted for review.",
                   )
                 }
               >
@@ -330,21 +336,7 @@ export function BudgetStateForm({
             </div>
           </>
         ) : null}
-        {canActivate ? (
-          <Button
-            variant={canActivateSelectedBudget ? "default" : "outline"}
-            disabled={isPending || !canActivateSelectedBudget}
-            onClick={() =>
-              void runAction(
-                () => postEmpty(`/budgets/${budget.id}/activate`),
-                "Budget version activated.",
-              )
-            }
-          >
-            {budget.isActive ? "Active version" : "Activate version"}
-          </Button>
-        ) : null}
-        {availableOptions.length === 0 && !canActivateSelectedBudget && guidanceMessage ? (
+        {availableOptions.length === 0 && guidanceMessage ? (
           <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
             {guidanceMessage}
           </div>

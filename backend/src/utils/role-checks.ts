@@ -34,7 +34,7 @@ export function hasInternalRegistrationAccess(userRoles: RoleCode[]) {
 }
 
 export function hasBudgetManagementAccess(userRoles: RoleCode[]) {
-  return hasFinanceAccess(userRoles);
+  return hasEventManagementAccess(userRoles);
 }
 
 export function hasRequestSubmissionAccess(userRoles: RoleCode[]) {

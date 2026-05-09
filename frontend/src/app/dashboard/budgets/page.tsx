@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert } from "lucide-react";
 
-import { getCurrentUser } from "@/lib/api/student";
-import { hasAnyRole } from "@/lib/access";
 import { getBudget, listBudgets, listInternalEventOptions } from "@/lib/api/internal";
 import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
@@ -12,12 +10,10 @@ import {
   formatMoney,
   getBudgetStateTone,
 } from "@/lib/format";
-import { BudgetComposerForm, BudgetStateForm } from "@/components/internal/budgets-actions";
 import { FilterCard } from "@/components/internal/filter-card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { Select } from "@/components/ui/select";
 import { StatePanel } from "@/components/ui/state-panel";
@@ -39,17 +35,11 @@ export default async function BudgetsPage({
 }) {
   const params = await searchParams;
   const eventId = typeof params.eventId === "string" ? params.eventId : undefined;
-  const state = typeof params.state === "string" ? params.state : undefined;
-  const isActive = typeof params.isActive === "string" ? params.isActive : undefined;
   const budgetId = typeof params.budgetId === "string" ? params.budgetId : undefined;
 
   try {
-    const user = await getCurrentUser();
-    const canCreateOrReviseBudgets = hasAnyRole(user, ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"]);
-    const canApproveBudgets = hasAnyRole(user, ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"]);
-    const canUseBudgetControls = canCreateOrReviseBudgets || canApproveBudgets;
     const [budgets, events] = await Promise.all([
-      listBudgets({ eventId, state, isActive }),
+      listBudgets({ eventId, state: "APPROVED", isActive: "true" }),
       listInternalEventOptions(),
     ]);
     const selectedBudgetId = budgets.find((budget) => budget.id === budgetId)?.id ?? budgets[0]?.id;
@@ -58,15 +48,14 @@ export default async function BudgetsPage({
     return (
       <>
         <PageHeader
-          eyebrow="Budget management"
-          title="Preserve budget versions, item structure, and activation history"
-          description="Budgets are kept as explicit versions so revision history stays visible. Finance can activate the right version without silently overwriting older records."
+          eyebrow="Final budgets"
+          title="View the approved final budget for each event"
+          description="Only approved active budget versions appear here. Drafts, submitted versions, returned versions, and revision work stay inside Budget Requests."
           action={
             <div className="flex flex-wrap gap-2">
               <Badge variant="success">
-                {budgets.filter((budget) => budget.isActive).length} active version(s)
+                {budgets.length} final budget(s)
               </Badge>
-              <Badge variant="info">{budgets.length} visible versions</Badge>
               <Link
                 href="/dashboard/budget-requests"
                 className="focus-ring inline-flex h-8 items-center rounded-full border border-border bg-panel px-3 text-xs font-semibold text-foreground shadow-sm transition hover:border-primary/25 hover:bg-background hover:text-primary"
@@ -91,43 +80,19 @@ export default async function BudgetsPage({
               ]}
             />
           </Field>
-          <Field label="State">
-            <Select
-              name="state"
-              defaultValue={state ?? ""}
-              options={[
-                { value: "", label: "All states" },
-                { value: "DRAFT", label: "Draft" },
-                { value: "SUBMITTED", label: "Submitted" },
-                { value: "APPROVED", label: "Approved" },
-                { value: "REVISED", label: "Revised" },
-              ]}
-            />
-          </Field>
-          <Field label="Active status">
-            <Select
-              name="isActive"
-              defaultValue={isActive ?? ""}
-              options={[
-                { value: "", label: "All versions" },
-                { value: "true", label: "Active only" },
-                { value: "false", label: "Inactive only" },
-              ]}
-            />
-          </Field>
         </FilterCard>
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_420px]">
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl">Budget versions</CardTitle>
+              <CardTitle className="text-xl">Final approved budgets</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               {budgets.length === 0 ? (
                 <StatePanel
                   icon={SearchSlash}
-                  title="No budgets match this filter set"
-                  description="Budget versions appear here once finance creates them for an event."
+                  title="No final budgets match this filter set"
+                  description="Approved final budgets appear here after an approver approves a submitted budget request."
                   tone="empty"
                 />
               ) : (
@@ -137,7 +102,7 @@ export default async function BudgetsPage({
                       <TableHead>Version</TableHead>
                       <TableHead>Event</TableHead>
                       <TableHead>Total</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>Final status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -162,7 +127,7 @@ export default async function BudgetsPage({
                             {budget.title ? ` - ${budget.title}` : ""}
                           </Link>
                           <div className="mt-1 text-xs text-muted-foreground">
-                            {budget.isActive ? "Active version" : "Historical version"}
+                            Final approved version
                           </div>
                         </TableCell>
                         <TableCell>{budget.event.title}</TableCell>
@@ -250,35 +215,19 @@ export default async function BudgetsPage({
                     </div>
                   </CardContent>
                 </Card>
-                {canUseBudgetControls ? (
-                  <>
-                    <BudgetStateForm
-                      budget={selectedBudget}
-                      canSubmit={canCreateOrReviseBudgets}
-                      canApprove={canApproveBudgets}
-                      canActivate={canCreateOrReviseBudgets}
-                    />
-                    {canCreateOrReviseBudgets ? (
-                      <BudgetComposerForm events={events} budget={selectedBudget} />
-                    ) : null}
-                  </>
-                ) : (
-                  <Card tone="muted">
-                    <CardHeader>
-                      <CardTitle className="text-xl">Read-only role on budget history</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0 text-sm leading-6 text-muted-foreground">
-                      This session can inspect budget versions and item structure, but budget
-                      submission, approval, and activation remain separated by role.
-                    </CardContent>
-                  </Card>
-                )}
+                <Card tone="muted">
+                  <CardHeader>
+                    <CardTitle className="text-xl">Final budget visibility</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 text-sm leading-6 text-muted-foreground">
+                    This view is read-only. Event managers create and revise budgets in Budget
+                    Requests, and approvers approve them before they become final here.
+                  </CardContent>
+                </Card>
               </div>
             ) : null}
           </div>
         </div>
-
-        {canCreateOrReviseBudgets ? <BudgetComposerForm events={events} /> : null}
       </>
     );
   } catch (error) {

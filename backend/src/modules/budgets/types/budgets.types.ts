@@ -29,5 +29,5 @@ export type ReviseBudgetInput = {
 };
 
 export type UpdateBudgetStateInput = {
-  state: Exclude<BudgetState, "REVISED">;
+  state: BudgetState;
 };

@@ -3,25 +3,17 @@ import { AlertTriangle, SearchSlash, ShieldAlert } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/api/student";
 import { hasAnyRole } from "@/lib/access";
-import type { ApprovalQueueItem } from "@/types";
-import {
-  getBudgetRequest,
-  listBudgetRequests,
-  listInternalEventOptions,
-} from "@/lib/api/internal";
+import { getBudget, listBudgets, listInternalEventOptions } from "@/lib/api/internal";
 import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
 import {
   formatDateTime,
   formatEnumLabel,
   formatMoney,
-  getRequestStateTone,
+  getBudgetStateTone,
 } from "@/lib/format";
-import { ApprovalDecisionForm } from "@/components/internal/approvals-actions";
-import { BudgetRequestForm, SubmitRequestButton } from "@/components/internal/requests-actions";
-import { DecisionHistoryCard } from "@/components/internal/decision-history-card";
+import { BudgetComposerForm, BudgetStateForm } from "@/components/internal/budgets-actions";
 import { FilterCard } from "@/components/internal/filter-card";
-import { SupportingDocumentList } from "@/components/internal/supporting-document-list";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -47,56 +39,37 @@ export default async function BudgetRequestsPage({
   const params = await searchParams;
   const eventId = typeof params.eventId === "string" ? params.eventId : undefined;
   const state = typeof params.state === "string" ? params.state : undefined;
-  const budgetRequestId =
-    typeof params.budgetRequestId === "string" ? params.budgetRequestId : undefined;
+  const budgetId = typeof params.budgetId === "string" ? params.budgetId : undefined;
 
   try {
     const user = await getCurrentUser();
-    const canSubmitRequests = hasAnyRole(user, ["SYSTEM_ADMIN", "EVENT_MANAGEMENT_USER"]);
-    const canApproveRequests = hasAnyRole(user, ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"]);
-    const [budgetRequests, events] = await Promise.all([
-      listBudgetRequests({ eventId, state }),
+    const canCreateOrReviseBudgets = hasAnyRole(user, ["SYSTEM_ADMIN", "EVENT_MANAGEMENT_USER"]);
+    const canApproveBudgets = hasAnyRole(user, ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"]);
+    const [budgets, events] = await Promise.all([
+      listBudgets({ eventId, state }),
       listInternalEventOptions(),
     ]);
-    const selectedBudgetRequestId =
-      budgetRequests.find((request) => request.id === budgetRequestId)?.id ?? budgetRequests[0]?.id;
-    const selectedRequest = selectedBudgetRequestId
-      ? await getBudgetRequest(selectedBudgetRequestId)
-      : null;
-    const selectedApprovalItem: ApprovalQueueItem | null =
-      selectedRequest &&
-      canApproveRequests &&
-      (selectedRequest.state === "SUBMITTED" || selectedRequest.state === "PENDING_REVIEW")
-        ? {
-            entityType: "BUDGET_REQUEST",
-            entityId: selectedRequest.id,
-            state: selectedRequest.state,
-            amount: selectedRequest.amount,
-            createdAt: selectedRequest.createdAt,
-            updatedAt: selectedRequest.updatedAt,
-            event: selectedRequest.event,
-            requestedBy: selectedRequest.requestedBy,
-            documentCount: selectedRequest.documents.length,
-            decisionCount: selectedRequest.approvalDecisions.length,
-            summary: {
-              purpose: selectedRequest.purpose,
-              justification: selectedRequest.justification,
-            },
-          }
-        : null;
+    const selectedBudgetId = budgets.find((budget) => budget.id === budgetId)?.id ?? budgets[0]?.id;
+    const selectedBudget = selectedBudgetId ? await getBudget(selectedBudgetId) : null;
 
     return (
       <>
         <PageHeader
           eyebrow="Budget requests"
-          title="Prepare funding requests with protected document and decision history"
-          description="Budget requests stay separate from budgets themselves. They move through review with explicit approval records and no silent status changes."
+          title="Create, submit, review, and revise full event budgets"
+          description="Event managers build full itemized budget versions here. Approvers either approve the submitted version as the final budget or return it for revision."
           action={
             <div className="flex flex-wrap gap-2">
-              <Badge variant="info">{budgetRequests.length} visible requests</Badge>
+              <Badge variant="info">{budgets.length} visible version(s)</Badge>
               <Badge variant="success">
-                {budgetRequests.filter((request) => request.state === "APPROVED").length} approved
+                {budgets.filter((budget) => budget.state === "APPROVED").length} approved
               </Badge>
+              <Link
+                href="/dashboard/budgets"
+                className="focus-ring inline-flex h-8 items-center rounded-full border border-border bg-panel px-3 text-xs font-semibold text-foreground shadow-sm transition hover:border-primary/25 hover:bg-background hover:text-primary"
+              >
+                Final budgets
+              </Link>
             </div>
           }
         />
@@ -122,11 +95,9 @@ export default async function BudgetRequestsPage({
               options={[
                 { value: "", label: "All states" },
                 { value: "DRAFT", label: "Draft" },
-                { value: "SUBMITTED", label: "Submitted" },
-                { value: "PENDING_REVIEW", label: "Pending review" },
-                { value: "APPROVED", label: "Approved" },
-                { value: "RETURNED", label: "Returned" },
-                { value: "REJECTED", label: "Rejected" },
+                { value: "SUBMITTED", label: "Submitted for review" },
+                { value: "REVISED", label: "Returned for revision" },
+                { value: "APPROVED", label: "Approved final" },
               ]}
             />
           </Field>
@@ -135,57 +106,58 @@ export default async function BudgetRequestsPage({
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_420px]">
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl">Budget request queue</CardTitle>
+              <CardTitle className="text-xl">Budget version queue</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              {budgetRequests.length === 0 ? (
+              {budgets.length === 0 ? (
                 <StatePanel
                   icon={SearchSlash}
-                  title="No budget requests match this view"
-                  description="Create a new budget request below to start the protected review flow."
+                  title="No budget versions match this view"
+                  description="Event managers can create an itemized budget below and submit it for approver review."
                   tone="empty"
                 />
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Purpose</TableHead>
+                      <TableHead>Version</TableHead>
                       <TableHead>Event</TableHead>
-                      <TableHead>Amount</TableHead>
+                      <TableHead>Total</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {budgetRequests.map((request) => (
+                    {budgets.map((budget) => (
                       <TableRow
-                        key={request.id}
-                        data-state={request.id === selectedBudgetRequestId ? "selected" : undefined}
+                        key={budget.id}
+                        data-state={budget.id === selectedBudgetId ? "selected" : undefined}
                       >
                         <TableCell className="align-top">
                           <Link
                             href={`${buildRelativeHref("/dashboard/budget-requests", params, {
-                              budgetRequestId: request.id,
+                              budgetId: budget.id,
                             })}#details-panel`}
                             className={
-                              request.id === selectedBudgetRequestId
+                              budget.id === selectedBudgetId
                                 ? "focus-ring rounded-sm font-semibold text-primary"
                                 : "focus-ring rounded-sm font-semibold text-foreground hover:text-primary hover:underline"
                             }
-                            aria-current={
-                              request.id === selectedBudgetRequestId ? "page" : undefined
-                            }
+                            aria-current={budget.id === selectedBudgetId ? "page" : undefined}
                           >
-                            {request.purpose}
+                            v{budget.version}
+                            {budget.title ? ` - ${budget.title}` : ""}
                           </Link>
                           <div className="mt-1 text-xs text-muted-foreground">
-                            Requested by {request.requestedBy?.fullName ?? "Unknown"}
+                            Created by {budget.createdBy?.fullName ?? "Unknown"}
                           </div>
                         </TableCell>
-                        <TableCell>{request.event.title}</TableCell>
-                        <TableCell>{formatMoney(request.amount)}</TableCell>
+                        <TableCell>{budget.event.title}</TableCell>
                         <TableCell>
-                          <Badge variant={getRequestStateTone(request.state)}>
-                            {formatEnumLabel(request.state)}
+                          {budget.totalAmount ? formatMoney(budget.totalAmount) : "Pending total"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getBudgetStateTone(budget.state)}>
+                            {formatEnumLabel(budget.state)}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -197,71 +169,83 @@ export default async function BudgetRequestsPage({
           </Card>
 
           <div id="details-panel" className="space-y-6">
-            {selectedRequest ? (
-              <div key={selectedRequest.id} className="space-y-6">
+            {selectedBudget ? (
+              <div key={selectedBudget.id} className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl">Selected request</CardTitle>
+                    <CardTitle className="text-xl">Selected budget request</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4 pt-0">
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant={getRequestStateTone(selectedRequest.state)}>
-                        {formatEnumLabel(selectedRequest.state)}
+                      <Badge variant={getBudgetStateTone(selectedBudget.state)}>
+                        {formatEnumLabel(selectedBudget.state)}
                       </Badge>
-                      <Badge variant="neutral">{selectedRequest.event.title}</Badge>
+                      <Badge variant="neutral">{selectedBudget.event.title}</Badge>
+                      {selectedBudget.isActive ? <Badge variant="success">Final budget</Badge> : null}
                     </div>
                     <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4">
-                      <div className="data-kicker">Purpose</div>
+                      <div className="data-kicker">Version title</div>
                       <div className="mt-2 text-base font-semibold text-foreground">
-                        {selectedRequest.purpose}
+                        {selectedBudget.title ?? `Version ${selectedBudget.version}`}
                       </div>
-                      <div className="mt-2 text-sm leading-6 text-muted-foreground">
-                        {selectedRequest.justification ?? "No additional justification provided."}
+                      <div className="mt-1 text-sm text-muted-foreground">
+                        Created {formatDateTime(selectedBudget.createdAt)}
                       </div>
                     </div>
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <div className="rounded-[1rem] border border-border/70 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
-                        <div className="data-kicker">Amount</div>
-                        <div className="mt-2 text-foreground">
-                          {formatMoney(selectedRequest.amount)}
-                        </div>
+                    <div className="rounded-[1rem] border border-border/70 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
+                      <div className="data-kicker">Total amount</div>
+                      <div className="mt-2 text-foreground">
+                        {selectedBudget.totalAmount
+                          ? formatMoney(selectedBudget.totalAmount)
+                          : "Pending"}
                       </div>
-                      <div className="rounded-[1rem] border border-border/70 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
-                        <div className="data-kicker">Created</div>
-                        <div className="mt-2 text-foreground">
-                          {formatDateTime(selectedRequest.createdAt)}
+                    </div>
+                    <div className="space-y-3">
+                      {selectedBudget.items.map((item) => (
+                        <div
+                          key={item.id}
+                          className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <div className="text-sm font-semibold text-foreground">
+                                {item.label}
+                              </div>
+                              <div className="mt-1 text-xs text-muted-foreground">
+                                {item.category}
+                              </div>
+                            </div>
+                            <div className="text-sm font-semibold text-foreground">
+                              {formatMoney(item.amount)}
+                            </div>
+                          </div>
+                          {item.notes ? (
+                            <div className="mt-3 text-sm leading-6 text-muted-foreground">
+                              {item.notes}
+                            </div>
+                          ) : null}
                         </div>
-                      </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
-                <SupportingDocumentList documents={selectedRequest.documents} />
-                <DecisionHistoryCard decisions={selectedRequest.approvalDecisions} />
-                {selectedApprovalItem ? (
-                  <ApprovalDecisionForm item={selectedApprovalItem} />
-                ) : canSubmitRequests &&
-                (selectedRequest.state === "DRAFT" || selectedRequest.state === "RETURNED") ? (
-                  <SubmitRequestButton
-                    endpoint={`/requests/budget-requests/${selectedRequest.id}/submit`}
-                    label="Budget request"
-                  />
-                ) : !canSubmitRequests ? (
-                  <Card tone="muted">
-                    <CardHeader>
-                      <CardTitle className="text-xl">Read-only request visibility</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0 text-sm leading-6 text-muted-foreground">
-                      This session can inspect request history and decisions, but only the request
-                      authoring roles can create or submit budget requests from this page.
-                    </CardContent>
-                  </Card>
+
+                <BudgetStateForm
+                  budget={selectedBudget}
+                  canSubmit={canCreateOrReviseBudgets}
+                  canApprove={canApproveBudgets}
+                  canReturn={canApproveBudgets}
+                />
+
+                {canCreateOrReviseBudgets && selectedBudget.state === "REVISED" ? (
+                  <BudgetComposerForm events={events} budget={selectedBudget} />
                 ) : null}
               </div>
             ) : null}
+
+            {canCreateOrReviseBudgets ? <BudgetComposerForm events={events} /> : null}
           </div>
         </div>
-
-        {canSubmitRequests ? <BudgetRequestForm events={events} /> : null}
       </>
     );
   } catch (error) {
@@ -270,7 +254,7 @@ export default async function BudgetRequestsPage({
         <StatePanel
           icon={ShieldAlert}
           title="This account cannot access budget requests"
-          description="The live backend only grants budget-request visibility to permitted internal operational roles."
+          description="Budget request creation belongs to event managers, while review belongs to organizational approvers."
           tone="warning"
         />
       );

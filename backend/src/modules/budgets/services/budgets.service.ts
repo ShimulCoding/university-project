@@ -24,7 +24,7 @@ import type {
 
 const allowedBudgetStateTransitions: Record<BudgetState, BudgetState[]> = {
   [BudgetState.DRAFT]: [BudgetState.SUBMITTED],
-  [BudgetState.SUBMITTED]: [BudgetState.APPROVED],
+  [BudgetState.SUBMITTED]: [BudgetState.APPROVED, BudgetState.REVISED],
   [BudgetState.APPROVED]: [],
   [BudgetState.REVISED]: [],
 };
@@ -37,7 +37,7 @@ function assertBudgetReadPermissions(viewer: AuthenticatedUser) {
 
 function assertBudgetManagementPermissions(viewer: AuthenticatedUser) {
   if (!hasBudgetManagementAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to manage budgets.");
+    throw new AppError(403, "Only event-management roles can create or submit budget versions.");
   }
 }
 
@@ -165,10 +165,6 @@ export const budgetsService = {
       throw new AppError(404, "Budget not found.");
     }
 
-    if (budget.state === BudgetState.REVISED) {
-      throw new AppError(409, "A revised budget cannot be revised again.");
-    }
-
     const latestBudget = await budgetsRepository.findLatestBudgetVersion(budget.eventId);
 
     if (!latestBudget || latestBudget.id !== budget.id) {
@@ -216,7 +212,7 @@ export const budgetsService = {
     input: UpdateBudgetStateInput,
     auditMetadata?: AuditMetadata,
   ) {
-    if (input.state === BudgetState.APPROVED) {
+    if (input.state === BudgetState.APPROVED || input.state === BudgetState.REVISED) {
       assertBudgetApprovalPermissions(actor);
     } else {
       assertBudgetManagementPermissions(actor);
@@ -230,11 +226,27 @@ export const budgetsService = {
 
     assertBudgetStateTransition(budget.state, input.state);
 
-    if (input.state === BudgetState.APPROVED && budget.createdById === actor.id) {
+    if (
+      (input.state === BudgetState.APPROVED || input.state === BudgetState.REVISED) &&
+      budget.createdById === actor.id
+    ) {
       throw new AppError(409, "Self-approval is not allowed for budget versions.");
     }
 
-    const updatedBudget = await budgetsRepository.updateBudgetState(budgetId, input.state);
+    const updatedBudget =
+      input.state === BudgetState.APPROVED
+        ? await prisma.$transaction(async (tx) => {
+            const approvedBudget = await budgetsRepository.updateBudgetState(
+              budgetId,
+              input.state,
+              tx,
+            );
+            await budgetsRepository.deactivateEventBudgets(approvedBudget.eventId, tx);
+            return budgetsRepository.activateBudget(budgetId, tx);
+          })
+        : input.state === BudgetState.REVISED
+          ? await budgetsRepository.markBudgetRevised(budgetId)
+          : await budgetsRepository.updateBudgetState(budgetId, input.state);
 
     await auditService.record({
       actorId: actor.id,
@@ -246,6 +258,7 @@ export const budgetsService = {
         eventId: updatedBudget.event.id,
         previousState: budget.state,
         nextState: updatedBudget.state,
+        autoActivated: input.state === BudgetState.APPROVED,
       },
       ...auditMetadata,
     });

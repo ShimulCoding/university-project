@@ -82,8 +82,6 @@ export const updateBudgetStateSchema = z.object({
     budgetId: z.string().cuid(),
   }),
   body: z.object({
-    state: z
-      .nativeEnum(BudgetState)
-      .refine((value) => value !== BudgetState.REVISED, "Use the revision route instead."),
+    state: z.nativeEnum(BudgetState),
   }),
 });

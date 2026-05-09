@@ -101,7 +101,7 @@ export default async function HomePage() {
           <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[120px] pointer-events-none" />
           
           <div className="relative z-10 max-w-5xl mx-auto text-center space-y-10">
-            <Badge variant="outline" className="px-5 py-2 text-xs md:text-sm font-semibold tracking-widest uppercase shadow-sm border-primary/20 bg-primary/5 text-primary backdrop-blur-md">
+            <Badge variant="neutral" className="px-5 py-2 text-xs md:text-sm font-semibold tracking-widest uppercase shadow-sm border-primary/20 bg-primary/5 text-primary backdrop-blur-md">
               Metropolitan University • CSE Society
             </Badge>
             
@@ -160,7 +160,7 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent pointer-events-none" />
           
           <div className="text-center max-w-3xl mx-auto mb-20 px-4">
-            <Badge variant="outline" className="mb-6 bg-background">Core Infrastructure</Badge>
+            <Badge variant="neutral" className="mb-6 bg-background">Core Infrastructure</Badge>
             <h2 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight">Engineered for Trust</h2>
             <p className="mt-6 text-muted-foreground text-lg md:text-xl font-light leading-relaxed">
               Our system enforces rigorous cryptographic workflows to ensure every transaction is verified, justified, and publicly auditable.
@@ -226,7 +226,7 @@ export default async function HomePage() {
                         <div className="flex flex-col sm:flex-row sm:items-center p-6 lg:p-8 gap-6">
                           <div className="flex-1 space-y-3">
                             <div className="flex flex-wrap items-center gap-2 mb-1">
-                              <Badge variant="secondary" className="bg-muted/50 border-border/50 text-xs tracking-wider">
+                              <Badge variant="neutral" className="bg-muted/50 border-border/50 text-xs tracking-wider">
                                 {event.status.replace(/_/g, " ")}
                               </Badge>
                               {event.registrationWindow.state === "OPEN" && (

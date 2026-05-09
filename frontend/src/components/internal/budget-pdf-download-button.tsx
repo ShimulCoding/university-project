@@ -3,7 +3,7 @@
 import { Download } from "lucide-react";
 
 import type { BudgetRecord } from "@/types";
-import { formatDateTime, formatEnumLabel, formatMoney } from "@/lib/format";
+import { formatDateTime, formatEnumLabel } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 
 const pageWidth = 595.28;
@@ -17,10 +17,19 @@ type PdfPage = {
 
 function sanitizePdfText(value: string) {
   return value
-    .replace(/[^\x20-\x7E]/g, "?")
+    .replace(/[^\x20-\x7E]/g, "")
     .replace(/\\/g, "\\\\")
     .replace(/\(/g, "\\(")
     .replace(/\)/g, "\\)");
+}
+
+function money(v: string | number) {
+  const n = Number(v);
+  const formatted = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
+  return `Tk ${formatted}`;
 }
 
 function pdfText(value: string, x: number, y: number, size = 10, font = "F1") {
@@ -153,7 +162,7 @@ function createBudgetPdfBlob(budget: BudgetRecord) {
   addKeyValue("Created by", budget.createdBy?.fullName ?? "Not recorded");
   addKeyValue("Approved by", budget.approvedBy?.fullName ?? "Not recorded");
   addKeyValue("Approved at", budget.approvedAt ? formatDateTime(budget.approvedAt) : "Not recorded");
-  addKeyValue("Final total", budget.totalAmount ? formatMoney(budget.totalAmount) : "Not recorded");
+  addKeyValue("Final total", budget.totalAmount ? money(budget.totalAmount) : "Not recorded");
 
   y -= 12;
   ensureSpace(40);
@@ -187,7 +196,7 @@ function createBudgetPdfBlob(budget: BudgetRecord) {
     itemLines.forEach((line, lineIndex) => {
       currentPage.commands.push(pdfText(line, 165, rowTop - lineIndex * 14, line.startsWith("Notes:") ? 8 : 9));
     });
-    currentPage.commands.push(pdfText(formatMoney(item.amount), 482, rowTop, 9, "F2"));
+    currentPage.commands.push(pdfText(money(item.amount), 482, rowTop, 9, "F2"));
 
     y -= rowHeight;
     currentPage.commands.push(pdfLine(margin, y, pageWidth - margin, y));
@@ -199,7 +208,7 @@ function createBudgetPdfBlob(budget: BudgetRecord) {
   currentPage.commands.push(pdfLine(380, y, pageWidth - margin, y));
   y -= 16;
   addText("Final budget total", 380, 10, "F2");
-  addText(budget.totalAmount ? formatMoney(budget.totalAmount) : "Not recorded", 482, 10, "F2");
+  addText(budget.totalAmount ? money(budget.totalAmount) : "Not recorded", 482, 10, "F2");
 
   return createPdf(pages);
 }

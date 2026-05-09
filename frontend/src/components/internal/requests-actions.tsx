@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Send, ShieldCheck } from "lucide-react";
 
-import type { EventSummary, ExpenseRequestRecord } from "@/types";
+import type { BudgetRecord, EventSummary, ExpenseRequestRecord } from "@/types";
 import { postEmpty, postFormData, postJson } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -267,12 +267,20 @@ export function SubmitRequestButton({
 export function ExpenseRecordForm({
   events,
   expenseRequests,
+  budgets,
 }: {
   events: EventOption[];
   expenseRequests: Pick<ExpenseRequestRecord, "id" | "purpose" | "event">[];
+  budgets: Pick<BudgetRecord, "event" | "items">[];
 }) {
   const formRef = useRef<HTMLFormElement | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?.id ?? "");
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
+
+  const activeBudget = budgets.find((b) => b.event.id === selectedEventId);
+  const budgetCategories = activeBudget
+    ? Array.from(new Set(activeBudget.items.map((item) => item.category)))
+    : [];
 
   return (
     <Card>
@@ -303,7 +311,11 @@ export function ExpenseRecordForm({
           <Field label="Event">
             <Select
               name="eventId"
-              onChange={clearFeedback}
+              defaultValue={selectedEventId}
+              onChange={(e) => {
+                setSelectedEventId(e.target.value);
+                clearFeedback();
+              }}
               options={events.map((item) => ({
                 value: item.id,
                 label: item.title,
@@ -337,10 +349,16 @@ export function ExpenseRecordForm({
             <Field label="Category">
               <Input
                 name="category"
+                list="budget-categories-list"
                 placeholder="e.g. Operations"
                 onChange={clearFeedback}
                 required
               />
+              <datalist id="budget-categories-list">
+                {budgetCategories.map((category) => (
+                  <option key={category} value={category} />
+                ))}
+              </datalist>
             </Field>
           </div>
           <div className="grid gap-4 md:grid-cols-2">

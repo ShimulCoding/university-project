@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/api/student";
 import { hasAnyRole } from "@/lib/access";
 import {
   getExpenseRecord,
+  listBudgets,
   listExpenseRecords,
   listExpenseRequests,
   listInternalEventOptions,
@@ -52,10 +53,11 @@ export default async function ExpenseRecordsPage({
   try {
     const user = await getCurrentUser();
     const canManageExpenseRecords = hasAnyRole(user, ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"]);
-    const [expenseRecords, events, expenseRequests] = await Promise.all([
+    const [expenseRecords, events, expenseRequests, activeBudgets] = await Promise.all([
       listExpenseRecords({ eventId, state }),
       listInternalEventOptions(),
       listExpenseRequests({ state: "APPROVED" }),
+      listBudgets({ state: "APPROVED" }),
     ]);
     const selectedExpenseRecordId =
       expenseRecords.find((record) => record.id === expenseRecordId)?.id ?? expenseRecords[0]?.id;
@@ -251,7 +253,7 @@ export default async function ExpenseRecordsPage({
         </div>
 
         {canManageExpenseRecords ? (
-          <ExpenseRecordForm events={events} expenseRequests={expenseRequests} />
+          <ExpenseRecordForm events={events} expenseRequests={expenseRequests} budgets={activeBudgets} />
         ) : null}
       </>
     );

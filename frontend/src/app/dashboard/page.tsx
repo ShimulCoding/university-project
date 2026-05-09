@@ -1,4 +1,16 @@
 import Link from "next/link";
+import {
+  FileText,
+  CheckSquare,
+  ShieldAlert,
+  Globe,
+  Activity,
+  User,
+  ShieldCheck,
+  ChevronRight,
+  Database,
+  LockKeyhole
+} from "lucide-react";
 
 import { getCurrentUser } from "@/lib/api/student";
 import { hasAnyRole } from "@/lib/access";
@@ -19,7 +31,6 @@ import {
 import { dashboardNavigation } from "@/lib/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const dynamic = "force-dynamic";
@@ -68,9 +79,9 @@ export default async function DashboardOverviewPage() {
     safeFetch(canSeeBudgetRequests ? listBudgetRequests({}) : Promise.resolve([]), []),
     safeFetch(canSeeBudgetRequests ? listExpenseRequests({}) : Promise.resolve([]), []),
   ]);
+  
   const latestPublicSummaries = getLatestPublishedSummariesPerEvent(publicSummaries);
-  const historicalPublishedSnapshotCount =
-    getHistoricalPublishedSnapshotCount(publicSummaries);
+  const historicalPublishedSnapshotCount = getHistoricalPublishedSnapshotCount(publicSummaries);
 
   const quickLinks = dashboardNavigation
     .filter((item) => item.href !== "/dashboard" && item.href !== "/dashboard/controls")
@@ -78,27 +89,31 @@ export default async function DashboardOverviewPage() {
 
   const metrics = [
     {
-      label: "Payment proofs waiting",
+      label: "Pending Verification",
       value: verificationQueue.length,
-      detail: "Finance-only proof submissions still pending verification.",
+      detail: "Payment proofs awaiting controller verification.",
+      icon: FileText,
       visible: canSeeFinance,
     },
     {
-      label: "Decision queue",
+      label: "Decision Queue",
       value: approvalQueue.length,
-      detail: "Submitted requests waiting for approver action.",
+      detail: "Workflows awaiting authorized approval.",
+      icon: CheckSquare,
       visible: canSeeApprovals,
     },
     {
-      label: "Complaint review",
+      label: "Active Complaints",
       value: complaints.length,
-      detail: "Protected complaint items currently visible to internal reviewers.",
+      detail: "Protected grievance items under review.",
+      icon: ShieldAlert,
       visible: canSeeComplaints,
     },
     {
-      label: "Public event pages",
+      label: "Published Ledgers",
       value: latestPublicSummaries.length,
-      detail: "Latest public-safe summary currently visible per published event.",
+      detail: "Reconciled snapshots available publicly.",
+      icon: Globe,
       visible: true,
     },
   ].filter((metric) => metric.visible);
@@ -113,126 +128,161 @@ export default async function DashboardOverviewPage() {
   const queueRows = [
     {
       href: "/dashboard/payments",
-      label: "Payment verification",
+      label: "Payment Verification",
       count: verificationQueue.length,
-      detail: "External proof submissions waiting for finance review.",
+      detail: "External proof submissions queued for finance clearance.",
       visible: canSeeFinance,
     },
     {
       href: "/dashboard/budget-requests",
-      label: "Budget requests",
+      label: "Budget Authorizations",
       count: budgetRequestQueueCount,
-      detail: "Funding requests waiting in the protected approval workflow.",
+      detail: "Funding proposals waiting in the protected approval workflow.",
       visible: canSeeBudgetRequests,
     },
     {
       href: "/dashboard/expense-requests",
-      label: "Expense requests",
+      label: "Expense Clearances",
       count: expenseRequestQueueCount,
-      detail: "Expense requests waiting in the protected approval workflow.",
+      detail: "Expenditure requests waiting in the protected approval workflow.",
       visible: canSeeBudgetRequests,
     },
     {
       href: "/dashboard/approvals",
-      label: "Approvals",
+      label: "System Approvals",
       count: approvalQueue.length,
-      detail: "Items waiting for a decision that cannot be self-approved.",
+      detail: "Critical items requiring cross-tier authorization.",
       visible: canSeeApprovals,
     },
     {
       href: "/dashboard/complaints",
-      label: "Complaints",
+      label: "Dispute Resolutions",
       count: complaints.length,
-      detail: "Protected complaints visible to routing and escalation roles.",
+      detail: "Encrypted complaints visible to escalation authorities.",
       visible: canSeeComplaints,
     },
   ].filter((item) => item.visible);
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Internal overview"
-        title="Operate finance, approvals, complaints, closure, and audit as one trust-first system"
-        description="This landing view reflects the live backend session rather than foundation-only mock content. Public-safe publication stays separate from protected evidence, routing, decision, and audit layers."
-        action={
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="success">Protected routes active</Badge>
-            <Badge variant="warning">{quickLinks.length} internal views enabled</Badge>
-            <Badge variant="info">{latestPublicSummaries.length} public page(s)</Badge>
-            {historicalPublishedSnapshotCount > 0 ? (
-              <Badge variant="neutral">
-                {historicalPublishedSnapshotCount} historical snapshot(s)
+    <div className="flex flex-col gap-8 pb-16">
+      {/* HERO / POSTURE SECTION */}
+      <section className="relative overflow-hidden rounded-3xl border border-border/20 bg-background/50 shadow-2xl shadow-black/5 backdrop-blur-3xl px-8 py-10 lg:px-12 lg:py-12">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+        <div className="absolute top-0 right-0 -z-10 m-auto h-[300px] w-[300px] rounded-full bg-primary/10 opacity-70 blur-[100px] pointer-events-none translate-x-1/4 -translate-y-1/4" />
+        
+        <div className="relative z-10 flex flex-col lg:flex-row gap-8 lg:items-center justify-between">
+          <div className="space-y-4 max-w-2xl">
+            <Badge variant="success" className="px-3 py-1 font-semibold tracking-wider uppercase border-success/30 bg-success/10 text-success backdrop-blur-md">
+              <ShieldCheck className="w-3 h-3 mr-1.5 inline-block" />
+              Secure Session Active
+            </Badge>
+            <h1 className="text-3xl lg:text-5xl font-black tracking-tight text-foreground">
+              Operations <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-primary/80 to-primary/50">Command</span>
+            </h1>
+            <p className="text-muted-foreground text-lg leading-relaxed font-light">
+              Govern finances, verify submissions, and execute approvals within a zero-trust, completely auditable ecosystem. All actions are cryptographically bound to your identity.
+            </p>
+            <div className="flex flex-wrap gap-2 pt-2">
+              <Badge variant="neutral" className="bg-background/50 backdrop-blur-sm border-border/50 text-xs">
+                {quickLinks.length} Modules Authorized
               </Badge>
-            ) : null}
+              <Badge variant="neutral" className="bg-background/50 backdrop-blur-sm border-border/50 text-xs">
+                {latestPublicSummaries.length} Public Disclosures
+              </Badge>
+              {historicalPublishedSnapshotCount > 0 && (
+                <Badge variant="neutral" className="bg-background/50 backdrop-blur-sm border-border/50 text-xs">
+                  {historicalPublishedSnapshotCount} Archived Snapshots
+                </Badge>
+              )}
+            </div>
           </div>
-        }
-      />
 
-      <section className="surface-panel-muted grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center">
-        <div>
-          <div className="data-kicker">Live backend posture</div>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-            Protected workflows stay operational, explicit, and audit-friendly.
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-            The internal shell now runs on the real verification, approval, complaints,
-            reconciliation, publication, and audit modules. It is designed to read like a real
-            operating surface, not a generic dashboard template.
-          </p>
-        </div>
-        <div className="rounded-[1.25rem] border border-primary/10 bg-panel px-5 py-5 shadow-sm">
-          <div className="data-kicker">Current session</div>
-          <div className="mt-3 text-lg font-semibold text-foreground">{user?.fullName}</div>
-          <div className="mt-1 text-sm text-muted-foreground">{user?.email}</div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {roles.map((role) => (
-              <Badge key={role} variant="info">
-                {formatEnumLabel(role)}
-              </Badge>
-            ))}
+          <div className="lg:min-w-[320px] rounded-2xl border border-primary/15 bg-background/60 backdrop-blur-md p-6 shadow-xl shadow-primary/5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-5 group-hover:scale-110 transition-all duration-500 pointer-events-none">
+              <User className="w-24 h-24" />
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
+              <div className="text-xs font-bold tracking-widest uppercase text-muted-foreground">Authenticated Identity</div>
+            </div>
+            <div className="text-xl font-bold text-foreground tracking-tight">{user?.fullName}</div>
+            <div className="text-sm text-muted-foreground font-mono mt-1">{user?.email}</div>
+            <div className="mt-5 flex flex-wrap gap-2 relative z-10">
+              {roles.map((role) => (
+                <Badge key={role} variant="info" className="text-[10px] tracking-wider uppercase border-info/30 bg-info/10">
+                  {formatEnumLabel(role)}
+                </Badge>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => (
-          <Card key={metric.label}>
-            <div className="data-kicker">{metric.label}</div>
-            <div className="metric-figure mt-4">{metric.value}</div>
-            <div className="mt-3 text-sm leading-6 text-muted-foreground">{metric.detail}</div>
-          </Card>
-        ))}
+      {/* METRICS ROW */}
+      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        {metrics.map((metric) => {
+          const Icon = metric.icon;
+          return (
+            <Card key={metric.label} className="border-border/40 shadow-lg shadow-black/5 bg-background/40 backdrop-blur-xl hover:bg-background/60 transition-all duration-300 hover:-translate-y-1 group">
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardDescription className="font-semibold text-muted-foreground uppercase tracking-wider text-xs">{metric.label}</CardDescription>
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:scale-110 transition-transform">
+                  <Icon className="h-5 w-5" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-4xl font-black text-foreground tracking-tight">{metric.value}</div>
+                <p className="mt-3 text-xs text-muted-foreground leading-relaxed font-medium">
+                  {metric.detail}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_0.92fr]">
-        <Card>
-          <CardHeader>
-            <Badge variant="warning">Action queues</Badge>
-            <CardTitle className="mt-3">Where protected work is still pending</CardTitle>
-            <CardDescription>
-              Each internal workflow keeps the same pattern: queue first, detail second, action
-              third, and audit trail behind it.
-            </CardDescription>
+      {/* QUEUES & POSTURE */}
+      <section className="grid gap-8 xl:grid-cols-[minmax(0,1.2fr)_0.8fr]">
+        
+        {/* ACTION QUEUES */}
+        <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/40 backdrop-blur-xl overflow-hidden flex flex-col">
+          <CardHeader className="border-b border-border/30 bg-muted/10">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-warning/10 flex items-center justify-center text-warning border border-warning/20">
+                <Activity className="h-4 w-4" />
+              </div>
+              <div>
+                <CardTitle className="text-xl tracking-tight">Active Workflows</CardTitle>
+                <CardDescription className="mt-1">Pending operations requiring immediate authorization or review.</CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 flex-1">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted/30">
                 <TableRow>
-                  <TableHead>Workflow</TableHead>
-                  <TableHead>Open count</TableHead>
-                  <TableHead>Current meaning</TableHead>
+                  <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12 px-6">Pipeline</TableHead>
+                  <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12">Pending</TableHead>
+                  <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12">Directive</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {queueRows.map((row) => (
-                  <TableRow key={row.href}>
-                    <TableCell className="font-semibold text-foreground">
-                      <Link href={row.href} className="hover:text-primary">
+                  <TableRow key={row.href} className="hover:bg-muted/20 transition-colors">
+                    <TableCell className="font-bold text-foreground px-6 py-4">
+                      <Link href={row.href} className="flex items-center gap-2 hover:text-primary transition-colors">
                         {row.label}
+                        <ChevronRight className="h-4 w-4 opacity-50" />
                       </Link>
                     </TableCell>
-                    <TableCell>{row.count}</TableCell>
-                    <TableCell className="text-muted-foreground">{row.detail}</TableCell>
+                    <TableCell>
+                      <Badge variant={row.count > 0 ? "warning" : "neutral"} className="font-mono px-2 py-0.5">
+                        {row.count}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm font-light">
+                      {row.detail}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -240,89 +290,83 @@ export default async function DashboardOverviewPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <Badge variant="info">Closure posture</Badge>
-              <CardTitle className="mt-3">Reconciliation and publication boundary</CardTitle>
-              <CardDescription>
-                Closure becomes public only after reconciliation is finalized and an explicit
-                summary-safe snapshot is published.
-              </CardDescription>
+        <div className="space-y-8 flex flex-col">
+          
+          {/* CLOSURE POSTURE */}
+          <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/40 backdrop-blur-xl flex-1">
+            <CardHeader className="border-b border-border/30 bg-muted/10">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-info/10 flex items-center justify-center text-info border border-info/20">
+                  <Database className="h-4 w-4" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl tracking-tight">System Settlement</CardTitle>
+                  <CardDescription className="mt-1">Cryptographic reconciliation and reporting status.</CardDescription>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="grid gap-3 pt-0 md:grid-cols-2">
-              <div className="rounded-[1.1rem] border border-border/70 bg-panel-muted px-4 py-4">
-                <div className="data-kicker">Reconciliation reports</div>
-                <div className="mt-2 text-2xl font-semibold text-foreground">
-                  {reconciliationReports.length}
+            <CardContent className="p-6 grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-2xl border border-border/50 bg-background/50 p-5 hover:bg-muted/30 transition-colors">
+                  <div className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-2">Finalized Reports</div>
+                  <div className="text-3xl font-black text-foreground">{reconciliationReports.filter((report) => report.status === "FINALIZED").length}</div>
+                  <div className="mt-1 text-xs text-muted-foreground font-light">Out of {reconciliationReports.length} generated</div>
                 </div>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  {reconciliationReports.filter((report) => report.status === "FINALIZED").length} finalized
-                </div>
-              </div>
-              <div className="rounded-[1.1rem] border border-border/70 bg-panel-muted px-4 py-4">
-                <div className="data-kicker">Reviewed reports</div>
-                <div className="mt-2 text-2xl font-semibold text-foreground">
-                  {reconciliationReports.filter((report) => report.status === "REVIEWED").length}
-                </div>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  Reports reviewed internally before finalization
+                <div className="rounded-2xl border border-border/50 bg-background/50 p-5 hover:bg-muted/30 transition-colors">
+                  <div className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-2">Internal Reviews</div>
+                  <div className="text-3xl font-black text-foreground">{reconciliationReports.filter((report) => report.status === "REVIEWED").length}</div>
+                  <div className="mt-1 text-xs text-muted-foreground font-light">Awaiting closure</div>
                 </div>
               </div>
-              <div className="md:col-span-2 rounded-[1.1rem] border border-border/70 bg-panel px-4 py-4">
-                <div className="data-kicker">Public release posture</div>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="text-lg font-semibold text-foreground">
-                    {latestPublicSummaries.length} live public page(s)
-                  </span>
-                  {historicalPublishedSnapshotCount > 0 ? (
-                    <Badge variant="neutral">
-                      {historicalPublishedSnapshotCount} historical snapshot(s)
-                    </Badge>
-                  ) : null}
-                </div>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  The public side resolves to the latest published release for each event,
-                  while earlier published versions remain part of protected internal history.
-                </div>
-              </div>
+
               {reconciliationReports.slice(0, 2).map((report) => (
-                <div
-                  key={report.id}
-                  className="md:col-span-2 rounded-[1.1rem] border border-border/70 bg-panel px-4 py-4"
-                >
-                  <div className="font-semibold text-foreground">{report.event.title}</div>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    {formatMoney(report.totalIncome)} income / {formatMoney(report.totalExpense)} expense / updated{" "}
-                    {formatDateTime(report.finalizedAt ?? report.createdAt)}
+                <div key={report.id} className="rounded-2xl border border-border/50 bg-background/50 p-4 flex flex-col gap-1 hover:bg-muted/30 transition-colors">
+                  <div className="font-bold text-foreground tracking-tight">{report.event.title}</div>
+                  <div className="text-xs text-muted-foreground font-mono bg-muted/50 w-fit px-2 py-0.5 rounded">
+                    IN: {formatMoney(report.totalIncome)} • OUT: {formatMoney(report.totalExpense)}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                    Updated {formatDateTime(report.finalizedAt ?? report.createdAt)}
                   </div>
                 </div>
               ))}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <Badge variant="neutral">Quick routes</Badge>
-              <CardTitle className="mt-3">Views available to this session</CardTitle>
+          {/* QUICK ROUTES */}
+          <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/40 backdrop-blur-xl">
+            <CardHeader className="border-b border-border/30 bg-muted/10 py-4">
+              <div className="flex items-center gap-3">
+                <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                  <LockKeyhole className="h-3 w-3" />
+                </div>
+                <CardTitle className="text-lg tracking-tight">Authorized Operations</CardTitle>
+              </div>
             </CardHeader>
-            <CardContent className="grid gap-3 pt-0">
-              {quickLinks.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="rounded-[1.1rem] border border-border/70 bg-panel px-4 py-4 transition-colors hover:border-primary/20 hover:bg-panel-muted"
-                >
-                  <div className="text-sm font-semibold text-foreground">{item.label}</div>
-                  <div className="mt-1 text-sm leading-6 text-muted-foreground">
-                    {item.description}
-                  </div>
-                </Link>
-              ))}
+            <CardContent className="p-4 grid gap-3 sm:grid-cols-2">
+              {quickLinks.map((item) => {
+                const RouteIcon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="group flex flex-col gap-1 rounded-xl border border-border/40 bg-background/50 p-4 transition-all hover:border-primary/30 hover:bg-primary/5 hover:shadow-md hover:shadow-primary/5"
+                  >
+                    <div className="flex items-center gap-2 text-sm font-bold text-foreground group-hover:text-primary transition-colors tracking-tight">
+                      {RouteIcon && <RouteIcon className="h-4 w-4" />}
+                      {item.label}
+                    </div>
+                    <div className="text-xs leading-relaxed text-muted-foreground font-light">
+                      {item.description}
+                    </div>
+                  </Link>
+                );
+              })}
             </CardContent>
           </Card>
+
         </div>
       </section>
-    </>
+    </div>
   );
 }

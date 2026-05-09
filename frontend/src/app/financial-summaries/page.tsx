@@ -1,28 +1,12 @@
-import { AlertTriangle, CheckCircle2, EyeOff, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Landmark, LineChart, Archive } from "lucide-react";
 
-import { disclosureBoundary, publicationChecklist } from "@/features/foundation/data/demo-content";
 import { listPublicFinancialSummaries } from "@/lib/api/public";
 import { ApiError } from "@/lib/api/shared";
 import { formatMoney } from "@/lib/format";
 import { PublicSummaryCard } from "@/components/public/public-summary-card";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatePanel } from "@/components/ui/state-panel";
 import {
   getHistoricalPublishedSnapshotCount,
@@ -43,162 +27,121 @@ export default async function FinancialSummariesPage() {
 
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
-          <PageHeader
-            eyebrow="Published summaries"
-            title="Public-safe financial outcomes, not raw internal operations"
-            description="Published summaries come from the live backend and only expose totals and high-level breakdowns that have crossed the finalized publication boundary."
-          />
-
-          <div className="mt-8 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card tone="muted" className="flex h-full flex-col justify-between">
-                <div className="data-kicker">Published events</div>
-                <div className="metric-figure mt-4">
-                  {latestSummaries.length}
-                </div>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  Latest public-safe snapshot currently visible for each published event.
-                </p>
-              </Card>
-              <Card tone="muted" className="flex h-full flex-col justify-between">
-                <div className="data-kicker">Total disclosed collection</div>
-                <div className="metric-figure mt-4">
-                  {formatMoney(totalCollected)}
-                </div>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  Aggregated across the latest published snapshot for each event.
-                </p>
-              </Card>
-              <Card tone="muted" className="flex h-full flex-col justify-between">
-                <div className="data-kicker">Historical snapshots</div>
-                <div className="metric-figure mt-4">
-                  {historicalSnapshotCount}
-                </div>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  Earlier published versions stay part of protected internal release history.
-                </p>
-              </Card>
+        <main className="flex flex-col min-h-screen bg-background selection:bg-primary/20">
+          
+          {/* HERO HEADER */}
+          <section className="relative overflow-hidden pt-24 pb-16 lg:pt-32 lg:pb-20 section-shell border-b border-border/10">
+            {/* Background effects */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+            <div className="absolute top-0 left-0 -z-10 m-auto h-[400px] w-[400px] rounded-full bg-success/10 opacity-60 blur-[120px] pointer-events-none -translate-x-1/3 -translate-y-1/3" />
+            
+            <div className="relative z-10 max-w-4xl space-y-6">
+              <Badge variant="success" className="px-4 py-1.5 text-xs font-semibold tracking-widest uppercase shadow-sm border-success/20 bg-success/5 text-success backdrop-blur-md">
+                Public Ledger
+              </Badge>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-foreground text-balance">
+                Financial <span className="text-transparent bg-clip-text bg-gradient-to-br from-success via-success/80 to-success/50">Disclosures</span>
+              </h1>
+              <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed font-light">
+                Explore fully verified and officially reconciled financial reports. Every disclosure published here has passed rigorous multi-tier review.
+              </p>
             </div>
-            <Card className="h-full">
-              <CardHeader>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/10 bg-primary/5 text-primary">
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
-                <CardTitle className="mt-4 text-xl">Publication is a governed release, not a data dump</CardTitle>
-                <CardDescription>
-                  The public side shows only the latest published snapshot per event:
-                  understandable totals, traceable timing, and confidence that unreconciled
-                  data has not leaked.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
+          </section>
 
-          {latestSummaries.length === 0 ? (
-            <div className="mt-10">
-              <StatePanel
-                icon={CheckCircle2}
-                tone="empty"
-                title="No published financial summaries are available yet"
-                description="When an event completes reconciliation and crosses the release boundary, its public-safe summary will appear here."
-              />
-            </div>
-          ) : (
-            <div className="mt-10 grid gap-6 lg:grid-cols-2">
-              {latestSummaries.map((summary) => (
-                <PublicSummaryCard key={summary.id} summary={summary} />
-              ))}
-            </div>
-          )}
-
-          <div className="mt-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-            <Card>
-              <CardHeader>
-                <Badge variant="info">Release conditions</Badge>
-                <CardTitle className="mt-3 text-xl">
-                  A summary becomes public only after closure logic passes
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                {publicationChecklist.map((item, index) => (
-                  <div
-                    key={item}
-                    className="flex items-start gap-3 rounded-[1.15rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground"
-                  >
-                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-panel text-xs font-semibold text-primary">
-                      {index + 1}
-                    </div>
-                    <span>{item}</span>
+          <section className="section-shell py-12 relative z-20">
+            {/* METRICS */}
+            <div className="grid gap-6 md:grid-cols-3 mb-16">
+              <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Published Reports</CardDescription>
+                  <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center text-success border border-success/20">
+                    <LineChart className="h-5 w-5" />
                   </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-black text-foreground tracking-tight">{latestSummaries.length}</div>
+                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
+                    Verified event snapshots available publicly.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Total Disclosed Collection</CardDescription>
+                  <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center text-success border border-success/20">
+                    <Landmark className="h-5 w-5" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-black text-success tracking-tight">{formatMoney(totalCollected)}</div>
+                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
+                    Aggregated funds across all published events.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Historical Snapshots</CardDescription>
+                  <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center text-success border border-success/20">
+                    <Archive className="h-5 w-5" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-black text-foreground tracking-tight">{historicalSnapshotCount}</div>
+                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
+                    Legacy versions preserved for internal audit history.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* REPORT LISTING */}
+            {latestSummaries.length === 0 ? (
+              <Card className="border-dashed border-border/50 bg-muted/10 rounded-3xl">
+                <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                  <CheckCircle2 className="h-16 w-16 text-muted-foreground/30 mb-6" />
+                  <p className="text-2xl font-bold text-foreground tracking-tight">No published disclosures</p>
+                  <p className="text-muted-foreground font-light mt-3 max-w-md mx-auto">
+                    When an initiative completes reconciliation and crosses the release boundary, its public-safe summary will be available here.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-8 lg:grid-cols-2">
+                {latestSummaries.map((summary) => (
+                  <PublicSummaryCard key={summary.id} summary={summary} />
                 ))}
-              </CardContent>
-            </Card>
-
-            <div className="space-y-6">
-              <Card tone="success">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-success" />
-                    <CardTitle className="text-xl">Included publicly</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-0">
-                  {disclosureBoundary.publicIncluded.map((item) => (
-                    <div
-                      key={item}
-                      className="rounded-[1.15rem] border border-success/15 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground"
-                    >
-                      {item}
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card tone="muted">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <EyeOff className="h-5 w-5 text-warning-foreground" />
-                    <CardTitle className="text-xl">Kept protected</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-0">
-                  {disclosureBoundary.publicExcluded.map((item) => (
-                    <div
-                      key={item}
-                      className="rounded-[1.15rem] border border-border/70 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground"
-                    >
-                      {item}
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+              </div>
+            )}
+          </section>
         </main>
       </PublicPageShell>
     );
   } catch (error) {
+    const message =
+      error instanceof ApiError ? error.message : "Unable to load public financial data right now.";
+
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
-          <PageHeader
-            eyebrow="Published summaries"
-            title="Public summaries are temporarily unavailable"
-            description="This page depends on live publish-safe backend data. If that data cannot be reached, the failure is shown explicitly."
-          />
-          <div className="mt-10">
+        <main className="flex flex-col min-h-screen bg-background">
+          <section className="relative overflow-hidden pt-24 pb-16 section-shell">
+            <div className="relative z-10 max-w-4xl space-y-4">
+              <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance">
+                Financial Disclosures
+              </h1>
+            </div>
+          </section>
+          
+          <section className="section-shell py-12">
             <StatePanel
               icon={AlertTriangle}
               tone="error"
-              title="Published summaries could not be loaded"
-              description={
-                error instanceof ApiError
-                  ? error.message
-                  : "An unexpected error prevented the summaries from loading."
-              }
+              title="System Temporarily Unavailable"
+              description={message}
             />
-          </div>
+          </section>
         </main>
       </PublicPageShell>
     );

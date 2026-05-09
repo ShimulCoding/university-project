@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert } from "lucide-react";
 
+import { BudgetPdfDownloadButton } from "@/components/internal/budget-pdf-download-button";
+
 import { getBudget, listBudgets, listInternalEventOptions } from "@/lib/api/internal";
 import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
@@ -155,11 +157,14 @@ export default async function BudgetsPage({
                     <CardTitle className="text-xl">Selected budget version</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4 pt-0">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Badge variant={getBudgetStateTone(selectedBudget.state)}>
                         {formatEnumLabel(selectedBudget.state)}
                       </Badge>
                       {selectedBudget.isActive ? <Badge variant="success">Active</Badge> : null}
+                      <div className="ml-auto">
+                        <BudgetPdfDownloadButton budget={selectedBudget} />
+                      </div>
                     </div>
                     <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4">
                       <div className="data-kicker">Version title</div>

@@ -67,6 +67,12 @@ export default async function BudgetsPage({
                 {budgets.filter((budget) => budget.isActive).length} active version(s)
               </Badge>
               <Badge variant="info">{budgets.length} visible versions</Badge>
+              <Link
+                href="/dashboard/budget-requests"
+                className="focus-ring inline-flex h-8 items-center rounded-full border border-border bg-panel px-3 text-xs font-semibold text-foreground shadow-sm transition hover:border-primary/25 hover:bg-background hover:text-primary"
+              >
+                Budget requests
+              </Link>
             </div>
           }
         />

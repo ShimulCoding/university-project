@@ -6,7 +6,6 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   ClipboardCheck,
-  ClipboardList,
   Coins,
   FileBadge2,
   FileSearch,
@@ -133,20 +132,8 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
   {
     href: "/dashboard/budgets",
     label: "Budgets",
-    description: "Budget versions and activation",
+    description: "Budget versions, requests, and activation",
     icon: WalletCards,
-    roles: [
-      "SYSTEM_ADMIN",
-      "FINANCIAL_CONTROLLER",
-      "ORGANIZATIONAL_APPROVER",
-      "EVENT_MANAGEMENT_USER",
-    ],
-  },
-  {
-    href: "/dashboard/budget-requests",
-    label: "Budget requests",
-    description: "Requested funding and review trail",
-    icon: ClipboardList,
     roles: [
       "SYSTEM_ADMIN",
       "FINANCIAL_CONTROLLER",

@@ -324,7 +324,7 @@ export default async function HomePage() {
                   </CardContent>
                   <CardFooter className="pt-6 pb-10 px-10">
                     <Button asChild size="lg" className="w-full rounded-full shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 h-16 text-lg font-bold">
-                      <Link href={`/financial-summaries/${latestSummary.id}`}>
+                      <Link href={`/financial-summaries/${latestSummary.event.slug}`}>
                         Review Complete Ledger
                       </Link>
                     </Button>

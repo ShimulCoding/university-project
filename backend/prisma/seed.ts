@@ -1,4 +1,4 @@
-import { AccountStatus, PrismaClient, RoleCode } from "@prisma/client";
+import { AccountStatus, EventStatus, PrismaClient, RoleCode } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 import { roleCatalog } from "../src/modules/roles/role-catalog";
@@ -84,9 +84,126 @@ async function seedAdminUser() {
   console.log(`Seeded system admin user: ${normalizedEmail}`);
 }
 
+/**
+ * Create demo internal users and assign them to a demo event.
+ * Each demo user gets both a global role AND an event-scoped team assignment.
+ */
+async function seedDemoEventTeam() {
+  const demoPassword = process.env.SEED_DEMO_PASSWORD?.trim() || "DemoPass123!";
+  const passwordHash = await bcrypt.hash(demoPassword, 12);
+
+  const demoUsers = [
+    {
+      fullName: "Finance Controller (Demo)",
+      email: "demo.finance@example.com",
+      globalRoleCode: RoleCode.FINANCIAL_CONTROLLER,
+      eventRoleCode: RoleCode.FINANCIAL_CONTROLLER,
+    },
+    {
+      fullName: "Organizational Approver (Demo)",
+      email: "demo.approver@example.com",
+      globalRoleCode: RoleCode.ORGANIZATIONAL_APPROVER,
+      eventRoleCode: RoleCode.ORGANIZATIONAL_APPROVER,
+    },
+    {
+      fullName: "Event Manager (Demo)",
+      email: "demo.event.manager@example.com",
+      globalRoleCode: RoleCode.EVENT_MANAGEMENT_USER,
+      eventRoleCode: RoleCode.EVENT_MANAGEMENT_USER,
+    },
+    {
+      fullName: "Event Admin (Demo)",
+      email: "demo.event.admin@example.com",
+      globalRoleCode: RoleCode.EVENT_ADMIN,
+      eventRoleCode: RoleCode.EVENT_ADMIN,
+    },
+  ];
+
+  // Create or find users with their global roles
+  const userRecords: Array<{ id: string; email: string; eventRoleCode: RoleCode }> = [];
+
+  for (const demoUser of demoUsers) {
+    const email = normalizeEmail(demoUser.email);
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: { fullName: demoUser.fullName, passwordHash, status: AccountStatus.ACTIVE },
+      create: {
+        fullName: demoUser.fullName,
+        email,
+        passwordHash,
+        status: AccountStatus.ACTIVE,
+      },
+    });
+
+    // Assign global role
+    const role = await prisma.role.findUnique({ where: { code: demoUser.globalRoleCode } });
+    if (role) {
+      const existingAssignment = await prisma.userRole.findFirst({
+        where: { userId: user.id, roleId: role.id, revokedAt: null },
+      });
+      if (!existingAssignment) {
+        await prisma.userRole.create({ data: { userId: user.id, roleId: role.id } });
+      }
+    }
+
+    userRecords.push({ id: user.id, email, eventRoleCode: demoUser.eventRoleCode });
+    console.log(`Seeded demo user: ${email} with role ${demoUser.globalRoleCode}`);
+  }
+
+  // Create a demo event
+  const demoEvent = await prisma.event.upsert({
+    where: { slug: "demo-event-2026" },
+    update: {
+      title: "Demo Event 2026",
+      description:
+        "A demonstration event for reviewing the event-scoped role architecture. All demo team members are assigned to this event.",
+      status: EventStatus.PUBLISHED,
+    },
+    create: {
+      title: "Demo Event 2026",
+      slug: "demo-event-2026",
+      description:
+        "A demonstration event for reviewing the event-scoped role architecture. All demo team members are assigned to this event.",
+      status: EventStatus.PUBLISHED,
+      registrationOpensAt: new Date(),
+      registrationClosesAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      startsAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+      endsAt: new Date(Date.now() + 46 * 24 * 60 * 60 * 1000),
+      capacity: 100,
+    },
+  });
+
+  console.log(`Seeded demo event: ${demoEvent.title} (${demoEvent.slug})`);
+
+  // Assign each demo user to the demo event
+  for (const record of userRecords) {
+    await prisma.eventTeamMember.upsert({
+      where: {
+        eventId_userId_roleCode: {
+          eventId: demoEvent.id,
+          userId: record.id,
+          roleCode: record.eventRoleCode,
+        },
+      },
+      update: {
+        revokedAt: null,
+        assignedAt: new Date(),
+      },
+      create: {
+        eventId: demoEvent.id,
+        userId: record.id,
+        roleCode: record.eventRoleCode,
+      },
+    });
+
+    console.log(`  → Assigned ${record.email} as ${record.eventRoleCode} for ${demoEvent.title}`);
+  }
+}
+
 async function main() {
   await seedRoles();
   await seedAdminUser();
+  await seedDemoEventTeam();
 
   console.log("Prisma seed completed.");
 }

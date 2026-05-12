@@ -1,5 +1,6 @@
 export type AppRole =
   | "SYSTEM_ADMIN"
+  | "EVENT_ADMIN"
   | "FINANCIAL_CONTROLLER"
   | "ORGANIZATIONAL_APPROVER"
   | "EVENT_MANAGEMENT_USER"
@@ -69,6 +70,18 @@ export type PublicFinancialSummaryBreakdownLine = {
 
 export type BadgeTone = "neutral" | "info" | "success" | "warning" | "danger";
 
+export type EventRoleAssignment = {
+  eventId: string;
+  roleCode: AppRole;
+  assignedAt: string;
+  event: {
+    id: string;
+    title: string;
+    slug: string;
+    status: EventStatus;
+  };
+};
+
 export type UserProfile = {
   id: string;
   fullName: string;
@@ -79,6 +92,7 @@ export type UserProfile = {
   section: string | null;
   status: string;
   roles: AppRole[];
+  eventRoles: EventRoleAssignment[];
   lastLoginAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -317,6 +331,8 @@ export type BudgetRecord = {
   updatedAt: string;
   event: EventSummary;
   createdBy: ActorSummary | null;
+  approvedBy: ActorSummary | null;
+  approvedAt: string | null;
   items: BudgetItem[];
 };
 

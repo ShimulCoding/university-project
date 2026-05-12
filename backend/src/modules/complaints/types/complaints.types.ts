@@ -4,6 +4,7 @@ import type { PaginationInput } from "../../../utils/pagination";
 
 export type ComplaintQueueFilters = PaginationInput & {
   eventId?: string | undefined;
+  eventIds?: string[] | undefined;
   state?: ComplaintState | undefined;
   search?: string | undefined;
 };
@@ -38,5 +39,5 @@ export type CloseComplaintInput = {
 
 export type ComplaintRoutingRoleCode = Extract<
   RoleCode,
-  "SYSTEM_ADMIN" | "COMPLAINT_REVIEW_AUTHORITY" | "ORGANIZATIONAL_APPROVER"
+  "SYSTEM_ADMIN" | "EVENT_ADMIN" | "COMPLAINT_REVIEW_AUTHORITY" | "ORGANIZATIONAL_APPROVER"
 >;

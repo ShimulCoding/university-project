@@ -1,8 +1,9 @@
-import { BudgetState, Prisma } from "@prisma/client";
+import { BudgetState, Prisma, RoleCode } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import {
   hasApproverAccess,
@@ -21,6 +22,32 @@ import type {
   ReviseBudgetInput,
   UpdateBudgetStateInput,
 } from "../types/budgets.types";
+
+const budgetReadRoles = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.FINANCIAL_CONTROLLER,
+  RoleCode.ORGANIZATIONAL_APPROVER,
+  RoleCode.EVENT_MANAGEMENT_USER,
+] as RoleCode[];
+
+const budgetManagementRoles = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.EVENT_MANAGEMENT_USER,
+] as RoleCode[];
+
+const budgetApprovalRoles = [RoleCode.ORGANIZATIONAL_APPROVER] as RoleCode[];
+
+type BudgetApprovalLookup = Map<
+  string,
+  {
+    approvedAt: Date;
+    approvedBy: {
+      id: string;
+      fullName: string;
+      email: string;
+    } | null;
+  }
+>;
 
 const allowedBudgetStateTransitions: Record<BudgetState, BudgetState[]> = {
   [BudgetState.DRAFT]: [BudgetState.SUBMITTED],
@@ -81,18 +108,85 @@ function assertBudgetStateTransition(currentState: BudgetState, nextState: Budge
   }
 }
 
+function isApprovalStateChange(context: unknown) {
+  return (
+    typeof context === "object" &&
+    context !== null &&
+    "nextState" in context &&
+    (context as { nextState?: unknown }).nextState === BudgetState.APPROVED
+  );
+}
+
+async function getBudgetApprovalLookup(budgetIds: string[]) {
+  if (budgetIds.length === 0) {
+    return new Map() as BudgetApprovalLookup;
+  }
+
+  const logs = await prisma.auditLog.findMany({
+    where: {
+      action: "budgets.update_state",
+      entityType: "Budget",
+      entityId: {
+        in: budgetIds,
+      },
+    },
+    include: {
+      actor: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return logs.reduce<BudgetApprovalLookup>((lookup, log) => {
+    if (!lookup.has(log.entityId) && isApprovalStateChange(log.context)) {
+      lookup.set(log.entityId, {
+        approvedAt: log.createdAt,
+        approvedBy: log.actor ?? null,
+      });
+    }
+
+    return lookup;
+  }, new Map());
+}
+
+function mapBudgetWithApproval(
+  budget: Awaited<ReturnType<typeof budgetsRepository.findById>>,
+  approvalLookup: BudgetApprovalLookup,
+) {
+  if (!budget) {
+    return null;
+  }
+
+  const approval = approvalLookup.get(budget.id);
+
+  return {
+    ...mapBudget(budget),
+    approvedBy: approval?.approvedBy ?? null,
+    approvedAt: approval?.approvedAt ?? null,
+  };
+}
+
 export const budgetsService = {
   async listBudgets(viewer: AuthenticatedUser, filters: BudgetFilters) {
     assertBudgetReadPermissions(viewer);
 
+    const scopedFilters = scopeEventFilters(viewer, filters, budgetReadRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [budgets, totalItems] = await Promise.all([
-      budgetsRepository.listBudgets(filters, paginationOptions),
-      budgetsRepository.countBudgets(filters),
+      budgetsRepository.listBudgets(scopedFilters, paginationOptions),
+      budgetsRepository.countBudgets(scopedFilters),
     ]);
+    const approvalLookup = await getBudgetApprovalLookup(budgets.map((budget) => budget.id));
 
     return {
-      budgets: budgets.map(mapBudget),
+      budgets: budgets.map((budget) => mapBudgetWithApproval(budget, approvalLookup)!),
       pagination: buildPaginationResult(paginationOptions, totalItems),
     };
   },
@@ -106,7 +200,11 @@ export const budgetsService = {
       throw new AppError(404, "Budget not found.");
     }
 
-    return mapBudget(budget);
+    assertEventScopedAccess(viewer, budget.eventId, budgetReadRoles);
+
+    const approvalLookup = await getBudgetApprovalLookup([budget.id]);
+
+    return mapBudgetWithApproval(budget, approvalLookup);
   },
 
   async createBudget(
@@ -121,6 +219,8 @@ export const budgetsService = {
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
+
+    assertEventScopedAccess(actor, event.id, budgetManagementRoles);
 
     const latestBudget = await budgetsRepository.findLatestBudgetVersion(input.eventId);
     const version = latestBudget ? latestBudget.version + 1 : 1;
@@ -164,6 +264,8 @@ export const budgetsService = {
     if (!budget) {
       throw new AppError(404, "Budget not found.");
     }
+
+    assertEventScopedAccess(actor, budget.eventId, budgetManagementRoles);
 
     const latestBudget = await budgetsRepository.findLatestBudgetVersion(budget.eventId);
 
@@ -224,6 +326,14 @@ export const budgetsService = {
       throw new AppError(404, "Budget not found.");
     }
 
+    assertEventScopedAccess(
+      actor,
+      budget.eventId,
+      input.state === BudgetState.APPROVED || input.state === BudgetState.REVISED
+        ? budgetApprovalRoles
+        : budgetManagementRoles,
+    );
+
     assertBudgetStateTransition(budget.state, input.state);
 
     if (
@@ -278,6 +388,8 @@ export const budgetsService = {
     if (!budget) {
       throw new AppError(404, "Budget not found.");
     }
+
+    assertEventScopedAccess(actor, budget.eventId, budgetManagementRoles);
 
     if (budget.state !== BudgetState.APPROVED) {
       throw new AppError(409, "Only approved budget versions can be activated.");

@@ -45,6 +45,13 @@ export const roleMeta: Record<
     description: "Monitors protected access, audit views, and cross-module integrity.",
     focus: "Role safety, protected views, and platform trust.",
   },
+  EVENT_ADMIN: {
+    label: "Event Administrator",
+    shortLabel: "Event Admin",
+    description:
+      "Coordinates the assigned event-specific internal team, manages event configuration and oversight.",
+    focus: "Event team coordination, lifecycle management, and cross-functional oversight.",
+  },
   FINANCIAL_CONTROLLER: {
     label: "Financial Controller",
     shortLabel: "Finance",
@@ -98,6 +105,7 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
     icon: LayoutDashboard,
     roles: [
       "SYSTEM_ADMIN",
+      "EVENT_ADMIN",
       "FINANCIAL_CONTROLLER",
       "ORGANIZATIONAL_APPROVER",
       "EVENT_MANAGEMENT_USER",
@@ -118,6 +126,7 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
     icon: CalendarDays,
     roles: [
       "SYSTEM_ADMIN",
+      "EVENT_ADMIN",
       "EVENT_MANAGEMENT_USER",
       "FINANCIAL_CONTROLLER",
       "ORGANIZATIONAL_APPROVER",
@@ -137,6 +146,7 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
     icon: WalletCards,
     roles: [
       "SYSTEM_ADMIN",
+      "EVENT_ADMIN",
       "FINANCIAL_CONTROLLER",
       "ORGANIZATIONAL_APPROVER",
       "EVENT_MANAGEMENT_USER",
@@ -149,6 +159,7 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
     icon: ClipboardList,
     roles: [
       "SYSTEM_ADMIN",
+      "EVENT_ADMIN",
       "ORGANIZATIONAL_APPROVER",
       "EVENT_MANAGEMENT_USER",
     ],
@@ -160,6 +171,7 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
     icon: BriefcaseBusiness,
     roles: [
       "SYSTEM_ADMIN",
+      "EVENT_ADMIN",
       "FINANCIAL_CONTROLLER",
       "ORGANIZATIONAL_APPROVER",
       "EVENT_MANAGEMENT_USER",
@@ -172,6 +184,7 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
     icon: ReceiptText,
     roles: [
       "SYSTEM_ADMIN",
+      "EVENT_ADMIN",
       "FINANCIAL_CONTROLLER",
       "ORGANIZATIONAL_APPROVER",
       "EVENT_MANAGEMENT_USER",
@@ -189,21 +202,21 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
     label: "Complaints",
     description: "Protected review, routing, and escalation",
     icon: ShieldEllipsis,
-    roles: ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER", "COMPLAINT_REVIEW_AUTHORITY"],
+    roles: ["SYSTEM_ADMIN", "EVENT_ADMIN", "ORGANIZATIONAL_APPROVER", "COMPLAINT_REVIEW_AUTHORITY"],
   },
   {
     href: "/dashboard/reconciliation",
     label: "Reconciliation",
     description: "Closure reports and warning checks",
     icon: Files,
-    roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
+    roles: ["SYSTEM_ADMIN", "EVENT_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
   },
   {
     href: "/dashboard/publications",
     label: "Publications",
     description: "Public-safe release boundary",
     icon: Globe2,
-    roles: ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
+    roles: ["SYSTEM_ADMIN", "EVENT_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
   },
   {
     href: "/dashboard/audit",
@@ -219,11 +232,96 @@ export const dashboardNavigation: DashboardNavigationItem[] = [
     icon: ShieldCheck,
     roles: [
       "SYSTEM_ADMIN",
+      "EVENT_ADMIN",
       "FINANCIAL_CONTROLLER",
       "ORGANIZATIONAL_APPROVER",
       "EVENT_MANAGEMENT_USER",
       "COMPLAINT_REVIEW_AUTHORITY",
     ],
+  },
+];
+
+/**
+ * Navigation items for the event-scoped workspace at /dashboard/events/[slug]/…
+ * The `href` is relative to the event root — the shell prepends the event slug prefix.
+ */
+export const eventDashboardNavigation: DashboardNavigationItem[] = [
+  {
+    href: "",
+    label: "Event Overview",
+    description: "Event team dashboard and metrics",
+    icon: LayoutDashboard,
+    roles: ["EVENT_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER", "COMPLAINT_REVIEW_AUTHORITY"],
+  },
+  {
+    href: "/payments",
+    label: "Verification",
+    description: "Payment proof queue for this event",
+    icon: BadgeCheck,
+    roles: ["EVENT_ADMIN", "FINANCIAL_CONTROLLER"],
+  },
+  {
+    href: "/income-records",
+    label: "Income records",
+    description: "Event income tracking",
+    icon: Coins,
+    roles: ["EVENT_ADMIN", "FINANCIAL_CONTROLLER"],
+  },
+  {
+    href: "/budgets",
+    label: "Budgets",
+    description: "Event budget versions",
+    icon: WalletCards,
+    roles: ["EVENT_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
+  },
+  {
+    href: "/budget-requests",
+    label: "Budget requests",
+    description: "Event funding proposals",
+    icon: ClipboardList,
+    roles: ["EVENT_ADMIN", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
+  },
+  {
+    href: "/expense-requests",
+    label: "Expense requests",
+    description: "Spending requests for this event",
+    icon: BriefcaseBusiness,
+    roles: ["EVENT_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
+  },
+  {
+    href: "/expense-records",
+    label: "Expense records",
+    description: "Settled spending for this event",
+    icon: ReceiptText,
+    roles: ["EVENT_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
+  },
+  {
+    href: "/approvals",
+    label: "Approvals",
+    description: "Event approval queue",
+    icon: ClipboardCheck,
+    roles: ["EVENT_ADMIN", "ORGANIZATIONAL_APPROVER"],
+  },
+  {
+    href: "/complaints",
+    label: "Complaints",
+    description: "Event complaints review",
+    icon: ShieldEllipsis,
+    roles: ["EVENT_ADMIN", "ORGANIZATIONAL_APPROVER", "COMPLAINT_REVIEW_AUTHORITY"],
+  },
+  {
+    href: "/reconciliation",
+    label: "Reconciliation",
+    description: "Event closure reports",
+    icon: Files,
+    roles: ["EVENT_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
+  },
+  {
+    href: "/publications",
+    label: "Publications",
+    description: "Public-safe release for this event",
+    icon: Globe2,
+    roles: ["EVENT_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
   },
 ];
 

@@ -11,6 +11,7 @@ export type SubmitPaymentProofInput = {
 
 export type PaymentVerificationQueueFilters = PaginationInput & {
   eventId?: string | undefined;
+  eventIds?: string[] | undefined;
   search?: string | undefined;
 };
 
@@ -30,6 +31,7 @@ export type CreateIncomeRecordInput = {
 
 export type IncomeRecordFilters = PaginationInput & {
   eventId?: string | undefined;
+  eventIds?: string[] | undefined;
   search?: string | undefined;
 };
 

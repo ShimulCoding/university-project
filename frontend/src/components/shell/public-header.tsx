@@ -43,7 +43,7 @@ export function PublicHeader() {
               Public-safe views only
             </div>
             <Button asChild size="sm">
-              <Link href="/dashboard">Internal preview</Link>
+              <Link href="/dashboard">System Admin</Link>
             </Button>
           </div>
         </div>

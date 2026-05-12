@@ -21,6 +21,7 @@ router.get(
   "/",
   authorize(
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,
@@ -38,6 +39,7 @@ router.get(
   "/:reportId",
   authorize(
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,

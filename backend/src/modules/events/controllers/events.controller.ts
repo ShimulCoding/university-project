@@ -47,4 +47,26 @@ export const eventsController = {
 
     response.status(200).json({ event });
   },
+
+  async assignEventTeamMember(request: Request, response: Response) {
+    const event = await eventsService.assignEventTeamMember(
+      request.auth!.user,
+      String(request.params.eventLookupKey),
+      request.body,
+      getRequestMetadata(request),
+    );
+
+    response.status(200).json({ event });
+  },
+
+  async revokeEventTeamMember(request: Request, response: Response) {
+    const event = await eventsService.revokeEventTeamMember(
+      request.auth!.user,
+      String(request.params.eventLookupKey),
+      String(request.params.teamMemberId),
+      getRequestMetadata(request),
+    );
+
+    response.status(200).json({ event });
+  },
 };

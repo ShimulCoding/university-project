@@ -2,11 +2,13 @@ import {
   ApprovalDecisionType,
   ApprovalEntityType,
   RequestState,
+  RoleCode,
 } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
 import { sanitizeOptionalText } from "../../../utils/text-utils";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hasApproverAccess } from "../../../utils/role-checks";
@@ -19,6 +21,8 @@ import {
   mapExpenseRequest,
 } from "../../requests/requests.mappers";
 import type { ApprovalDecisionInput, ApprovalQueueFilters } from "../types/approvals.types";
+
+const approverEventRoles = [RoleCode.ORGANIZATIONAL_APPROVER] as RoleCode[];
 
 function assertApproverPermissions(viewer: AuthenticatedUser) {
   if (!hasApproverAccess(viewer.roles)) {
@@ -48,10 +52,11 @@ export const approvalsService = {
     assertApproverPermissions(actor);
 
     const queueItems: Array<ReturnType<typeof mapApprovalQueueItem>> = [];
+    const scopedFilters = scopeEventFilters(actor, filters, approverEventRoles);
     const paginationOptions = getPaginationOptions(filters);
 
-    if (!filters.entityType || filters.entityType === ApprovalEntityType.BUDGET_REQUEST) {
-      const budgetRequests = await approvalsRepository.listPendingBudgetRequests(filters);
+    if (!scopedFilters.entityType || scopedFilters.entityType === ApprovalEntityType.BUDGET_REQUEST) {
+      const budgetRequests = await approvalsRepository.listPendingBudgetRequests(scopedFilters);
       queueItems.push(
         ...budgetRequests.map((request) =>
           mapApprovalQueueItem(ApprovalEntityType.BUDGET_REQUEST, request),
@@ -59,8 +64,8 @@ export const approvalsService = {
       );
     }
 
-    if (!filters.entityType || filters.entityType === ApprovalEntityType.EXPENSE_REQUEST) {
-      const expenseRequests = await approvalsRepository.listPendingExpenseRequests(filters);
+    if (!scopedFilters.entityType || scopedFilters.entityType === ApprovalEntityType.EXPENSE_REQUEST) {
+      const expenseRequests = await approvalsRepository.listPendingExpenseRequests(scopedFilters);
       queueItems.push(
         ...expenseRequests.map((request) =>
           mapApprovalQueueItem(ApprovalEntityType.EXPENSE_REQUEST, request),
@@ -98,6 +103,8 @@ export const approvalsService = {
       if (!request) {
         throw new AppError(404, "Budget request not found.");
       }
+
+      assertEventScopedAccess(actor, request.eventId, approverEventRoles);
 
       assertPendingApprovalState(request.state);
 
@@ -163,6 +170,8 @@ export const approvalsService = {
     if (!request) {
       throw new AppError(404, "Expense request not found.");
     }
+
+    assertEventScopedAccess(actor, request.eventId, approverEventRoles);
 
     assertPendingApprovalState(request.state);
 

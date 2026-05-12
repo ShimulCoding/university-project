@@ -41,6 +41,12 @@ function buildQueueWhere(filters: PaymentVerificationQueueFilters): Prisma.Payme
     where.registration = {
       eventId: filters.eventId,
     };
+  } else if (filters.eventIds) {
+    where.registration = {
+      eventId: {
+        in: filters.eventIds,
+      },
+    };
   }
 
   const trimmedSearch = filters.search?.trim();
@@ -89,11 +95,15 @@ function buildQueueWhere(filters: PaymentVerificationQueueFilters): Prisma.Payme
   return where;
 }
 
-function buildIncomeWhere(filters: { eventId?: string | undefined; search?: string | undefined }): Prisma.IncomeRecordWhereInput {
+function buildIncomeWhere(filters: { eventId?: string | undefined; eventIds?: string[] | undefined; search?: string | undefined }): Prisma.IncomeRecordWhereInput {
   const where: Prisma.IncomeRecordWhereInput = {};
 
   if (filters.eventId) {
     where.eventId = filters.eventId;
+  } else if (filters.eventIds) {
+    where.eventId = {
+      in: filters.eventIds,
+    };
   }
 
   const trimmedSearch = filters.search?.trim();
@@ -239,7 +249,7 @@ export const paymentsRepository = {
   },
 
   listIncomeRecords(
-    filters: { eventId?: string | undefined; search?: string | undefined },
+    filters: { eventId?: string | undefined; eventIds?: string[] | undefined; search?: string | undefined },
     pagination?: PaginationOptions,
     db: DbClient = prisma,
   ) {
@@ -254,7 +264,7 @@ export const paymentsRepository = {
   },
 
   countIncomeRecords(
-    filters: { eventId?: string | undefined; search?: string | undefined },
+    filters: { eventId?: string | undefined; eventIds?: string[] | undefined; search?: string | undefined },
     db: DbClient = prisma,
   ) {
     return db.incomeRecord.count({

@@ -13,6 +13,16 @@ import { Input } from "@/components/ui/input";
 
 const demoAccounts = [
   {
+    label: "System Admin",
+    email: "admin@zcfts.dev",
+    description: "Full platform access — events, users, audit, and global controls.",
+  },
+  {
+    label: "Event Admin demo",
+    email: "demo.event.admin@example.com",
+    description: "Event team coordination and cross-functional oversight.",
+  },
+  {
     label: "Finance demo",
     email: "demo.finance@example.com",
     description: "Payment verification, income records, and reconciliation.",
@@ -23,7 +33,7 @@ const demoAccounts = [
     description: "Approval queue, complaint routing, and publish decisions.",
   },
   {
-    label: "Event demo",
+    label: "Event Manager demo",
     email: "demo.event.manager@example.com",
     description: "Budget and expense request authoring surfaces.",
   },
@@ -70,10 +80,11 @@ export function InternalAccessPanel() {
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/10 bg-primary/5 text-primary">
           <LockKeyhole className="h-5 w-5" />
         </div>
-        <CardTitle className="mt-4 text-2xl">Sign in to the protected workspace</CardTitle>
+        <CardTitle className="mt-4 text-2xl">Sign in to the System Admin workspace</CardTitle>
         <CardDescription>
-          Internal routes are backed by the live backend and only open for authenticated
-          internal roles. The seeded demo accounts below are available for local review.
+          The System Admin workspace is backed by the live backend and only opens for
+          authenticated system administrator credentials. Event team members should use
+          their event-specific workspace instead.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -158,7 +169,7 @@ export function InternalAccessPanel() {
           ) : null}
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={isBusy}>
-              {isBusy ? "Opening workspace..." : "Open internal workspace"}
+              {isBusy ? "Opening workspace..." : "Sign in as System Admin"}
             </Button>
             <span className="text-sm text-muted-foreground">
               Role access is enforced again by the backend after sign-in.

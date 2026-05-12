@@ -3,12 +3,14 @@ import { Router } from "express";
 import { RoleCode } from "@prisma/client";
 
 import { authenticate } from "../../../middlewares/authenticate";
-import { authorize } from "../../../middlewares/authorize";
+import { authorize, authorizeEventScoped } from "../../../middlewares/authorize";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
 import { eventsController } from "../controllers/events.controller";
 import {
+  assignEventTeamMemberSchema,
   createEventSchema,
+  eventTeamMemberParamSchema,
   eventLookupParamSchema,
   listManageEventsSchema,
   listPublicEventsSchema,
@@ -25,40 +27,60 @@ router.get(
 router.get(
   "/manage/list",
   authenticate,
-  authorize(
+  authorizeEventScoped([
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.EVENT_MANAGEMENT_USER,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
-  ),
+  ]),
   validateRequest(listManageEventsSchema),
   asyncHandler(eventsController.listManageEvents),
 );
 router.get(
   "/manage/:eventLookupKey",
   authenticate,
-  authorize(
+  authorizeEventScoped([
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.EVENT_MANAGEMENT_USER,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
-  ),
+  ]),
   validateRequest(eventLookupParamSchema),
   asyncHandler(eventsController.getManageEvent),
 );
 router.post(
   "/",
   authenticate,
-  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_MANAGEMENT_USER),
+  authorize(RoleCode.SYSTEM_ADMIN),
   validateRequest(createEventSchema),
   asyncHandler(eventsController.createEvent),
 );
 router.patch(
   "/:eventLookupKey",
   authenticate,
-  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_MANAGEMENT_USER),
+  authorizeEventScoped([
+    RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
+    RoleCode.EVENT_MANAGEMENT_USER,
+  ]),
   validateRequest(updateEventSchema),
   asyncHandler(eventsController.updateEvent),
+);
+router.post(
+  "/:eventLookupKey/team-members",
+  authenticate,
+  authorize(RoleCode.SYSTEM_ADMIN),
+  validateRequest(assignEventTeamMemberSchema),
+  asyncHandler(eventsController.assignEventTeamMember),
+);
+router.delete(
+  "/:eventLookupKey/team-members/:teamMemberId",
+  authenticate,
+  authorize(RoleCode.SYSTEM_ADMIN),
+  validateRequest(eventTeamMemberParamSchema),
+  asyncHandler(eventsController.revokeEventTeamMember),
 );
 router.get(
   "/:eventLookupKey",

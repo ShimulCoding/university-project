@@ -13,12 +13,17 @@ export function hasApproverAccess(userRoles: RoleCode[]) {
 }
 
 export function hasEventManagementAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_MANAGEMENT_USER]);
+  return hasAnyRole(userRoles, [
+    RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
+    RoleCode.EVENT_MANAGEMENT_USER,
+  ]);
 }
 
 export function hasEventManagementReadAccess(userRoles: RoleCode[]) {
   return hasAnyRole(userRoles, [
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.EVENT_MANAGEMENT_USER,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
@@ -28,6 +33,7 @@ export function hasEventManagementReadAccess(userRoles: RoleCode[]) {
 export function hasInternalRegistrationAccess(userRoles: RoleCode[]) {
   return hasAnyRole(userRoles, [
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.EVENT_MANAGEMENT_USER,
   ]);
@@ -44,6 +50,7 @@ export function hasRequestSubmissionAccess(userRoles: RoleCode[]) {
 export function hasFinanceReadAccess(userRoles: RoleCode[]) {
   return hasAnyRole(userRoles, [
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,
@@ -57,6 +64,7 @@ export function hasExpenseRecordManagementAccess(userRoles: RoleCode[]) {
 export function hasComplaintReviewAccess(userRoles: RoleCode[]) {
   return hasAnyRole(userRoles, [
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.COMPLAINT_REVIEW_AUTHORITY,
     RoleCode.ORGANIZATIONAL_APPROVER,
   ]);
@@ -65,6 +73,7 @@ export function hasComplaintReviewAccess(userRoles: RoleCode[]) {
 export function hasReconciliationReadAccess(userRoles: RoleCode[]) {
   return hasAnyRole(userRoles, [
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,
@@ -88,4 +97,16 @@ export function hasPublicSummaryPublishAccess(userRoles: RoleCode[]) {
 
 export function hasAuditReadAccess(userRoles: RoleCode[]) {
   return hasAnyRole(userRoles, [RoleCode.SYSTEM_ADMIN]);
+}
+
+/** Check if user has any internal role (global or event-scoped) */
+export function hasAnyInternalAccess(userRoles: RoleCode[]) {
+  return hasAnyRole(userRoles, [
+    RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
+    RoleCode.FINANCIAL_CONTROLLER,
+    RoleCode.ORGANIZATIONAL_APPROVER,
+    RoleCode.EVENT_MANAGEMENT_USER,
+    RoleCode.COMPLAINT_REVIEW_AUTHORITY,
+  ]);
 }

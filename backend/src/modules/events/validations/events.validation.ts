@@ -1,4 +1,4 @@
-import { EventStatus } from "@prisma/client";
+import { EventStatus, RoleCode } from "@prisma/client";
 import { z } from "zod";
 
 import { paginationQuerySchema } from "../../../utils/pagination-validation";
@@ -39,6 +39,20 @@ const eventBodySchema = z.object({
   capacity: optionalCapacityField,
 });
 
+const eventTeamRoleCodes = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.FINANCIAL_CONTROLLER,
+  RoleCode.ORGANIZATIONAL_APPROVER,
+  RoleCode.EVENT_MANAGEMENT_USER,
+  RoleCode.COMPLAINT_REVIEW_AUTHORITY,
+] as const;
+
+const eventTeamRoleSchema = z
+  .nativeEnum(RoleCode)
+  .refine((value) => eventTeamRoleCodes.some((roleCode) => roleCode === value), {
+    message: "Select an event-scoped internal role.",
+  });
+
 export const listPublicEventsSchema = z.object({
   query: z.object({
     ...paginationQuerySchema,
@@ -73,4 +87,21 @@ export const updateEventSchema = z.object({
     .refine((body) => Object.keys(body).length > 0, {
       message: "At least one event field is required.",
     }),
+});
+
+export const assignEventTeamMemberSchema = z.object({
+  params: z.object({
+    eventLookupKey: eventLookupKeySchema,
+  }),
+  body: z.object({
+    email: z.string().trim().email().max(255),
+    roleCode: eventTeamRoleSchema,
+  }),
+});
+
+export const eventTeamMemberParamSchema = z.object({
+  params: z.object({
+    eventLookupKey: eventLookupKeySchema,
+    teamMemberId: z.string().trim().min(1),
+  }),
 });

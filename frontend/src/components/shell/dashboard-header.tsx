@@ -94,9 +94,9 @@ export function DashboardHeader({ user }: { user: UserProfile }) {
     <div className="surface-panel flex flex-col gap-6 p-5 md:flex-row md:items-start md:justify-between">
       <div className="max-w-3xl">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="info">Internal workspace</Badge>
+          <Badge variant="info">System Admin workspace</Badge>
           <Badge variant="success">{roleMeta[activeRole].shortLabel}</Badge>
-          <Badge variant="neutral">Foundation preview</Badge>
+          <Badge variant="neutral">Global overview</Badge>
         </div>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground">
           {current?.title ?? "Internal command surface"}

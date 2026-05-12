@@ -4,10 +4,12 @@ import {
   IncomeState,
   Prisma,
   ReconciliationState,
+  RoleCode,
 } from "@prisma/client";
 
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import {
   hasReconciliationFinalizeAccess,
@@ -31,6 +33,16 @@ import type {
   ReconciliationPayload,
   ReconciliationWarning,
 } from "../types/reconciliation.types";
+
+const reconciliationReadEventRoles = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.FINANCIAL_CONTROLLER,
+  RoleCode.ORGANIZATIONAL_APPROVER,
+  RoleCode.EVENT_MANAGEMENT_USER,
+] as RoleCode[];
+
+const reconciliationManagementEventRoles = [RoleCode.FINANCIAL_CONTROLLER] as RoleCode[];
+const reconciliationFinalizeEventRoles = [RoleCode.ORGANIZATIONAL_APPROVER] as RoleCode[];
 
 function assertReconciliationReadPermissions(viewer: AuthenticatedUser) {
   if (!hasReconciliationReadAccess(viewer.roles)) {
@@ -328,10 +340,11 @@ export const reconciliationService = {
   async listReports(viewer: AuthenticatedUser, filters: ReconciliationFilters) {
     assertReconciliationReadPermissions(viewer);
 
+    const scopedFilters = scopeEventFilters(viewer, filters, reconciliationReadEventRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [reports, totalItems] = await Promise.all([
-      reconciliationRepository.listReports(filters, paginationOptions),
-      reconciliationRepository.countReports(filters),
+      reconciliationRepository.listReports(scopedFilters, paginationOptions),
+      reconciliationRepository.countReports(scopedFilters),
     ]);
 
     return {
@@ -349,6 +362,8 @@ export const reconciliationService = {
       throw new AppError(404, "Reconciliation report not found.");
     }
 
+    assertEventScopedAccess(viewer, report.eventId, reconciliationReadEventRoles);
+
     return mapReconciliationReport(report);
   },
 
@@ -364,6 +379,8 @@ export const reconciliationService = {
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
+
+    assertEventScopedAccess(actor, event.id, reconciliationManagementEventRoles);
 
     assertEventCanBeReconciled(event.status);
 
@@ -403,6 +420,8 @@ export const reconciliationService = {
       throw new AppError(404, "Reconciliation report not found.");
     }
 
+    assertEventScopedAccess(actor, report.eventId, reconciliationManagementEventRoles);
+
     if (report.status !== ReconciliationState.DRAFT) {
       throw new AppError(409, "Only draft reconciliation reports can be marked as reviewed.");
     }
@@ -441,6 +460,8 @@ export const reconciliationService = {
     if (!report) {
       throw new AppError(404, "Reconciliation report not found.");
     }
+
+    assertEventScopedAccess(actor, report.eventId, reconciliationFinalizeEventRoles);
 
     if (report.status !== ReconciliationState.REVIEWED) {
       throw new AppError(409, "Only reviewed reconciliation reports can be finalized.");

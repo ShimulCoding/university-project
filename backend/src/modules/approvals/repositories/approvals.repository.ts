@@ -26,6 +26,10 @@ function buildBudgetQueueWhere(filters: ApprovalQueueFilters): Prisma.BudgetRequ
 
   if (filters.eventId) {
     where.eventId = filters.eventId;
+  } else if (filters.eventIds) {
+    where.eventId = {
+      in: filters.eventIds,
+    };
   }
 
   return where;
@@ -38,6 +42,10 @@ function buildExpenseQueueWhere(filters: ApprovalQueueFilters): Prisma.ExpenseRe
 
   if (filters.eventId) {
     where.eventId = filters.eventId;
+  } else if (filters.eventIds) {
+    where.eventId = {
+      in: filters.eventIds,
+    };
   }
 
   return where;

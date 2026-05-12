@@ -11,6 +11,7 @@ export type BudgetItemInput = {
 
 export type BudgetFilters = PaginationInput & {
   eventId?: string | undefined;
+  eventIds?: string[] | undefined;
   state?: BudgetState | undefined;
   isActive?: boolean | undefined;
 };

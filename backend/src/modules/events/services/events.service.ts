@@ -1,16 +1,20 @@
-import { EventStatus, Prisma } from "@prisma/client";
+import { EventStatus, Prisma, RoleCode } from "@prisma/client";
 
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
+import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
 import {
   hasEventManagementAccess,
   hasEventManagementReadAccess,
 } from "../../../utils/role-checks";
+import { normalizeEmail } from "../../../utils/normalize-email";
 import { slugify } from "../../../utils/slugify";
 import { sanitizeNullableText } from "../../../utils/text-utils";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
+import { rolesRepository } from "../../roles/repositories/roles.repository";
+import { usersRepository } from "../../users/repositories/users.repository";
 import { mapManageEvent, mapPublicEvent, publicEventStatuses } from "../events.mappers";
 import { reconciliationRepository } from "../../reconciliation/repositories/reconciliation.repository";
 import { eventsRepository } from "../repositories/events.repository";
@@ -34,6 +38,47 @@ const allowedEventTransitions: Record<EventStatus, EventStatus[]> = {
   [EventStatus.CLOSED]: [EventStatus.ARCHIVED],
   [EventStatus.ARCHIVED]: [],
 };
+
+const eventReadRoles = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.EVENT_MANAGEMENT_USER,
+  RoleCode.FINANCIAL_CONTROLLER,
+  RoleCode.ORGANIZATIONAL_APPROVER,
+] as RoleCode[];
+
+const eventManageRoles = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.EVENT_MANAGEMENT_USER,
+] as RoleCode[];
+
+function assertSystemAdmin(actor: AuthenticatedUser) {
+  if (!actor.roles.includes(RoleCode.SYSTEM_ADMIN)) {
+    throw new AppError(403, "Only the System Admin can assign event-specific teams.");
+  }
+}
+
+async function ensureUserHasRoleCapability(
+  userId: string,
+  roleCode: RoleCode,
+  assignedById: string,
+) {
+  await rolesRepository.syncCatalog();
+  const role = await rolesRepository.findByCode(roleCode);
+
+  if (!role) {
+    throw new AppError(404, `Role ${roleCode} not found.`);
+  }
+
+  const existingAssignment = await rolesRepository.findActiveAssignment(userId, role.id);
+
+  if (!existingAssignment) {
+    await rolesRepository.createAssignment({
+      userId,
+      roleId: role.id,
+      assignedById,
+    });
+  }
+}
 
 function assertPublicStatusFilter(status: EventStatus | undefined) {
   if (!status) {
@@ -149,10 +194,11 @@ export const eventsService = {
   async listManageEvents(viewer: AuthenticatedUser, filters: EventListFilters) {
     assertEventManagementReadPermissions(viewer);
 
+    const scopedFilters = scopeEventFilters(viewer, filters, eventReadRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [events, totalItems] = await Promise.all([
-      eventsRepository.listManage(filters, paginationOptions),
-      eventsRepository.countManage(filters),
+      eventsRepository.listManage(scopedFilters, paginationOptions),
+      eventsRepository.countManage(scopedFilters),
     ]);
 
     return {
@@ -169,6 +215,8 @@ export const eventsService = {
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
+
+    assertEventScopedAccess(viewer, event.id, eventReadRoles);
 
     return mapManageEvent(event);
   },
@@ -246,6 +294,8 @@ export const eventsService = {
       throw new AppError(404, "Event not found.");
     }
 
+    assertEventScopedAccess(actor, event.id, eventManageRoles);
+
     const nextStatus = input.status ?? event.status;
     const nextSlugBase = input.slug ? slugify(input.slug) : undefined;
 
@@ -310,6 +360,101 @@ export const eventsService = {
         updatedFields: Object.keys(input),
         slug: updatedEvent.slug,
         staleReconciliationReports: staleResult.count,
+      },
+      ...auditMetadata,
+    });
+
+    return mapManageEvent(updatedEvent);
+  },
+
+  async assignEventTeamMember(
+    actor: AuthenticatedUser,
+    eventLookupKey: string,
+    input: { email: string; roleCode: RoleCode },
+    auditMetadata?: AuditMetadata,
+  ) {
+    assertSystemAdmin(actor);
+
+    const event = await eventsRepository.findByLookupKey(eventLookupKey);
+
+    if (!event) {
+      throw new AppError(404, "Event not found.");
+    }
+
+    const user = await usersRepository.findByEmail(normalizeEmail(input.email));
+
+    if (!user) {
+      throw new AppError(404, "User not found. Create the internal user account before assigning it to an event.");
+    }
+
+    await ensureUserHasRoleCapability(user.id, input.roleCode, actor.id);
+    const member = await eventsRepository.assignTeamMember({
+      eventId: event.id,
+      userId: user.id,
+      roleCode: input.roleCode,
+      assignedById: actor.id,
+    });
+
+    const updatedEvent = await eventsRepository.findById(event.id);
+
+    if (!updatedEvent) {
+      throw new AppError(500, "Failed to reload event team after assignment.");
+    }
+
+    await auditService.record({
+      actorId: actor.id,
+      action: "events.team.assign",
+      entityType: "EventTeamMember",
+      entityId: member.id,
+      summary: `Assigned ${input.roleCode} for ${event.title} to ${member.user.email}`,
+      context: {
+        eventId: event.id,
+        userId: user.id,
+        roleCode: input.roleCode,
+      },
+      ...auditMetadata,
+    });
+
+    return mapManageEvent(updatedEvent);
+  },
+
+  async revokeEventTeamMember(
+    actor: AuthenticatedUser,
+    eventLookupKey: string,
+    teamMemberId: string,
+    auditMetadata?: AuditMetadata,
+  ) {
+    assertSystemAdmin(actor);
+
+    const event = await eventsRepository.findByLookupKey(eventLookupKey);
+
+    if (!event) {
+      throw new AppError(404, "Event not found.");
+    }
+
+    const existingMember = await eventsRepository.findTeamMemberById(teamMemberId);
+
+    if (!existingMember || existingMember.eventId !== event.id || existingMember.revokedAt) {
+      throw new AppError(404, "Active event team member not found.");
+    }
+
+    const revokedMember = await eventsRepository.revokeTeamMember(teamMemberId);
+    const updatedEvent = await eventsRepository.findById(event.id);
+
+    if (!updatedEvent) {
+      throw new AppError(500, "Failed to reload event team after revocation.");
+    }
+
+    await auditService.record({
+      actorId: actor.id,
+      action: "events.team.revoke",
+      entityType: "EventTeamMember",
+      entityId: revokedMember.id,
+      summary: `Revoked ${revokedMember.roleCode} for ${event.title} from ${revokedMember.user.email}`,
+      context: {
+        eventId: event.id,
+        userId: revokedMember.userId,
+        roleCode: revokedMember.roleCode,
       },
       ...auditMetadata,
     });

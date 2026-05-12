@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/api/student";
-import { getInternalRoles } from "@/lib/access";
+import { getInternalRoles, isSystemAdmin, isEventScopedOnlyUser } from "@/lib/access";
 import { InternalAccessPanel } from "@/components/internal/internal-access-panel";
 import { InternalSessionCard } from "@/components/internal/internal-session-card";
 import { RolePreviewProvider } from "@/components/providers/role-preview-provider";
@@ -24,9 +24,9 @@ export default async function DashboardLayout({
       <PublicPageShell>
         <main className="section-shell py-12 sm:py-16">
           <PageHeader
-            eyebrow="Protected workspace"
-            title="Internal finance and governance routes require an authenticated internal role"
-            description="This workspace connects directly to the live backend. Sign in with one of the seeded internal demo accounts to review finance, approvals, complaints, reconciliation, publication, and audit flows."
+            eyebrow="System Administration"
+            title="System Admin workspace requires authenticated credentials"
+            description="This workspace is reserved for the system administrator. Sign in with your system admin account to manage events, roles, users, and platform configuration."
           />
           <div className="mt-8">
             <InternalAccessPanel />
@@ -36,7 +36,20 @@ export default async function DashboardLayout({
     );
   }
 
+  // Event-scoped users (non-admin with event roles) get a lightweight wrapper.
+  // They navigate to /dashboard/my-events and /dashboard/events/[slug]/* which
+  // render their own shell — we just pass children through.
+  if (isEventScopedOnlyUser(user)) {
+    return <>{children}</>;
+  }
+
   if (internalRoles.length === 0) {
+    // User has no global internal roles and no event roles
+    if ((user.eventRoles ?? []).length > 0) {
+      // Has event roles but also has global roles — shouldn't happen here
+      return <>{children}</>;
+    }
+
     return (
       <PublicPageShell>
         <main className="section-shell py-12 sm:py-16">

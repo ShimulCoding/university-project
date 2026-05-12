@@ -3,6 +3,7 @@ import type { EventStatus } from "@prisma/client";
 import type { PaginationInput } from "../../../utils/pagination";
 
 export type EventListFilters = PaginationInput & {
+  eventIds?: string[] | undefined;
   status?: EventStatus | undefined;
   search?: string | undefined;
 };

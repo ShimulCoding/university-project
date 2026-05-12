@@ -51,6 +51,10 @@ function buildQueueWhere(filters: ComplaintQueueFilters): Prisma.ComplaintWhereI
 
   if (filters.eventId) {
     where.eventId = filters.eventId;
+  } else if (filters.eventIds) {
+    where.eventId = {
+      in: filters.eventIds,
+    };
   }
 
   const trimmedSearch = filters.search?.trim();
@@ -109,6 +113,10 @@ function buildSubmitterWhere(
 
   if (filters.eventId) {
     where.eventId = filters.eventId;
+  } else if (filters.eventIds) {
+    where.eventId = {
+      in: filters.eventIds,
+    };
   }
 
   if (filters.state) {

@@ -9,6 +9,7 @@ datasource db {
 
 enum RoleCode {
   SYSTEM_ADMIN
+  EVENT_ADMIN
   FINANCIAL_CONTROLLER
   ORGANIZATIONAL_APPROVER
   EVENT_MANAGEMENT_USER
@@ -154,6 +155,8 @@ model User {
   documentsUploaded              SupportingDocument[]
   auditLogs                      AuditLog[]              @relation("AuditActor")
   roleAssignmentsCreated         UserRole[]              @relation("RoleAssigner")
+  eventTeamMemberships           EventTeamMember[]       @relation("EventTeamMemberUser")
+  eventTeamAssignmentsCreated    EventTeamMember[]       @relation("EventTeamMemberAssigner")
   passwordResetTokens            PasswordResetToken[]
 }
 
@@ -183,6 +186,24 @@ model UserRole {
 
   @@index([userId])
   @@index([roleId])
+}
+
+model EventTeamMember {
+  id           String    @id @default(cuid())
+  eventId      String
+  userId       String
+  roleCode     RoleCode
+  assignedById String?
+  assignedAt   DateTime  @default(now())
+  revokedAt    DateTime?
+  event        Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user         User      @relation("EventTeamMemberUser", fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy   User?     @relation("EventTeamMemberAssigner", fields: [assignedById], references: [id])
+
+  @@unique([eventId, userId, roleCode])
+  @@index([eventId])
+  @@index([userId])
+  @@index([roleCode])
 }
 
 model RefreshToken {
@@ -227,6 +248,7 @@ model Event {
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   createdBy              User?                   @relation("EventCreator", fields: [createdById], references: [id])
+  teamMembers            EventTeamMember[]
   registrations          Registration[]
   budgets                Budget[]
   budgetRequests         BudgetRequest[]

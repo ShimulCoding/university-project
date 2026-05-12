@@ -40,6 +40,10 @@ function buildReportWhere(filters: ReconciliationFilters): Prisma.Reconciliation
 
   if (filters.eventId) {
     where.eventId = filters.eventId;
+  } else if (filters.eventIds) {
+    where.eventId = {
+      in: filters.eventIds,
+    };
   }
 
   if (filters.status) {

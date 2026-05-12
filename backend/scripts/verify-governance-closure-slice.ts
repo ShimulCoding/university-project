@@ -767,16 +767,23 @@ async function main() {
             target: reconciliationRepository as unknown as Record<string, unknown>,
             key: "listManualIncomeRecords",
             value: async () => [
-              { id: makeCuid("income1"), amount: new Prisma.Decimal("200.00"), state: IncomeState.VERIFIED },
-              { id: makeCuid("income2"), amount: new Prisma.Decimal("50.00"), state: IncomeState.RECORDED },
+              { id: makeCuid("income1"), amount: new Prisma.Decimal("200.00"), state: IncomeState.VERIFIED, sourceLabel: "Sponsor A", sourceType: "SPONSORSHIP" },
+              { id: makeCuid("income2"), amount: new Prisma.Decimal("50.00"), state: IncomeState.RECORDED, sourceLabel: "Sponsor B", sourceType: "SPONSORSHIP" },
             ],
           },
           {
             target: reconciliationRepository as unknown as Record<string, unknown>,
             key: "listExpenseRecords",
             value: async () => [
-              { id: makeCuid("expense1"), amount: new Prisma.Decimal("120.00"), state: ExpenseRecordState.SETTLED },
-              { id: makeCuid("expense2"), amount: new Prisma.Decimal("80.00"), state: ExpenseRecordState.RECORDED },
+              { id: makeCuid("expense1"), amount: new Prisma.Decimal("120.00"), state: ExpenseRecordState.SETTLED, description: "Expense 1", category: "General" },
+              { id: makeCuid("expense2"), amount: new Prisma.Decimal("80.00"), state: ExpenseRecordState.RECORDED, description: "Expense 2", category: "General" },
+            ],
+          },
+          {
+            target: reconciliationRepository as unknown as Record<string, unknown>,
+            key: "listActiveBudgetItems",
+            value: async () => [
+              { id: makeCuid("budget1"), category: "General", amount: new Prisma.Decimal("300.00") },
             ],
           },
           {

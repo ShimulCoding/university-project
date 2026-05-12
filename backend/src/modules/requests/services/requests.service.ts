@@ -9,6 +9,7 @@ import { documentDirectories, uploadRules } from "../../../config/uploads";
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { sanitizeNullableText } from "../../../utils/text-utils";
 import { cleanupStoredUpload, cleanupStoredUploads, storeValidatedUpload } from "../../../utils/upload-utils";
@@ -38,6 +39,20 @@ import type {
   UpdateExpenseRequestInput,
   VoidExpenseRecordInput,
 } from "../types/requests.types";
+
+const requestSubmissionEventRoles = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.EVENT_MANAGEMENT_USER,
+] as RoleCode[];
+
+const financeReadEventRoles = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.FINANCIAL_CONTROLLER,
+  RoleCode.ORGANIZATIONAL_APPROVER,
+  RoleCode.EVENT_MANAGEMENT_USER,
+] as RoleCode[];
+
+const expenseRecordEventRoles = [RoleCode.FINANCIAL_CONTROLLER] as RoleCode[];
 
 async function storeSupportingDocument(file: Express.Multer.File) {
   return storeValidatedUpload(file, {
@@ -106,10 +121,11 @@ export const requestsService = {
   async listMyBudgetRequests(actor: AuthenticatedUser, filters: RequestFilters) {
     assertRequestSubmissionPermissions(actor);
 
+    const scopedFilters = scopeEventFilters(actor, filters, requestSubmissionEventRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [requests, totalItems] = await Promise.all([
-      requestsRepository.listBudgetRequestsByRequester(actor.id, filters, paginationOptions),
-      requestsRepository.countBudgetRequestsByRequester(actor.id, filters),
+      requestsRepository.listBudgetRequestsByRequester(actor.id, scopedFilters, paginationOptions),
+      requestsRepository.countBudgetRequestsByRequester(actor.id, scopedFilters),
     ]);
 
     return {
@@ -121,10 +137,11 @@ export const requestsService = {
   async listBudgetRequests(viewer: AuthenticatedUser, filters: RequestFilters) {
     assertInternalFinanceReadPermissions(viewer);
 
+    const scopedFilters = scopeEventFilters(viewer, filters, financeReadEventRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [requests, totalItems] = await Promise.all([
-      requestsRepository.listBudgetRequests(filters, paginationOptions),
-      requestsRepository.countBudgetRequests(filters),
+      requestsRepository.listBudgetRequests(scopedFilters, paginationOptions),
+      requestsRepository.countBudgetRequests(scopedFilters),
     ]);
 
     return {
@@ -141,6 +158,9 @@ export const requestsService = {
     }
 
     assertRequestAccess(viewer, request.requestedById);
+    if (request.requestedById !== viewer.id) {
+      assertEventScopedAccess(viewer, request.eventId, financeReadEventRoles);
+    }
     return mapBudgetRequest(request);
   },
 
@@ -157,6 +177,8 @@ export const requestsService = {
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
+
+    assertEventScopedAccess(actor, event.id, requestSubmissionEventRoles);
 
     const storedUploads = files && files.length > 0 ? await Promise.all(files.map(storeSupportingDocument)) : [];
 
@@ -240,6 +262,7 @@ export const requestsService = {
     }
 
     assertRequestOwnership(actor, existingRequest.requestedById);
+    assertEventScopedAccess(actor, existingRequest.eventId, requestSubmissionEventRoles);
     assertEditableRequestState(existingRequest.state);
     assertUpdatePayloadOrFile(input, files && files.length > 0 ? files[0] : undefined, "budget request");
 
@@ -322,6 +345,7 @@ export const requestsService = {
     }
 
     assertRequestOwnership(actor, existingRequest.requestedById);
+    assertEventScopedAccess(actor, existingRequest.eventId, requestSubmissionEventRoles);
     assertEditableRequestState(existingRequest.state);
 
     const request = await requestsRepository.updateBudgetRequestState(
@@ -349,10 +373,11 @@ export const requestsService = {
   async listMyExpenseRequests(actor: AuthenticatedUser, filters: RequestFilters) {
     assertRequestSubmissionPermissions(actor);
 
+    const scopedFilters = scopeEventFilters(actor, filters, requestSubmissionEventRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [requests, totalItems] = await Promise.all([
-      requestsRepository.listExpenseRequestsByRequester(actor.id, filters, paginationOptions),
-      requestsRepository.countExpenseRequestsByRequester(actor.id, filters),
+      requestsRepository.listExpenseRequestsByRequester(actor.id, scopedFilters, paginationOptions),
+      requestsRepository.countExpenseRequestsByRequester(actor.id, scopedFilters),
     ]);
 
     return {
@@ -364,10 +389,11 @@ export const requestsService = {
   async listExpenseRequests(viewer: AuthenticatedUser, filters: RequestFilters) {
     assertInternalFinanceReadPermissions(viewer);
 
+    const scopedFilters = scopeEventFilters(viewer, filters, financeReadEventRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [requests, totalItems] = await Promise.all([
-      requestsRepository.listExpenseRequests(filters, paginationOptions),
-      requestsRepository.countExpenseRequests(filters),
+      requestsRepository.listExpenseRequests(scopedFilters, paginationOptions),
+      requestsRepository.countExpenseRequests(scopedFilters),
     ]);
 
     return {
@@ -384,6 +410,9 @@ export const requestsService = {
     }
 
     assertRequestAccess(viewer, request.requestedById);
+    if (request.requestedById !== viewer.id) {
+      assertEventScopedAccess(viewer, request.eventId, financeReadEventRoles);
+    }
     return mapExpenseRequest(request);
   },
 
@@ -404,6 +433,8 @@ export const requestsService = {
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
+
+    assertEventScopedAccess(actor, event.id, requestSubmissionEventRoles);
 
     const storedUploads = await Promise.all(files.map(storeSupportingDocument));
 
@@ -486,6 +517,7 @@ export const requestsService = {
     }
 
     assertRequestOwnership(actor, existingRequest.requestedById);
+    assertEventScopedAccess(actor, existingRequest.eventId, requestSubmissionEventRoles);
     assertEditableRequestState(existingRequest.state);
     assertUpdatePayloadOrFile(input, files && files.length > 0 ? files[0] : undefined, "expense request");
 
@@ -580,6 +612,7 @@ export const requestsService = {
     }
 
     assertRequestOwnership(actor, existingRequest.requestedById);
+    assertEventScopedAccess(actor, existingRequest.eventId, requestSubmissionEventRoles);
     assertEditableRequestState(existingRequest.state);
 
     if (existingRequest.documents.length === 0) {
@@ -611,10 +644,11 @@ export const requestsService = {
   async listExpenseRecords(viewer: AuthenticatedUser, filters: ExpenseRecordFilters) {
     assertInternalFinanceReadPermissions(viewer);
 
+    const scopedFilters = scopeEventFilters(viewer, filters, financeReadEventRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [records, totalItems] = await Promise.all([
-      requestsRepository.listExpenseRecords(filters, paginationOptions),
-      requestsRepository.countExpenseRecords(filters),
+      requestsRepository.listExpenseRecords(scopedFilters, paginationOptions),
+      requestsRepository.countExpenseRecords(scopedFilters),
     ]);
 
     return {
@@ -632,6 +666,8 @@ export const requestsService = {
       throw new AppError(404, "Expense record not found.");
     }
 
+    assertEventScopedAccess(viewer, record.eventId, financeReadEventRoles);
+
     return mapExpenseRecord(record);
   },
 
@@ -648,6 +684,8 @@ export const requestsService = {
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
+
+    assertEventScopedAccess(actor, event.id, expenseRecordEventRoles);
 
     let linkedExpenseRequest:
       | Awaited<ReturnType<typeof requestsRepository.findExpenseRequestById>>
@@ -755,6 +793,8 @@ export const requestsService = {
       throw new AppError(404, "Expense record not found.");
     }
 
+    assertEventScopedAccess(actor, existingRecord.eventId, expenseRecordEventRoles);
+
     if (existingRecord.state === ExpenseRecordState.VOIDED) {
       throw new AppError(409, "Voided expense records cannot be settled.");
     }
@@ -802,6 +842,8 @@ export const requestsService = {
     if (!existingRecord) {
       throw new AppError(404, "Expense record not found.");
     }
+
+    assertEventScopedAccess(actor, existingRecord.eventId, expenseRecordEventRoles);
 
     if (existingRecord.state === ExpenseRecordState.VOIDED) {
       throw new AppError(409, "Expense record is already voided.");

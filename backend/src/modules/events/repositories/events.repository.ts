@@ -1,4 +1,4 @@
-import { Prisma, type EventStatus } from "@prisma/client";
+import { Prisma, type EventStatus, type RoleCode } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
@@ -59,6 +59,12 @@ function buildListWhere(filters: EventListFilters, internal: boolean): Prisma.Ev
     Object.assign(where, searchWhere);
   }
 
+  if (filters.eventIds) {
+    where.id = {
+      in: filters.eventIds,
+    };
+  }
+
   return where;
 }
 
@@ -85,6 +91,13 @@ type UpdateEventData = {
   startsAt?: Date | undefined;
   endsAt?: Date | undefined;
   capacity?: number | null | undefined;
+};
+
+type AssignEventTeamMemberData = {
+  eventId: string;
+  userId: string;
+  roleCode: RoleCode;
+  assignedById: string;
 };
 
 function buildCreateData(data: CreateEventData): Prisma.EventUncheckedCreateInput {
@@ -209,6 +222,57 @@ export const eventsRepository = {
       where: { id: eventId },
       data: buildUpdateData(data),
       include: eventManageInclude,
+    });
+  },
+
+  assignTeamMember(data: AssignEventTeamMemberData, db: DbClient = prisma) {
+    return db.eventTeamMember.upsert({
+      where: {
+        eventId_userId_roleCode: {
+          eventId: data.eventId,
+          userId: data.userId,
+          roleCode: data.roleCode,
+        },
+      },
+      create: data,
+      update: {
+        assignedById: data.assignedById,
+        assignedAt: new Date(),
+        revokedAt: null,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+    });
+  },
+
+  findTeamMemberById(eventTeamMemberId: string, db: DbClient = prisma) {
+    return db.eventTeamMember.findUnique({
+      where: { id: eventTeamMemberId },
+    });
+  },
+
+  revokeTeamMember(eventTeamMemberId: string, db: DbClient = prisma) {
+    return db.eventTeamMember.update({
+      where: { id: eventTeamMemberId },
+      data: {
+        revokedAt: new Date(),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+      },
     });
   },
 };

@@ -18,6 +18,26 @@ export const eventManageInclude = Prisma.validator<Prisma.EventInclude>()({
       email: true,
     },
   },
+  teamMembers: {
+    where: {
+      revokedAt: null,
+    },
+    select: {
+      id: true,
+      roleCode: true,
+      assignedAt: true,
+      user: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      assignedAt: "desc",
+    },
+  },
   _count: {
     select: {
       registrations: true,
@@ -99,5 +119,15 @@ export function mapManageEvent(event: EventWithManagementContext) {
           email: event.createdBy.email,
         }
       : null,
+    teamMembers: event.teamMembers.map((member) => ({
+      id: member.id,
+      roleCode: member.roleCode,
+      assignedAt: member.assignedAt,
+      user: {
+        id: member.user.id,
+        fullName: member.user.fullName,
+        email: member.user.email,
+      },
+    })),
   };
 }

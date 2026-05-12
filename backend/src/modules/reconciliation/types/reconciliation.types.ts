@@ -4,6 +4,7 @@ import type { PaginationInput } from "../../../utils/pagination";
 
 export type ReconciliationFilters = PaginationInput & {
   eventId?: string | undefined;
+  eventIds?: string[] | undefined;
   status?: ReconciliationState | undefined;
 };
 

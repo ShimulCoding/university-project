@@ -51,6 +51,10 @@ export async function authenticateRefreshSession(
         email: profile.email,
         status: profile.status,
         roles: profile.roles,
+        eventRoles: profile.eventRoles.map((eventRole) => ({
+          eventId: eventRole.eventId,
+          roleCode: eventRole.roleCode,
+        })),
       },
     };
 

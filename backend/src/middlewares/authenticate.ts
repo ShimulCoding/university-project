@@ -50,6 +50,10 @@ export async function authenticate(request: Request, response: Response, next: N
         email: profile.email,
         status: profile.status,
         roles: profile.roles,
+        eventRoles: profile.eventRoles.map((eventRole) => ({
+          eventId: eventRole.eventId,
+          roleCode: eventRole.roleCode,
+        })),
       },
     };
 

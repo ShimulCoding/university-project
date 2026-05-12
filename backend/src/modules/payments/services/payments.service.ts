@@ -1,9 +1,10 @@
-import { DocumentCategory, IncomeState, PaymentProofState, RegistrationPaymentState } from "@prisma/client";
+import { DocumentCategory, IncomeState, PaymentProofState, RegistrationPaymentState, RoleCode } from "@prisma/client";
 
 import { documentDirectories, uploadRules } from "../../../config/uploads";
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { sanitizeOptionalText } from "../../../utils/text-utils";
 import { cleanupStoredUpload, cleanupStoredUploads, storeValidatedUpload } from "../../../utils/upload-utils";
@@ -28,6 +29,8 @@ import type {
   PaymentVerificationQueueFilters,
   SubmitPaymentProofInput,
 } from "../types/payments.types";
+
+const financeEventRoles = [RoleCode.FINANCIAL_CONTROLLER] as RoleCode[];
 
 async function storeUpload(
   file: Express.Multer.File,
@@ -63,8 +66,11 @@ export const paymentsService = {
 
     const isOwner = registration.participantId === actor.id;
 
-    if (!isOwner && !hasFinanceAccess(actor.roles)) {
-      throw new AppError(403, "You are not allowed to submit payment proof for this registration.");
+    if (!isOwner) {
+      if (!hasFinanceAccess(actor.roles)) {
+        throw new AppError(403, "You are not allowed to submit payment proof for this registration.");
+      }
+      assertEventScopedAccess(actor, registration.eventId, financeEventRoles);
     }
 
     if (registration.paymentState === RegistrationPaymentState.VERIFIED) {
@@ -164,10 +170,11 @@ export const paymentsService = {
   async listVerificationQueue(viewer: AuthenticatedUser, filters: PaymentVerificationQueueFilters) {
     assertFinancePermissions(viewer);
 
+    const scopedFilters = scopeEventFilters(viewer, filters, financeEventRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [queue, totalItems] = await Promise.all([
-      paymentsRepository.listPendingVerificationQueue(filters, paginationOptions),
-      paymentsRepository.countPendingVerificationQueue(filters),
+      paymentsRepository.listPendingVerificationQueue(scopedFilters, paginationOptions),
+      paymentsRepository.countPendingVerificationQueue(scopedFilters),
     ]);
 
     return {
@@ -189,6 +196,8 @@ export const paymentsService = {
     if (!paymentProof) {
       throw new AppError(404, "Payment proof not found.");
     }
+
+    assertEventScopedAccess(actor, paymentProof.registration.eventId, financeEventRoles);
 
     if (paymentProof.state !== PaymentProofState.PENDING_VERIFICATION) {
       throw new AppError(409, "Only pending payment proofs can be reviewed.");
@@ -262,6 +271,8 @@ export const paymentsService = {
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
+
+    assertEventScopedAccess(actor, event.id, financeEventRoles);
 
     const referenceText = sanitizeOptionalText(input.referenceText);
 
@@ -347,6 +358,8 @@ export const paymentsService = {
       throw new AppError(404, "Income record not found.");
     }
 
+    assertEventScopedAccess(actor, existingRecord.eventId, financeEventRoles);
+
     if (existingRecord.state === IncomeState.REJECTED) {
       throw new AppError(409, "Income record is already voided or rejected.");
     }
@@ -414,6 +427,8 @@ export const paymentsService = {
       throw new AppError(404, "Income record not found.");
     }
 
+    assertEventScopedAccess(actor, existingRecord.eventId, financeEventRoles);
+
     if (existingRecord.state === IncomeState.VERIFIED) {
       throw new AppError(409, "Income record is already verified.");
     }
@@ -471,10 +486,11 @@ export const paymentsService = {
   async listIncomeRecords(viewer: AuthenticatedUser, filters: IncomeRecordFilters) {
     assertFinancePermissions(viewer);
 
+    const scopedFilters = scopeEventFilters(viewer, filters, financeEventRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [incomeRecords, totalItems] = await Promise.all([
-      paymentsRepository.listIncomeRecords(filters, paginationOptions),
-      paymentsRepository.countIncomeRecords(filters),
+      paymentsRepository.listIncomeRecords(scopedFilters, paginationOptions),
+      paymentsRepository.countIncomeRecords(scopedFilters),
     ]);
 
     return {
@@ -491,6 +507,8 @@ export const paymentsService = {
     if (!incomeRecord) {
       throw new AppError(404, "Income record not found.");
     }
+
+    assertEventScopedAccess(viewer, incomeRecord.eventId, financeEventRoles);
 
     return mapIncomeRecord(incomeRecord);
   },

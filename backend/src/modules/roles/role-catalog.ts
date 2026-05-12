@@ -7,6 +7,11 @@ export const roleCatalog = [
     description: "Maintains accounts, role structure, and protected system access.",
   },
   {
+    code: RoleCode.EVENT_ADMIN,
+    name: "Event Administrator",
+    description: "Coordinates the assigned event-specific internal team and event workspace.",
+  },
+  {
     code: RoleCode.FINANCIAL_CONTROLLER,
     name: "Financial Controller",
     description: "Handles finance-side verification, budget preparation, and reconciliation.",
@@ -32,4 +37,3 @@ export const roleCatalog = [
     description: "Routes and reviews protected complaint records.",
   },
 ] as const;
-

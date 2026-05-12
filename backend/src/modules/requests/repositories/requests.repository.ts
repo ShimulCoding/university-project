@@ -41,6 +41,10 @@ function buildRequestWhere(filters: RequestFilters): Prisma.BudgetRequestWhereIn
 
   if (filters.eventId) {
     where.eventId = filters.eventId;
+  } else if (filters.eventIds) {
+    where.eventId = {
+      in: filters.eventIds,
+    };
   }
 
   if (filters.state) {
@@ -55,6 +59,10 @@ function buildExpenseRequestWhere(filters: RequestFilters): Prisma.ExpenseReques
 
   if (filters.eventId) {
     where.eventId = filters.eventId;
+  } else if (filters.eventIds) {
+    where.eventId = {
+      in: filters.eventIds,
+    };
   }
 
   if (filters.state) {
@@ -69,6 +77,10 @@ function buildExpenseRecordWhere(filters: ExpenseRecordFilters): Prisma.ExpenseR
 
   if (filters.eventId) {
     where.eventId = filters.eventId;
+  } else if (filters.eventIds) {
+    where.eventId = {
+      in: filters.eventIds,
+    };
   }
 
   if (filters.state) {

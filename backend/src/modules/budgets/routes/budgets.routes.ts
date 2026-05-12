@@ -23,6 +23,7 @@ router.get(
   "/",
   authorize(
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,
@@ -34,6 +35,7 @@ router.get(
   "/:budgetId",
   authorize(
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,
@@ -43,13 +45,13 @@ router.get(
 );
 router.post(
   "/",
-  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_MANAGEMENT_USER),
+  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.EVENT_MANAGEMENT_USER),
   validateRequest(createBudgetSchema),
   asyncHandler(budgetsController.createBudget),
 );
 router.post(
   "/:budgetId/revisions",
-  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_MANAGEMENT_USER),
+  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.EVENT_MANAGEMENT_USER),
   validateRequest(reviseBudgetSchema),
   asyncHandler(budgetsController.createBudgetRevision),
 );
@@ -57,6 +59,7 @@ router.patch(
   "/:budgetId/state",
   authorize(
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.EVENT_MANAGEMENT_USER,
     RoleCode.ORGANIZATIONAL_APPROVER,
   ),

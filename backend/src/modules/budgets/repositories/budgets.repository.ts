@@ -22,6 +22,10 @@ function buildBudgetWhere(filters: BudgetFilters): Prisma.BudgetWhereInput {
 
   if (filters.eventId) {
     where.eventId = filters.eventId;
+  } else if (filters.eventIds) {
+    where.eventId = {
+      in: filters.eventIds,
+    };
   }
 
   if (filters.state) {

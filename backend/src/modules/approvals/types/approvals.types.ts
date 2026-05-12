@@ -5,6 +5,7 @@ import type { PaginationInput } from "../../../utils/pagination";
 export type ApprovalQueueFilters = PaginationInput & {
   entityType?: ApprovalEntityType | undefined;
   eventId?: string | undefined;
+  eventIds?: string[] | undefined;
 };
 
 export type ApprovalDecisionInput = {

@@ -1,0 +1,71 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 1686 >>
+stream
+BT /F2 20 Tf 48.00 793.89 Td (Final Event Budget) Tj ET
+BT /F1 10 Tf 48.00 767.89 Td (MU CSE Financial Transparency Platform) Tj ET
+48.00 747.89 m 547.28 747.89 l S
+BT /F2 9 Tf 48.00 723.89 Td (Event name) Tj ET
+BT /F1 9 Tf 180.00 723.89 Td (Test Event) Tj ET
+BT /F2 9 Tf 48.00 710.89 Td (Budget title) Tj ET
+BT /F1 9 Tf 180.00 710.89 Td (Test Budget) Tj ET
+BT /F2 9 Tf 48.00 697.89 Td (Budget version) Tj ET
+BT /F1 9 Tf 180.00 697.89 Td (v1) Tj ET
+BT /F2 9 Tf 48.00 684.89 Td (Status) Tj ET
+BT /F1 9 Tf 180.00 684.89 Td (APPROVED) Tj ET
+BT /F2 9 Tf 48.00 671.89 Td (Created) Tj ET
+BT /F1 9 Tf 180.00 671.89 Td (2026-05-09T02:44:39.000Z) Tj ET
+BT /F2 9 Tf 48.00 658.89 Td (Created by) Tj ET
+BT /F1 9 Tf 180.00 658.89 Td (Creator) Tj ET
+BT /F2 9 Tf 48.00 645.89 Td (Approved by) Tj ET
+BT /F1 9 Tf 180.00 645.89 Td (Approver) Tj ET
+BT /F2 9 Tf 48.00 632.89 Td (Approved at) Tj ET
+BT /F1 9 Tf 180.00 632.89 Td (2026-05-09T02:44:39.000Z) Tj ET
+BT /F2 9 Tf 48.00 619.89 Td (Final total) Tj ET
+BT /F1 9 Tf 180.00 619.89 Td (? 1,234.56) Tj ET
+BT /F2 14 Tf 48.00 594.89 Td (Budget Items) Tj ET
+48.00 572.89 m 547.28 572.89 l S
+BT /F2 9 Tf 48.00 556.89 Td (Category) Tj ET
+BT /F2 9 Tf 165.00 556.89 Td (Item details) Tj ET
+BT /F2 9 Tf 482.00 556.89 Td (Amount) Tj ET
+48.00 544.89 m 547.28 544.89 l S
+BT /F2 9 Tf 48.00 532.89 Td (1.) Tj ET
+BT /F1 9 Tf 72.00 532.89 Td (Cat 1) Tj ET
+BT /F1 9 Tf 165.00 532.89 Td (Item 1) Tj ET
+BT /F1 8 Tf 165.00 518.89 Td (Notes: Notes 1) Tj ET
+BT /F2 9 Tf 482.00 532.89 Td (? 100.00) Tj ET
+48.00 492.89 m 547.28 492.89 l S
+380.00 474.89 m 547.28 474.89 l S
+BT /F2 10 Tf 380.00 458.89 Td (Final budget total) Tj ET
+BT /F2 10 Tf 482.00 458.89 Td (? 1,234.56) Tj ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000260 00000 n 
+0000000402 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2140
+%%EOF

@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 const demoAccounts = [
   {
     label: "System Admin",
-    email: "admin@zcfts.dev",
+    email: "shimulc17@gmail.com",
+    password: "Admin@123456",
     description: "Full platform access — events, users, audit, and global controls.",
   },
   {
@@ -97,7 +98,7 @@ export function InternalAccessPanel() {
                 setErrorMessage(null);
                 setSuccessMessage(null);
                 setEmail(account.email);
-                setPassword("DemoPass123!");
+                setPassword((account as any).password || "DemoPass123!");
               }}
               className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4 text-left transition-colors hover:border-primary/15 hover:bg-panel"
             >
@@ -120,7 +121,8 @@ export function InternalAccessPanel() {
           </div>
           <div className="mt-2">
             The seeded internal demo accounts use the shared local password{" "}
-            <span className="font-semibold text-foreground">DemoPass123!</span>.
+            <span className="font-semibold text-foreground">DemoPass123!</span>
+            {" "} (except System Admin, which uses its specific seed credentials).
           </div>
         </div>
 

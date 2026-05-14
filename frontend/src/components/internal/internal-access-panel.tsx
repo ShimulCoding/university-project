@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { LockKeyhole, ShieldCheck, UserCog } from "lucide-react";
+import { LockKeyhole, ShieldCheck, UserCog, Users } from "lucide-react";
 
 import { getApiErrorMessage } from "@/lib/api/shared";
 import { postJson } from "@/lib/api/client";
@@ -11,39 +11,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
-const demoAccounts = [
-  {
-    label: "System Admin",
-    email: "shimulc17@gmail.com",
-    password: "Admin@123456",
-    description: "Full platform access — events, users, audit, and global controls.",
-  },
-  {
-    label: "Event Admin demo",
-    email: "demo.event.admin@example.com",
-    description: "Event team coordination and cross-functional oversight.",
-  },
-  {
-    label: "Finance demo",
-    email: "demo.finance@example.com",
-    description: "Payment verification, income records, and reconciliation.",
-  },
-  {
-    label: "Approver demo",
-    email: "demo.approver@example.com",
-    description: "Approval queue, complaint routing, and publish decisions.",
-  },
-  {
-    label: "Event Manager demo",
-    email: "demo.event.manager@example.com",
-    description: "Budget and expense request authoring surfaces.",
-  },
-] as const;
-
 export function InternalAccessPanel() {
   const router = useRouter();
-  const [email, setEmail] = useState<string>(demoAccounts[0].email);
-  const [password, setPassword] = useState("DemoPass123!");
+  const [email, setEmail] = useState("shimulc17@gmail.com");
+  const [password, setPassword] = useState("Admin@123456");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,7 +33,7 @@ export function InternalAccessPanel() {
         password,
       });
 
-      setSuccessMessage("Signed in successfully. Loading the internal workspace...");
+      setSuccessMessage("Signed in successfully. Loading the System Admin workspace...");
       setIsSubmitting(false);
 
       startTransition(() => {
@@ -81,56 +52,53 @@ export function InternalAccessPanel() {
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/10 bg-primary/5 text-primary">
           <LockKeyhole className="h-5 w-5" />
         </div>
-        <CardTitle className="mt-4 text-2xl">Sign in to the System Admin workspace</CardTitle>
+        <CardTitle className="mt-4 text-2xl">System Administrator Sign In</CardTitle>
         <CardDescription>
-          The System Admin workspace is backed by the live backend and only opens for
-          authenticated system administrator credentials. Event team members should use
-          their event-specific workspace instead.
+          This workspace is exclusively for the System Administrator. Only the System Admin
+          can create events, manage the platform lifecycle, and access the global dashboard.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid gap-3 md:grid-cols-3">
-          {demoAccounts.map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              onClick={() => {
-                setErrorMessage(null);
-                setSuccessMessage(null);
-                setEmail(account.email);
-                setPassword((account as any).password || "DemoPass123!");
-              }}
-              className="rounded-[1.2rem] border border-border/70 bg-panel-muted px-4 py-4 text-left transition-colors hover:border-primary/15 hover:bg-panel"
-            >
-              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <UserCog className="h-4 w-4 text-primary" />
-                {account.label}
-              </div>
-              <div className="mt-2 text-xs text-muted-foreground">{account.email}</div>
-              <div className="mt-3 text-sm leading-6 text-muted-foreground">
-                {account.description}
-              </div>
-            </button>
-          ))}
+        <div className="rounded-[1.2rem] border border-primary/15 bg-primary/5 px-5 py-5 text-left">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <UserCog className="h-4 w-4 text-primary" />
+            System Admin
+          </div>
+          <div className="mt-2 text-xs text-muted-foreground font-mono">shimulc17@gmail.com</div>
+          <div className="mt-3 text-sm leading-6 text-muted-foreground">
+            Full platform access — create events, assign teams, manage users, audit logs, and global financial oversight.
+          </div>
+        </div>
+
+        <div className="rounded-[1.15rem] border border-info/15 bg-info/5 px-4 py-4 text-sm leading-6 text-muted-foreground">
+          <div className="flex items-center gap-2 font-semibold text-foreground">
+            <Users className="h-4 w-4 text-info" />
+            Event team members
+          </div>
+          <div className="mt-2">
+            Event team members (Event Admin, Finance Controller, Approver, Event Manager) should
+            sign in through the <strong className="text-foreground">Event Team Sign In</strong> button
+            on their specific event&apos;s public page. Each event has its own dedicated team workspace.
+          </div>
         </div>
 
         <div className="rounded-[1.15rem] border border-success/15 bg-success-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
           <div className="flex items-center gap-2 font-semibold text-foreground">
             <ShieldCheck className="h-4 w-4 text-success" />
-            Demo access hint
+            Architecture note
           </div>
           <div className="mt-2">
-            The seeded internal demo accounts use the shared local password{" "}
-            <span className="font-semibold text-foreground">DemoPass123!</span>
-            {" "} (except System Admin, which uses its specific seed credentials).
+            After the System Admin creates and publishes an event, all event-related controls
+            are handled by the event&apos;s assigned team through their scoped workspace.
+            The System Admin retains global oversight across all events.
           </div>
         </div>
 
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           <Field
             className="md:col-span-2"
-            label="Internal account email"
-            description="Choose one of the seeded demo identities or enter another internal account."
+            label="Administrator email"
+            description="Enter the System Admin email credentials."
           >
             <Input
               type="email"
@@ -146,7 +114,7 @@ export function InternalAccessPanel() {
           <Field
             className="md:col-span-2"
             label="Password"
-            description="Use the internal account password configured in the live backend."
+            description="Use the System Admin password configured in the backend."
           >
             <Input
               type="password"

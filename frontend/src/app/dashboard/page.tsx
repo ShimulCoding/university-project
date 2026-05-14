@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/api/student";
-import { hasAnyRole } from "@/lib/access";
+import { hasAnyRole, isSystemAdmin, isEventScopedOnlyUser } from "@/lib/access";
+import { redirect } from "next/navigation";
 import { listPublicFinancialSummaries } from "@/lib/api/public";
 import {
   listApprovalQueue,
@@ -37,6 +38,12 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardOverviewPage() {
   const user = await getCurrentUser();
+
+  // Event team members should use their event-specific workspaces, not the global dashboard
+  if (user && !isSystemAdmin(user) && isEventScopedOnlyUser(user)) {
+    redirect("/dashboard/my-events");
+  }
+
   const roles = user?.roles ?? [];
   const canSeeFinance = hasAnyRole(user, ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"]);
   const canSeeApprovals = hasAnyRole(user, ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"]);

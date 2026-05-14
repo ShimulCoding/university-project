@@ -159,16 +159,24 @@ export default async function PublicEventDetailsPage({
                 <Button asChild variant="outline" className="w-full">
                   <Link href={`/complaints/new?eventId=${event.id}`}>Report a concern</Link>
                 </Button>
-                <div className="mt-2 border-t border-border/50 pt-4">
-                  <Button asChild variant="secondary" className="w-full" size="sm">
-                    <Link href={`/dashboard/events/${event.slug}`}>
-                      Event Team Sign In
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <p className="mt-2 text-xs text-muted-foreground text-center">
-                    Internal team members assigned to this event can sign in to manage finances, approvals, and operations.
-                  </p>
+                <div className="mt-2 border-t border-border/50 pt-4 space-y-3">
+                  <div className="rounded-[1.15rem] border border-primary/15 bg-primary/5 px-4 py-4">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+                      <ShieldAlert className="h-4 w-4 text-primary" />
+                      Event Team Workspace
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-5 mb-3">
+                      Assigned team members (Event Admin, Finance Controller, Approver, Event Manager)
+                      can sign in below to access this event&apos;s internal workspace for managing
+                      finances, approvals, and operations.
+                    </p>
+                    <Button asChild className="w-full" size="sm">
+                      <Link href={`/dashboard/events/${event.slug}`}>
+                        Event Team Sign In
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

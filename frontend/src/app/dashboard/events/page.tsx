@@ -46,7 +46,7 @@ export default async function DashboardEventsPage({
       getCurrentUser(),
       listManagedEvents({ status, search }),
     ]);
-    const canManageEvents = hasAnyRole(user, ["SYSTEM_ADMIN", "EVENT_MANAGEMENT_USER"]);
+    const canManageEvents = hasAnyRole(user, ["SYSTEM_ADMIN"]);
     const selectedEvent = events.find((event) => event.id === eventId) ?? events[0] ?? null;
 
     return (

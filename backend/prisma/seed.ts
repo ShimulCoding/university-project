@@ -86,7 +86,10 @@ async function seedAdminUser() {
 
 /**
  * Create demo internal users and assign them to a demo event.
- * Each demo user gets both a global role AND an event-scoped team assignment.
+ *
+ * IMPORTANT: Demo users get event-scoped team assignments ONLY.
+ * They do NOT receive global roles in the UserRole table.
+ * This ensures they can only access data within their assigned event.
  */
 async function seedDemoEventTeam() {
   const demoPassword = process.env.SEED_DEMO_PASSWORD?.trim() || "DemoPass123!";
@@ -96,30 +99,26 @@ async function seedDemoEventTeam() {
     {
       fullName: "Finance Controller (Demo)",
       email: "demo.finance@example.com",
-      globalRoleCode: RoleCode.FINANCIAL_CONTROLLER,
       eventRoleCode: RoleCode.FINANCIAL_CONTROLLER,
     },
     {
       fullName: "Organizational Approver (Demo)",
       email: "demo.approver@example.com",
-      globalRoleCode: RoleCode.ORGANIZATIONAL_APPROVER,
       eventRoleCode: RoleCode.ORGANIZATIONAL_APPROVER,
     },
     {
       fullName: "Event Manager (Demo)",
       email: "demo.event.manager@example.com",
-      globalRoleCode: RoleCode.EVENT_MANAGEMENT_USER,
       eventRoleCode: RoleCode.EVENT_MANAGEMENT_USER,
     },
     {
       fullName: "Event Admin (Demo)",
       email: "demo.event.admin@example.com",
-      globalRoleCode: RoleCode.EVENT_ADMIN,
       eventRoleCode: RoleCode.EVENT_ADMIN,
     },
   ];
 
-  // Create or find users with their global roles
+  // Create or find users — NO global role assignments
   const userRecords: Array<{ id: string; email: string; eventRoleCode: RoleCode }> = [];
 
   for (const demoUser of demoUsers) {
@@ -135,19 +134,29 @@ async function seedDemoEventTeam() {
       },
     });
 
-    // Assign global role
-    const role = await prisma.role.findUnique({ where: { code: demoUser.globalRoleCode } });
-    if (role) {
-      const existingAssignment = await prisma.userRole.findFirst({
+    // Revoke any leftover global operational roles from previous seeds
+    const operationalRoles = await prisma.role.findMany({
+      where: {
+        code: {
+          in: [
+            RoleCode.EVENT_ADMIN,
+            RoleCode.FINANCIAL_CONTROLLER,
+            RoleCode.ORGANIZATIONAL_APPROVER,
+            RoleCode.EVENT_MANAGEMENT_USER,
+            RoleCode.COMPLAINT_REVIEW_AUTHORITY,
+          ],
+        },
+      },
+    });
+    for (const role of operationalRoles) {
+      await prisma.userRole.updateMany({
         where: { userId: user.id, roleId: role.id, revokedAt: null },
+        data: { revokedAt: new Date() },
       });
-      if (!existingAssignment) {
-        await prisma.userRole.create({ data: { userId: user.id, roleId: role.id } });
-      }
     }
 
     userRecords.push({ id: user.id, email, eventRoleCode: demoUser.eventRoleCode });
-    console.log(`Seeded demo user: ${email} with role ${demoUser.globalRoleCode}`);
+    console.log(`Seeded demo user: ${email} (event-scoped only, no global role)`);
   }
 
   // Create a demo event
@@ -175,7 +184,7 @@ async function seedDemoEventTeam() {
 
   console.log(`Seeded demo event: ${demoEvent.title} (${demoEvent.slug})`);
 
-  // Assign each demo user to the demo event
+  // Assign each demo user to the demo event via EventTeamMember
   for (const record of userRecords) {
     await prisma.eventTeamMember.upsert({
       where: {

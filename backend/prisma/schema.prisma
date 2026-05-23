@@ -258,6 +258,7 @@ model Event {
   complaints             Complaint[]
   reconciliationReports  ReconciliationReport[]
   publicSummarySnapshots PublicSummarySnapshot[]
+  auditLogs              AuditLog[]              @relation("AuditLogEvent")
 }
 
 model Registration {
@@ -537,6 +538,7 @@ model PublicSummarySnapshot {
 model AuditLog {
   id         String   @id @default(cuid())
   actorId    String?
+  eventId    String?
   action     String
   entityType String
   entityId   String
@@ -548,8 +550,10 @@ model AuditLog {
   method     String?
   createdAt  DateTime @default(now())
   actor      User?    @relation("AuditActor", fields: [actorId], references: [id])
+  event      Event?   @relation("AuditLogEvent", fields: [eventId], references: [id], onDelete: SetNull)
 
   @@index([actorId])
+  @@index([eventId])
   @@index([createdAt])
   @@index([entityType, entityId])
 }

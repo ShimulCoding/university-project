@@ -5,7 +5,7 @@ import { RoleCode } from "@prisma/client";
 
 import { uploadRules } from "../../../config/uploads";
 import { authenticate } from "../../../middlewares/authenticate";
-import { authorize } from "../../../middlewares/authorize";
+import { authorizeEventScoped } from "../../../middlewares/authorize";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
 import { requestsController } from "../controllers/requests.controller";
@@ -41,12 +41,13 @@ router.get(
 );
 router.get(
   "/budget-requests",
-  authorize(
+  authorizeEventScoped([
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,
-  ),
+  ]),
   validateRequest(listRequestsSchema),
   asyncHandler(requestsController.listBudgetRequests),
 );
@@ -80,12 +81,13 @@ router.get(
 );
 router.get(
   "/expense-requests",
-  authorize(
+  authorizeEventScoped([
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,
-  ),
+  ]),
   validateRequest(listRequestsSchema),
   asyncHandler(requestsController.listExpenseRequests),
 );
@@ -114,42 +116,44 @@ router.post(
 
 router.get(
   "/expense-records",
-  authorize(
+  authorizeEventScoped([
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,
-  ),
+  ]),
   validateRequest(listExpenseRecordsSchema),
   asyncHandler(requestsController.listExpenseRecords),
 );
 router.get(
   "/expense-records/:expenseRecordId",
-  authorize(
+  authorizeEventScoped([
     RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,
-  ),
+  ]),
   validateRequest(expenseRecordIdParamSchema),
   asyncHandler(requestsController.getExpenseRecordById),
 );
 router.post(
   "/expense-records",
-  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   upload.array("supportingDocument", 15),
   validateRequest(createExpenseRecordSchema),
   asyncHandler(requestsController.createExpenseRecord),
 );
 router.post(
   "/expense-records/:expenseRecordId/settle",
-  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   validateRequest(settleExpenseRecordSchema),
   asyncHandler(requestsController.settleExpenseRecord),
 );
 router.post(
   "/expense-records/:expenseRecordId/void",
-  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   validateRequest(voidExpenseRecordSchema),
   asyncHandler(requestsController.voidExpenseRecord),
 );

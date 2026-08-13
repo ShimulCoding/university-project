@@ -31,6 +31,9 @@ function getRefreshTokenExpiryDate() {
   return new Date(Date.now() + durationToMs(env.REFRESH_TOKEN_TTL));
 }
 
+const passwordResetRequestMessage =
+  "If the details are correct, a password reset link has been sent to your email.";
+
 async function issueSession(
   userId: string,
   metadata?: AuditMetadata,
@@ -355,18 +358,14 @@ export const authService = {
 
   async forgotPassword(input: ForgotPasswordInput, auditMetadata?: AuditMetadata) {
     const user = await usersRepository.findByStudentId(input.studentId.trim());
-
-    if (!user) {
-      throw new AppError(404, "No account found with this Student ID.");
-    }
-
     const normalizedInputEmail = normalizeEmail(input.email);
-    if (user.email !== normalizedInputEmail) {
-      throw new AppError(400, "The email does not match the account registered with this Student ID.");
-    }
 
-    if (user.status !== AccountStatus.ACTIVE) {
-      throw new AppError(403, "This account is not active.");
+    if (
+      !user ||
+      user.email !== normalizedInputEmail ||
+      user.status !== AccountStatus.ACTIVE
+    ) {
+      return { message: passwordResetRequestMessage };
     }
 
     // Generate token
@@ -396,7 +395,7 @@ export const authService = {
       ...auditMetadata,
     });
 
-    return { message: "If the details are correct, a password reset link has been sent to your email." };
+    return { message: passwordResetRequestMessage };
   },
 
   async resetPassword(input: ResetPasswordInput, auditMetadata?: AuditMetadata) {
@@ -417,9 +416,19 @@ export const authService = {
 
     const newPasswordHash = await hashPassword(input.newPassword);
     
-    // Perform update and mark token used
-    await usersRepository.updatePassword(tokenRecord.userId, newPasswordHash);
-    await authRepository.markPasswordResetTokenAsUsed(tokenRecord.id);
+    await prisma.$transaction(async (tx) => {
+      const consumedToken = await authRepository.consumeActivePasswordResetToken(
+        tokenRecord.id,
+        tx,
+      );
+
+      if (consumedToken.count !== 1) {
+        throw new AppError(400, "This reset token has already been used or expired.");
+      }
+
+      await usersRepository.updatePassword(tokenRecord.userId, newPasswordHash, tx);
+      await authRepository.revokeActiveRefreshTokensForUser(tokenRecord.userId, tx);
+    });
 
     await auditService.record({
       actorId: tokenRecord.userId,
@@ -453,7 +462,12 @@ export const authService = {
     const tokenHash = hashValue(refreshToken);
     const storedToken = await authRepository.findRefreshTokenByHash(tokenHash);
 
-    if (!storedToken || storedToken.revokedAt || storedToken.expiresAt <= new Date()) {
+    if (
+      !storedToken ||
+      storedToken.revokedAt ||
+      storedToken.expiresAt <= new Date() ||
+      storedToken.userId !== payload.sub
+    ) {
       throw new AppError(401, "Refresh token is invalid or expired.");
     }
 
@@ -462,7 +476,11 @@ export const authService = {
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      await authRepository.revokeRefreshToken(storedToken.id, tx);
+      const revokedToken = await authRepository.revokeActiveRefreshToken(storedToken.id, tx);
+
+      if (revokedToken.count !== 1) {
+        throw new AppError(401, "Refresh token has already been used or expired.");
+      }
       await usersRepository.updateLastLogin(storedToken.userId, tx);
 
       const refreshedUser = await usersRepository.findById(storedToken.userId, tx);
@@ -500,20 +518,30 @@ export const authService = {
       return;
     }
 
+    let payload;
+
     try {
-      verifyRefreshToken(refreshToken);
+      payload = verifyRefreshToken(refreshToken);
     } catch {
+      return;
+    }
+
+    if (payload.type !== "refresh") {
       return;
     }
 
     const tokenHash = hashValue(refreshToken);
     const storedToken = await authRepository.findRefreshTokenByHash(tokenHash);
 
-    if (!storedToken || storedToken.revokedAt) {
+    if (!storedToken || storedToken.revokedAt || storedToken.userId !== payload.sub) {
       return;
     }
 
-    await authRepository.revokeRefreshToken(storedToken.id);
+    const revokedToken = await authRepository.revokeActiveRefreshToken(storedToken.id);
+
+    if (revokedToken.count !== 1) {
+      return;
+    }
 
     await auditService.record({
       actorId: actorId ?? storedToken.userId,

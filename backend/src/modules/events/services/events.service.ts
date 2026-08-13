@@ -129,6 +129,17 @@ async function resolveAssignableUser(
       throw new AppError(409, "This user account is not active and cannot be assigned to an event.");
     }
 
+    if (
+      existingUser.roles.some(
+        (assignment) => assignment.role.code === RoleCode.SYSTEM_ADMIN,
+      )
+    ) {
+      throw new AppError(
+        409,
+        "The System Administrator cannot also hold an event operational role.",
+      );
+    }
+
     return existingUser;
   }
 
@@ -426,12 +437,31 @@ export const eventsService = {
     const nextStatus = input.status ?? event.status;
     assertEventManagementPermissions(actor, event.id, event.status, nextStatus);
     const nextSlugBase = input.slug ? slugify(input.slug) : undefined;
+    const nextDescription = sanitizeNullableText(input.description);
 
     if (input.slug && !nextSlugBase) {
       throw new AppError(400, "Unable to derive a valid event slug.");
     }
 
     assertValidStatusTransition(event.status, nextStatus);
+
+    const hasMeaningfulChange =
+      (input.title !== undefined && input.title.trim() !== event.title) ||
+      (nextSlugBase !== undefined && nextSlugBase !== event.slug) ||
+      (input.description !== undefined && nextDescription !== event.description) ||
+      (input.status !== undefined && input.status !== event.status) ||
+      (input.registrationOpensAt !== undefined &&
+        input.registrationOpensAt.getTime() !== event.registrationOpensAt?.getTime()) ||
+      (input.registrationClosesAt !== undefined &&
+        input.registrationClosesAt.getTime() !== event.registrationClosesAt?.getTime()) ||
+      (input.startsAt !== undefined &&
+        input.startsAt.getTime() !== event.startsAt?.getTime()) ||
+      (input.endsAt !== undefined && input.endsAt.getTime() !== event.endsAt?.getTime()) ||
+      (input.capacity !== undefined && input.capacity !== event.capacity);
+
+    if (!hasMeaningfulChange) {
+      throw new AppError(400, "No event changes were supplied.");
+    }
 
     assertValidTimeline({
       registrationOpensAt: input.registrationOpensAt ?? event.registrationOpensAt ?? undefined,
@@ -448,7 +478,7 @@ export const eventsService = {
         updatedEvent = await eventsRepository.updateEvent(event.id, {
           title: input.title?.trim(),
           slug: nextSlug,
-          description: sanitizeNullableText(input.description),
+          description: nextDescription,
           status: nextStatus,
           registrationOpensAt: input.registrationOpensAt,
           registrationClosesAt: input.registrationClosesAt,

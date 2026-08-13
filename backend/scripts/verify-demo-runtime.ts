@@ -6,7 +6,7 @@ const baseUrl = process.env.BACKEND_BASE_URL?.trim() || "http://127.0.0.1:4000";
 const demoActiveEventSlug = "demo-open-finance-workshop-2026";
 const demoClosedEventSlug = "demo-cse-annual-tech-symposium-2026";
 
-function assertCondition(condition: unknown, message: string) {
+function assertCondition(condition: unknown, message: string): asserts condition {
   if (!condition) {
     throw new Error(message);
   }
@@ -120,6 +120,84 @@ async function loginAsEventTeam(email: string, eventLookupKey: string) {
   return { cookieHeader, body };
 }
 
+async function loginAsStudent() {
+  const response = await fetch(`${baseUrl}/api/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      studentId: "DEMO-ACT-001",
+      password: "DemoPass123!",
+    }),
+  });
+  const body = await readJson(response);
+
+  if (!response.ok) {
+    throw new Error(`Demo student login failed with ${response.status}. Body: ${JSON.stringify(body)}`);
+  }
+
+  const cookieHeader = buildCookieHeader(response);
+  assertCondition(cookieHeader, "Demo student login did not return authentication cookies.");
+
+  return { cookieHeader, body };
+}
+
+async function verifyRefreshReplayProtection(cookieHeader: string) {
+  const refreshResponse = await fetch(`${baseUrl}/api/auth/refresh`, {
+    method: "POST",
+    headers: { Cookie: cookieHeader },
+  });
+  const refreshBody = await readJson(refreshResponse);
+
+  assertCondition(
+    refreshResponse.status === 200,
+    `Initial refresh returned ${refreshResponse.status}. Body: ${JSON.stringify(refreshBody)}`,
+  );
+
+  const rotatedCookieHeader = buildCookieHeader(refreshResponse);
+  assertCondition(rotatedCookieHeader, "Refresh rotation did not return replacement cookies.");
+
+  const replayResponse = await fetch(`${baseUrl}/api/auth/refresh`, {
+    method: "POST",
+    headers: { Cookie: cookieHeader },
+  });
+  assertCondition(
+    replayResponse.status === 401,
+    `Replayed refresh token returned ${replayResponse.status} instead of 401.`,
+  );
+
+  await fetchJson("/api/auth/logout", {
+    method: "POST",
+    headers: { Cookie: rotatedCookieHeader },
+    expectedStatus: 204,
+  });
+}
+
+async function verifyPasswordRecoveryPrivacy() {
+  const unknownAccountResponse = await fetchJson("/api/auth/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      studentId: "UNKNOWN-STUDENT-ID",
+      email: "unknown.student@example.com",
+    }),
+  });
+  const mismatchedAccountResponse = await fetchJson("/api/auth/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      studentId: "WRONG-STUDENT-ID",
+      email: "demo.active.student@example.com",
+    }),
+  });
+
+  assertCondition(
+    JSON.stringify(unknownAccountResponse) === JSON.stringify(mismatchedAccountResponse),
+    "Password recovery responses disclose whether the submitted account exists.",
+  );
+}
+
 async function main() {
   const health = await fetchJson("/health");
   assertCondition(health.status === "ok", "Health endpoint did not return ok status.");
@@ -177,6 +255,53 @@ async function main() {
     "Public summary closing balance does not reconcile with collected minus spent totals.",
   );
   assertCondition(summary?.payload?.summaryOnly === true, "Public summary must remain summary-only.");
+
+  const studentLogin = await loginAsStudent();
+  const studentHeaders = { Cookie: studentLogin.cookieHeader };
+  const studentRegistrationsResponse = await fetchJson("/api/registrations/me", {
+    headers: studentHeaders,
+  });
+  const studentRegistrations = Array.isArray(studentRegistrationsResponse.registrations)
+    ? studentRegistrationsResponse.registrations
+    : [];
+  const activeStudentRegistration = studentRegistrations.find(
+    (registration) =>
+      registration &&
+      typeof registration === "object" &&
+      (registration as { event?: { slug?: string } }).event?.slug === demoActiveEventSlug,
+  ) as { id?: string } | undefined;
+
+  assertCondition(
+    activeStudentRegistration?.id,
+    "Demo student does not have the seeded active-event registration.",
+  );
+
+  const registrationDetailResponse = await fetchJson(
+    `/api/registrations/${activeStudentRegistration.id}`,
+    { headers: studentHeaders },
+  );
+  const ownerProofs =
+    (registrationDetailResponse.registration as
+      | { paymentProofs?: Array<{ documents?: Array<{ id?: string; viewPath?: string }> }> }
+      | undefined)?.paymentProofs ?? [];
+  const ownerDocuments = ownerProofs.flatMap((proof) => proof.documents ?? []);
+  const ownerDocument = ownerDocuments[0];
+
+  assertCondition(
+    ownerDocument?.id && ownerDocument.viewPath,
+    "Student registration detail does not expose owner-safe payment proof metadata.",
+  );
+
+  const ownerDocumentResponse = await fetch(`${baseUrl}/api${ownerDocument.viewPath}`, {
+    headers: studentHeaders,
+  });
+  assertCondition(
+    ownerDocumentResponse.status === 200,
+    `Student-owned payment proof returned ${ownerDocumentResponse.status}.`,
+  );
+
+  await verifyRefreshReplayProtection(studentLogin.cookieHeader);
+  await verifyPasswordRecoveryPrivacy();
 
   const login = await loginAsSeedAdmin();
   const authHeaders = {
@@ -335,6 +460,8 @@ async function main() {
   console.log(`Base URL: ${baseUrl}`);
   console.log(`Public events: ${publicEvents.length}`);
   console.log(`Public summaries: ${publicSummaries.length}`);
+  console.log(`Student-owned proof documents: ${ownerDocuments.length}`);
+  console.log("Auth replay and recovery privacy: verified");
   console.log(`Verification queue items: ${verificationQueue.length}`);
   console.log(`Income records: ${incomeRecords.length}`);
   console.log(`Budget requests: ${budgetRequests.length}`);

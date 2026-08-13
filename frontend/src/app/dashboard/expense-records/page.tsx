@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, SearchSlash, ShieldAlert, CreditCard, CalendarDays, FileText, Tag, TrendingDown, CheckCircle2, LinkIcon } from "lucide-react";
+import { AlertTriangle, SearchSlash, ShieldAlert, CreditCard, CalendarDays, FileText, TrendingDown, CheckCircle2, LinkIcon } from "lucide-react";
 
 import {
   getExpenseRecord,

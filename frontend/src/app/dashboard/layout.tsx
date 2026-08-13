@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/api/student";
-import { getInternalRoles, isSystemAdmin, isEventScopedOnlyUser } from "@/lib/access";
+import { getInternalRoles, isEventScopedOnlyUser } from "@/lib/access";
 import { InternalAccessPanel } from "@/components/internal/internal-access-panel";
 import { InternalSessionCard } from "@/components/internal/internal-session-card";
 import { EventTeamRouteBoundary } from "@/components/internal/event-team-route-boundary";

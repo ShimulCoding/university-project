@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
@@ -34,7 +35,7 @@ export default function GlobalError({
             <div className="mt-6 flex gap-3">
               <Button onClick={reset}>Retry page</Button>
               <Button asChild variant="outline">
-                <a href="/">Return home</a>
+                <Link href="/">Return home</Link>
               </Button>
             </div>
           </div>

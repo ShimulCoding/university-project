@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, FileCheck, SearchSlash, ShieldAlert, BadgeDollarSign, User, CalendarDays, ExternalLink, FileText } from "lucide-react";
+import { AlertTriangle, FileCheck, SearchSlash, ShieldAlert, BadgeDollarSign, User, CalendarDays, FileText } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/api/student";
 import { getEventRolesForEvent, isSystemAdmin } from "@/lib/access";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { BudgetRecord, EventSummary } from "@/types";
 import { patchJson, postJson } from "@/lib/api/client";
@@ -288,10 +288,6 @@ export function BudgetStateForm({
             : budget.state === "REVISED"
               ? "This budget was returned for revision. Create a new revision and resubmit it."
               : null;
-
-  useEffect(() => {
-    setState(availableOptions[0]?.value ?? "");
-  }, [availableOptions]);
 
   return (
     <Card>

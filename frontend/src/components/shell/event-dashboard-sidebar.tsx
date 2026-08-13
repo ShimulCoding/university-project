@@ -29,9 +29,6 @@ export function EventDashboardSidebar({
     eventRoles.includes("SYSTEM_ADMIN" as AppRole),
   );
 
-  const primaryRole = eventRoles[0];
-  const primaryRoleMeta = primaryRole ? roleMeta[primaryRole] : null;
-
   return (
     <aside className="order-2 surface-panel-muted flex h-full flex-col gap-8 p-5 lg:order-none lg:sticky lg:top-6 lg:min-h-[calc(100vh-3rem)]">
       <div className="space-y-5">
@@ -42,7 +39,7 @@ export function EventDashboardSidebar({
           <div className="flex items-center justify-between gap-3">
             <div className="data-kicker text-primary-foreground/70">Event workspace</div>
             <Badge
-              variant={getEventStatusTone(event.status) as any}
+              variant={getEventStatusTone(event.status)}
               className="border-white/10 bg-white/10 text-white text-[10px] uppercase tracking-widest"
             >
               {formatEnumLabel(event.status)}

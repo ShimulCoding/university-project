@@ -8,7 +8,6 @@ import {
   ClipboardCheck,
   ClipboardList,
   Coins,
-  FileBadge2,
   FileSearch,
   Files,
   Globe2,

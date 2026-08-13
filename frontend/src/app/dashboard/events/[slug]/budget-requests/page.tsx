@@ -300,6 +300,7 @@ export default async function EventBudgetRequestsPage({
                 </Card>
 
                 <BudgetStateForm
+                  key={`${selectedBudget.id}-${selectedBudget.state}`}
                   budget={selectedBudget}
                   canSubmit={canCreateOrReviseBudgets}
                   canApprove={canApproveBudgets}

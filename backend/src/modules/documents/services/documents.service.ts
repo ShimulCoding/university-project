@@ -54,9 +54,9 @@ function resolveDocumentEventId(document: DocumentWithParents): string | undefin
  * Assert that the actor can access this document.
  *
  * Access is granted when:
- *   1. The actor uploaded the document themselves, OR
+ *   1. The actor owns the registration or complaint that contains the document, OR
  *   2. The actor is a SYSTEM_ADMIN, OR
- *   3. The document belongs to an event AND the actor holds an allowed
+ *   3. The document belongs to an event AND the actor holds an active allowed
  *      event-scoped role for that event.
  *
  * This prevents cross-event document access — e.g. a Finance Controller
@@ -66,8 +66,11 @@ function assertDocumentAccess(
   actor: AuthenticatedUser,
   document: DocumentWithParents,
 ) {
-  // Uploader can always access their own documents
-  if (document.uploadedById === actor.id) {
+  const isStudentOwnedDocument =
+    document.paymentProof?.registration?.participantId === actor.id ||
+    document.complaint?.submittedById === actor.id;
+
+  if (isStudentOwnedDocument) {
     return;
   }
 

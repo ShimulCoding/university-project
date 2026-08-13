@@ -25,13 +25,10 @@ import {
   formatEnumLabel,
   formatMoney,
   getEventStatusTone,
-  getPublicSummaryStateTone,
   getReconciliationStateTone,
 } from "@/lib/format";
 import {
-  PublishSummaryButton,
   ReconciliationActionPanel,
-  UnpublishSummaryButton,
   ReconciliationGenerateForm,
 } from "@/components/internal/reconciliation-actions";
 import { FilterCard } from "@/components/internal/filter-card";
@@ -64,7 +61,6 @@ export default async function ReconciliationPage({
   try {
     const canManage = false;
     const canFinalize = false;
-    const canPublish = false;
 
     const [reports, events] = await Promise.all([
       listReconciliationReports({ eventId, status }),

@@ -6,7 +6,7 @@ import { formatMoney } from "@/lib/format";
 import { PublicSummaryCard } from "@/components/public/public-summary-card";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { StatePanel } from "@/components/ui/state-panel";
 import {
   getHistoricalPublishedSnapshotCount,

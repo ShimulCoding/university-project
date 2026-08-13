@@ -4,9 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import type { AppRole, ManagedEvent, UserProfile } from "@/types";
-import { eventDashboardNavigation, roleMeta } from "@/lib/navigation";
+import { roleMeta } from "@/lib/navigation";
 import { formatEnumLabel, getEventStatusTone } from "@/lib/format";
-import { InternalSessionCard } from "@/components/internal/internal-session-card";
 import { LogoutButton } from "@/components/student/logout-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -91,7 +90,7 @@ export function EventDashboardHeader({
       <div className="max-w-3xl">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="info">Event workspace</Badge>
-          <Badge variant={getEventStatusTone(event.status) as any}>
+          <Badge variant={getEventStatusTone(event.status)}>
             {formatEnumLabel(event.status)}
           </Badge>
           {primaryRoleMeta && (

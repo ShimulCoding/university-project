@@ -6,7 +6,7 @@ import { ApiError } from "@/lib/api/shared";
 import { PublicEventCard } from "@/components/public/public-event-card";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { StatePanel } from "@/components/ui/state-panel";
 
 export const dynamic = "force-dynamic";

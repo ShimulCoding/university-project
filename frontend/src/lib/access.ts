@@ -1,4 +1,4 @@
-import type { AppRole, UserProfile } from "@/types";
+import type { AppRole, EventStatus, UserProfile } from "@/types";
 
 export const internalWorkspaceRoles: AppRole[] = [
   "SYSTEM_ADMIN",
@@ -71,7 +71,7 @@ export function getAssignedEvents(user: UserProfile | null | undefined) {
   if (!user) return [];
   const eventMap = new Map<
     string,
-    { id: string; title: string; slug: string; status: string; roles: AppRole[] }
+    { id: string; title: string; slug: string; status: EventStatus; roles: AppRole[] }
   >();
 
   for (const assignment of user.eventRoles ?? []) {

@@ -37,20 +37,29 @@ export const authRepository = {
     });
   },
 
-  revokeRefreshToken(tokenId: string, db: DbClient = prisma) {
-    return db.refreshToken.update({
-      where: { id: tokenId },
+  revokeActiveRefreshToken(tokenId: string, db: DbClient = prisma) {
+    const revokedAt = new Date();
+
+    return db.refreshToken.updateMany({
+      where: {
+        id: tokenId,
+        revokedAt: null,
+        expiresAt: { gt: revokedAt },
+      },
       data: {
-        revokedAt: new Date(),
+        revokedAt,
       },
     });
   },
 
-  updateRefreshTokenUsage(tokenId: string, db: DbClient = prisma) {
-    return db.refreshToken.update({
-      where: { id: tokenId },
+  revokeActiveRefreshTokensForUser(userId: string, db: DbClient = prisma) {
+    return db.refreshToken.updateMany({
+      where: {
+        userId,
+        revokedAt: null,
+      },
       data: {
-        lastUsedAt: new Date(),
+        revokedAt: new Date(),
       },
     });
   },
@@ -95,11 +104,17 @@ export const authRepository = {
     });
   },
 
-  markPasswordResetTokenAsUsed(tokenId: string, db: DbClient = prisma) {
-    return db.passwordResetToken.update({
-      where: { id: tokenId },
+  consumeActivePasswordResetToken(tokenId: string, db: DbClient = prisma) {
+    const usedAt = new Date();
+
+    return db.passwordResetToken.updateMany({
+      where: {
+        id: tokenId,
+        usedAt: null,
+        expiresAt: { gt: usedAt },
+      },
       data: {
-        usedAt: new Date(),
+        usedAt,
       },
     });
   },

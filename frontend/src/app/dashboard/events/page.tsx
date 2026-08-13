@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, SearchSlash, ShieldAlert, Clock, Users, CalendarRange, Layers } from "lucide-react";
+import { CalendarDays, SearchSlash, ShieldAlert, Clock, CalendarRange, Layers } from "lucide-react";
 
 import { hasAnyRole } from "@/lib/access";
 import { listManagedEvents } from "@/lib/api/internal";

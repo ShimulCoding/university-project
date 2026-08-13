@@ -1,13 +1,14 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CreditCard, FileBadge2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, CreditCard, ExternalLink, FileBadge2 } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { getCurrentUser, getRegistration, listMyRegistrations } from "@/lib/api/student";
-import { ApiError } from "@/lib/api/shared";
+import { ApiError, buildApiUrl } from "@/lib/api/shared";
 import {
   formatDate,
   formatDateTime,
   formatEnumLabel,
+  formatFileSize,
   getPaymentStateTone,
 } from "@/lib/format";
 import { StudentAccessPanel } from "@/components/student/student-access-panel";
@@ -185,6 +186,35 @@ export default async function RegistrationStatusPage({
                           <div className="mt-4 rounded-[1rem] border border-border/70 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
                             <span className="font-medium text-foreground">Reviewer note:</span>{" "}
                             {proof.reviewerRemark}
+                          </div>
+                        ) : null}
+                        {proof.documents && proof.documents.length > 0 ? (
+                          <div className="mt-4 space-y-2 border-t border-border/70 pt-4">
+                            {proof.documents.map((document) => (
+                              <div
+                                key={document.id}
+                                className="flex flex-wrap items-center justify-between gap-3 rounded-[1rem] border border-border/70 bg-panel px-4 py-3"
+                              >
+                                <div className="min-w-0">
+                                  <div className="break-all text-sm font-medium text-foreground">
+                                    {document.originalName}
+                                  </div>
+                                  <div className="mt-1 text-xs text-muted-foreground">
+                                    {formatFileSize(document.sizeBytes)} / {document.mimeType}
+                                  </div>
+                                </div>
+                                <Button asChild variant="outline" size="sm">
+                                  <a
+                                    href={buildApiUrl(document.viewPath)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    Open my proof
+                                    <ExternalLink className="h-4 w-4" />
+                                  </a>
+                                </Button>
+                              </div>
+                            ))}
                           </div>
                         ) : null}
                       </div>

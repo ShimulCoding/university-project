@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, FileCheck, SearchSlash, ShieldAlert, BadgeDollarSign, User, CalendarDays, ExternalLink, FileText } from "lucide-react";
+import { AlertTriangle, FileCheck, SearchSlash, ShieldAlert, BadgeDollarSign, User, CalendarDays, FileText } from "lucide-react";
 
 import { listInternalEventOptions, listPaymentVerificationQueue } from "@/lib/api/internal";
 import { buildRelativeHref } from "@/lib/detail-query";

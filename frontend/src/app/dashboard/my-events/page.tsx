@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   CalendarDays,
-  ChevronRight,
   ShieldCheck,
   Users,
   Layers,
@@ -13,7 +12,6 @@ import { getCurrentUser } from "@/lib/api/student";
 import { getAssignedEvents, isSystemAdmin } from "@/lib/access";
 import { formatEnumLabel, getEventStatusTone } from "@/lib/format";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
-import { InternalSessionCard } from "@/components/internal/internal-session-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -109,7 +107,7 @@ export default async function MyEventsPage() {
                   <CardHeader className="pb-4">
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       <Badge
-                        variant={getEventStatusTone(event.status as any)}
+                        variant={getEventStatusTone(event.status)}
                         className="text-xs tracking-widest font-semibold uppercase px-3 py-1"
                       >
                         {formatEnumLabel(event.status)}

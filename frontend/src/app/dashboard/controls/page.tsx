@@ -1,7 +1,5 @@
 import { ControlsShowcase } from "@/components/foundation/controls-showcase";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { ShieldCheck, Layers, LayoutTemplate } from "lucide-react";
 
 export default function DashboardControlsPage() {

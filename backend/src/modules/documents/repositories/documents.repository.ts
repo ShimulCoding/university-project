@@ -13,12 +13,14 @@ export const documentsRepository = {
         originalName: true,
         mimeType: true,
         relativePath: true,
-        uploadedById: true,
         // Include parent entity references to resolve event ownership
         paymentProof: {
           select: {
             registration: {
-              select: { eventId: true },
+              select: {
+                eventId: true,
+                participantId: true,
+              },
             },
           },
         },
@@ -26,7 +28,12 @@ export const documentsRepository = {
         budgetRequest: { select: { eventId: true } },
         expenseRequest: { select: { eventId: true } },
         expenseRecord: { select: { eventId: true } },
-        complaint: { select: { eventId: true } },
+        complaint: {
+          select: {
+            eventId: true,
+            submittedById: true,
+          },
+        },
       },
     });
   },

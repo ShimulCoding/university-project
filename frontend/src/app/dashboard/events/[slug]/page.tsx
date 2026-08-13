@@ -4,13 +4,12 @@ import {
   ChevronRight,
   Users,
   Activity,
-  CalendarDays,
   FileText,
   CheckSquare,
 } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/api/student";
-import { getEventRolesForEvent, hasAnyRole, isSystemAdmin } from "@/lib/access";
+import { getEventRolesForEvent, isSystemAdmin } from "@/lib/access";
 import { apiFetchServer } from "@/lib/api/server";
 import {
   listPaymentVerificationQueue,
@@ -19,7 +18,7 @@ import {
   listExpenseRequests,
   listReconciliationReports,
 } from "@/lib/api/internal";
-import { formatEnumLabel, getEventStatusTone, formatDateTime } from "@/lib/format";
+import { formatEnumLabel, getEventStatusTone } from "@/lib/format";
 import { eventDashboardNavigation } from "@/lib/navigation";
 import type { AppRole, ManagedEvent } from "@/types";
 import { Badge } from "@/components/ui/badge";
@@ -154,7 +153,7 @@ export default async function EventWorkspaceOverviewPage({
                 Event Team Active
               </Badge>
               <Badge
-                variant={getEventStatusTone(event.status) as any}
+                variant={getEventStatusTone(event.status)}
                 className="px-3 py-1 font-semibold tracking-wider uppercase backdrop-blur-md"
               >
                 {formatEnumLabel(event.status)}
@@ -190,7 +189,7 @@ export default async function EventWorkspaceOverviewPage({
           </div>
 
           {/* Team members card */}
-          {"teamMembers" in event && (event as any).teamMembers?.length > 0 && (
+          {event.teamMembers.length > 0 && (
             <div className="lg:min-w-[320px] rounded-2xl border border-primary/15 bg-background/60 backdrop-blur-md p-6 shadow-xl shadow-primary/5 relative overflow-hidden">
               <div className="flex items-center gap-2 mb-4">
                 <Users className="h-4 w-4 text-primary" />
@@ -199,8 +198,8 @@ export default async function EventWorkspaceOverviewPage({
                 </div>
               </div>
               <div className="space-y-2">
-                {((event as any).teamMembers as any[]).slice(0, 5).map(
-                  (member: any) => (
+                {event.teamMembers.slice(0, 5).map(
+                  (member) => (
                     <div
                       key={member.id}
                       className="flex items-center justify-between py-1"

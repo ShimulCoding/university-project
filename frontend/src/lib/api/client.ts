@@ -46,6 +46,7 @@ export async function apiFetchClient<T>(
         method: "POST",
         credentials: "include",
         headers: { accept: "application/json" },
+        signal: controller.signal,
       });
 
       if (refreshResponse.ok) {

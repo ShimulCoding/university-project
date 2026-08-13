@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 
 import { roleMeta } from "@/lib/navigation";
 import type { AppRole } from "@/types";
@@ -29,7 +29,8 @@ export function RolePreviewProvider({
     [roles],
   );
   const fallbackRole = availableRoles[0] ?? initialRole;
-  const [activeRole, setActiveRole] = useState<AppRole>(initialRole);
+  const [selectedRole, setActiveRole] = useState<AppRole>(fallbackRole);
+  const activeRole = availableRoles.includes(selectedRole) ? selectedRole : fallbackRole;
 
   const value = useMemo(
     () => ({

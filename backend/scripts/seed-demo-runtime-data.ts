@@ -33,6 +33,7 @@ const demoClosedEventSlug = "demo-cse-annual-tech-symposium-2026";
 type DemoUserInput = {
   fullName: string;
   email: string;
+  studentId?: string;
   password?: string;
   roles: RoleCode[];
 };
@@ -130,12 +131,14 @@ async function ensureUser(input: DemoUserInput) {
       fullName: input.fullName,
       passwordHash,
       status: AccountStatus.ACTIVE,
+      ...(input.studentId ? { studentId: input.studentId } : {}),
     },
     create: {
       fullName: input.fullName,
       email: normalizedEmail,
       passwordHash,
       status: AccountStatus.ACTIVE,
+      ...(input.studentId ? { studentId: input.studentId } : {}),
     },
   });
 
@@ -674,16 +677,19 @@ async function main() {
   const demoActiveStudent = await ensureUser({
     fullName: "Demo Active Student",
     email: "demo.active.student@example.com",
+    studentId: "DEMO-ACT-001",
     roles: [RoleCode.GENERAL_STUDENT],
   });
   const demoVerifiedStudent = await ensureUser({
     fullName: "Demo Verified Student",
     email: "demo.verified.student@example.com",
+    studentId: "DEMO-CLS-001",
     roles: [RoleCode.GENERAL_STUDENT],
   });
   const demoVerifiedStudentTwo = await ensureUser({
     fullName: "Demo Verified Student Two",
     email: "demo.verified.student.two@example.com",
+    studentId: "DEMO-CLS-002",
     roles: [RoleCode.GENERAL_STUDENT],
   });
 

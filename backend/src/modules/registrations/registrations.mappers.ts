@@ -121,6 +121,7 @@ export function mapRegistrationForOwner(registration: RegistrationWithContext) {
       reviewerRemark: proof.reviewerRemark ?? null,
       hasDocument: proof.documents.length > 0,
       documentCount: proof.documents.length,
+      documents: proof.documents.map(mapSafeDocument),
     })),
   };
 }

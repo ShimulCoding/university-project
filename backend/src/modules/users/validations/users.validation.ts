@@ -2,6 +2,13 @@ import { AccountStatus, RoleCode } from "@prisma/client";
 import { z } from "zod";
 
 import { paginationQuerySchema } from "../../../utils/pagination-validation";
+import { isGlobalAccountRole } from "../../../utils/event-scope";
+
+const globalAccountRoleSchema = z
+  .nativeEnum(RoleCode)
+  .refine(isGlobalAccountRole, {
+    message: "Event operational roles must be assigned through an event team.",
+  });
 
 export const listUsersSchema = z.object({
   query: z.object({
@@ -15,7 +22,7 @@ export const createUserSchema = z.object({
     email: z.string().trim().email(),
     password: z.string().min(8).max(72),
     status: z.nativeEnum(AccountStatus).optional(),
-    roleCodes: z.array(z.nativeEnum(RoleCode)).min(1).optional(),
+    roleCodes: z.array(globalAccountRoleSchema).min(1).optional(),
   }),
 });
 

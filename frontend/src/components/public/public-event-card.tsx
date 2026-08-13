@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, CheckCircle, UsersRound } from "lucide-react";
+import { ArrowRight, CalendarDays, CheckCircle, KeyRound, UsersRound } from "lucide-react";
 
 import type { PublicEvent } from "@/types";
 import {
@@ -72,6 +72,12 @@ export function PublicEventCard({
           <div className="flex flex-wrap gap-3">
             <Button asChild variant="outline" size="sm">
               <Link href={`/events/${event.slug}`}>View details</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link href={`/dashboard/events/${event.slug}`}>
+                <KeyRound className="h-4 w-4" />
+                Event team sign in
+              </Link>
             </Button>
             {existingRegistrationId ? (
               <Button asChild size="sm" variant="outline">

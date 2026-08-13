@@ -53,6 +53,13 @@ const eventTeamRoleSchema = z
     message: "Select an event-scoped internal role.",
   });
 
+const eventTeamMemberBodySchema = z.object({
+  email: z.string().trim().email().max(255),
+  roleCode: eventTeamRoleSchema,
+  password: z.string().min(8).max(72).optional(),
+  fullName: z.string().trim().min(2).max(100).optional(),
+});
+
 export const listPublicEventsSchema = z.object({
   query: z.object({
     ...paginationQuerySchema,
@@ -72,6 +79,7 @@ export const eventLookupParamSchema = z.object({
 export const createEventSchema = z.object({
   body: eventBodySchema.extend({
     status: createStatusSchema.optional(),
+    teamMembers: z.array(eventTeamMemberBodySchema).min(4),
   }),
 });
 
@@ -93,10 +101,7 @@ export const assignEventTeamMemberSchema = z.object({
   params: z.object({
     eventLookupKey: eventLookupKeySchema,
   }),
-  body: z.object({
-    email: z.string().trim().email().max(255),
-    roleCode: eventTeamRoleSchema,
-  }),
+  body: eventTeamMemberBodySchema,
 });
 
 export const eventTeamMemberParamSchema = z.object({

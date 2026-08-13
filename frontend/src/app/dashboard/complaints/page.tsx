@@ -274,7 +274,10 @@ export default async function ComplaintsPage({
                       emptyMessage="No evidence files were attached during submission."
                     />
                     <ComplaintRoutingCard routingHistory={selectedComplaint.routingHistory} />
-                    <ComplaintWorkflowPanel complaintId={selectedComplaint.id} />
+                    <ComplaintWorkflowPanel
+                      complaintId={selectedComplaint.id}
+                      canManage={false}
+                    />
                   </div>
                 </div>
               </div>

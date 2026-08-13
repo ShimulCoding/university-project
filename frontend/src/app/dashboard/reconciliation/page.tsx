@@ -13,7 +13,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-import { getCurrentUser } from "@/lib/api/student";
 import {
   getReconciliationReport,
   listInternalEventOptions,
@@ -29,7 +28,6 @@ import {
   getPublicSummaryStateTone,
   getReconciliationStateTone,
 } from "@/lib/format";
-import { hasAnyRole } from "@/lib/access";
 import {
   PublishSummaryButton,
   ReconciliationActionPanel,
@@ -64,10 +62,9 @@ export default async function ReconciliationPage({
   const reportId = typeof params.reportId === "string" ? params.reportId : undefined;
 
   try {
-    const user = await getCurrentUser();
-    const canManage = hasAnyRole(user, ["SYSTEM_ADMIN", "FINANCIAL_CONTROLLER"]);
-    const canFinalize = hasAnyRole(user, ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"]);
-    const canPublish = canFinalize;
+    const canManage = false;
+    const canFinalize = false;
+    const canPublish = false;
 
     const [reports, events] = await Promise.all([
       listReconciliationReports({ eventId, status }),

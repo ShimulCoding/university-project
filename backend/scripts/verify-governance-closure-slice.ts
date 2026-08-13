@@ -116,12 +116,20 @@ function makeCuid(seed: string) {
 }
 
 function createUser(id: string, roles: RoleCode[], fullName: string): AuthenticatedUser {
+  const globalRoles: RoleCode[] = roles.filter(
+    (role) => role === RoleCode.SYSTEM_ADMIN || role === RoleCode.GENERAL_STUDENT,
+  );
+  const eventRoles = roles
+    .filter((role) => !globalRoles.includes(role))
+    .map((roleCode) => ({ eventId: makeCuid("event"), roleCode }));
+
   return {
     id,
     fullName,
     email: `${fullName.toLowerCase().replace(/\s+/g, ".")}@example.com`,
     status: AccountStatus.ACTIVE,
-    roles,
+    roles: globalRoles,
+    eventRoles,
   };
 }
 
@@ -131,6 +139,7 @@ function createEvent(status: EventStatus = EventStatus.COMPLETED) {
     title: "Governance Fest",
     slug: "governance-fest",
     status,
+    updatedAt: new Date("2026-04-07T09:30:00.000Z"),
   };
 }
 
@@ -202,7 +211,14 @@ function createComplaintContext(overrides: Record<string, unknown> = {}) {
 }
 
 function createReportContext(overrides: Record<string, unknown> = {}) {
+  const event =
+    (overrides.event as ReturnType<typeof createEvent> | undefined) ?? createEvent();
   const payload = {
+    eventSnapshot: {
+      eventId: event.id,
+      status: event.status,
+      updatedAt: event.updatedAt.toISOString(),
+    },
     warnings: [],
     breakdown: {
       verifiedRegistrationIncome: "100.00",
@@ -216,6 +232,9 @@ function createReportContext(overrides: Record<string, unknown> = {}) {
       pendingExpenseRecordCount: 1,
       approvedExpenseRequestsWithoutSettledRecord: 1,
     },
+    incomeBreakdown: [],
+    expenseBreakdown: [],
+    budgetBreakdown: [],
   };
 
   return {
@@ -225,12 +244,15 @@ function createReportContext(overrides: Record<string, unknown> = {}) {
     totalIncome: new Prisma.Decimal("350.00"),
     totalExpense: new Prisma.Decimal("120.00"),
     closingBalance: new Prisma.Decimal("230.00"),
-    warnings: payload,
+    payload,
+    isStale: false,
+    staleReason: null,
+    staledAt: null,
     generatedById: makeCuid("finance"),
     reviewedById: null,
     createdAt: new Date("2026-04-07T10:00:00.000Z"),
     finalizedAt: null,
-    event: createEvent(),
+    event,
     generatedBy: {
       id: makeCuid("finance"),
       fullName: "Finance Controller",
@@ -525,12 +547,23 @@ async function main() {
               }),
             ],
           },
+          {
+            target: complaintsRepository as unknown as Record<string, unknown>,
+            key: "countReviewQueue",
+            value: async () => 1,
+          },
         ],
         async () => complaintsService.listReviewQueue(reviewer, {}),
       );
 
-      assertCondition(queue.length === 1 && queue[0].isEscalated, "Reviewer queue did not expose expected escalated item.");
-      assertCondition(queue[0].evidenceCount === 1, "Queue should expose evidence count only.");
+      assertCondition(
+        queue.complaints.length === 1 && queue.complaints[0].isEscalated,
+        "Reviewer queue did not expose expected escalated item.",
+      );
+      assertCondition(
+        queue.complaints[0].evidenceCount === 1,
+        "Queue should expose evidence count only.",
+      );
       return "review queue is role-gated and exposes safe queue metadata";
     }),
   );
@@ -803,7 +836,7 @@ async function main() {
                 totalIncome: new Prisma.Decimal(String(input.totalIncome)),
                 totalExpense: new Prisma.Decimal(String(input.totalExpense)),
                 closingBalance: new Prisma.Decimal(String(input.closingBalance)),
-                warnings: input.payload,
+                payload: input.payload,
               });
             },
           },
@@ -818,9 +851,9 @@ async function main() {
 
       const warningCodes = report.warnings.map((warning) => warning.code);
 
-      assertCondition(createdReports[0].totalIncome === "350.00", "Reconciliation total income is incorrect.");
+      assertCondition(createdReports[0].totalIncome === "300.00", "Reconciliation total income is incorrect.");
       assertCondition(createdReports[0].totalExpense === "120.00", "Reconciliation total expense is incorrect.");
-      assertCondition(createdReports[0].closingBalance === "230.00", "Reconciliation closing balance is incorrect.");
+      assertCondition(createdReports[0].closingBalance === "180.00", "Reconciliation closing balance is incorrect.");
       assertCondition(
         warningCodes.includes("VERIFIED_PAYMENT_PROOF_MISSING_AMOUNT") &&
           warningCodes.includes("VERIFIED_REGISTRATION_WITHOUT_VERIFIED_PROOF") &&
@@ -1044,6 +1077,11 @@ async function main() {
             key: "findById",
             value: async () => auditLog,
           },
+          {
+            target: auditRepository as unknown as Record<string, unknown>,
+            key: "count",
+            value: async () => 1,
+          },
         ],
         async () =>
           Promise.all([
@@ -1052,7 +1090,10 @@ async function main() {
           ]),
       );
 
-      assertCondition(logs.length === 1 && detail?.id === auditLog.id, "Admin audit list/detail did not return expected safe data.");
+      assertCondition(
+        logs.logs.length === 1 && detail?.id === auditLog.id,
+        "Admin audit list/detail did not return expected safe data.",
+      );
       return "audit list/detail are service-gated to admin access";
     }),
   );
@@ -1061,13 +1102,16 @@ async function main() {
     await runCheck("Internal mappers avoid public sensitive leaks", async () => {
       const reconciliation = mapReconciliationReport(
         createReportContext({
-          warnings: {
+          payload: {
             warnings: [{ code: "TEST_WARNING", severity: "warning", message: "Visible warning" }],
             breakdown: {
               verifiedRegistrationIncome: "100.00",
               manualIncome: "50.00",
               settledExpense: "25.00",
             },
+            incomeBreakdown: [],
+            expenseBreakdown: [],
+            budgetBreakdown: [],
           },
         }) as never,
       );

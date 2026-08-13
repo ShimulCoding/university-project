@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, FileSpreadsheet, CheckCircle2, ArrowRight, ClipboardList, Tag } from "lucide-react";
 
-import { getCurrentUser } from "@/lib/api/student";
-import { hasAnyRole } from "@/lib/access";
 import { getBudget, listBudgets, listInternalEventOptions } from "@/lib/api/internal";
 import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
@@ -41,9 +39,8 @@ export default async function BudgetRequestsPage({
   const budgetId = typeof params.budgetId === "string" ? params.budgetId : undefined;
 
   try {
-    const user = await getCurrentUser();
-    const canCreateOrReviseBudgets = hasAnyRole(user, ["SYSTEM_ADMIN", "EVENT_MANAGEMENT_USER"]);
-    const canApproveBudgets = hasAnyRole(user, ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"]);
+    const canCreateOrReviseBudgets = false;
+    const canApproveBudgets = false;
     const [budgets, events] = await Promise.all([
       listBudgets({ eventId, state }),
       listInternalEventOptions(),

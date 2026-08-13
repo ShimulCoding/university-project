@@ -12,6 +12,7 @@ Password for all accounts below:
 
 | Role | Email |
 | --- | --- |
+| Event admin | `demo.event.admin@example.com` |
 | Event manager | `demo.event.manager@example.com` |
 | Finance controller | `demo.finance@example.com` |
 | Organizational approver | `demo.approver@example.com` |
@@ -33,17 +34,18 @@ Current verified local machine values:
 4. Sign in as `demo.active.student@example.com`.
 5. Show `/registrations/[registrationId]` and the payment-proof review state.
 6. Show `/complaints/new` and `/complaints`.
-7. Sign in as finance and open `/dashboard/payments` and `/dashboard/income-records`.
-8. Sign in as event manager and open `/dashboard/budget-requests` and `/dashboard/expense-requests`.
-9. Sign in as approver and open `/dashboard/approvals`, `/dashboard/complaints`, and `/dashboard/publications`.
-10. Show `/dashboard/reconciliation` and explain draft, reviewed, and finalized status.
+7. On the event page, use **Event Team Sign In** as finance and open the event's `Verification` and `Income records` modules.
+8. Sign in from the same event as Event Manager and open its `Budget requests` and `Expense requests` modules.
+9. Sign in from the same event as Approver and open its `Approvals`, `Complaints`, and `Publications` modules.
+10. Open the event's `Reconciliation` module and explain draft, reviewed, and finalized status.
 11. Open `/financial-summaries` and then the symposium summary detail page.
 12. Sign in as system admin and show `/dashboard/audit`.
 
 ## Important Demo Notes
 - Public pages never show payment proofs, complaint evidence, or reviewer notes.
 - Student pages show only student-owned data.
-- Internal pages are role-aware and intentionally separated by responsibility.
+- Event-team pages are scoped to the selected event and intentionally separated by responsibility.
+- The global `/dashboard` sign-in is reserved for System Admin; operational users must use an event's sign-in.
 - Public summary pages resolve to the latest published summary for each event.
 - Older published versions remain internal history for traceability.
 

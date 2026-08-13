@@ -64,13 +64,13 @@ export default async function EventIncomeRecordsPage({
   if (!user || !event) return null;
 
   const eventRoles = isSystemAdmin(user) ? ["SYSTEM_ADMIN" as const] : getEventRolesForEvent(user, event.id);
-  const canSeeIncomeRecords = isSystemAdmin(user) || eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("FINANCIAL_CONTROLLER") || eventRoles.includes("ORGANIZATIONAL_APPROVER");
+  const canSeeIncomeRecords = isSystemAdmin(user) || eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("FINANCIAL_CONTROLLER");
 
   if (!canSeeIncomeRecords) {
     return <StatePanel icon={ShieldAlert} tone="warning" title="Access restricted" description="Your event role does not include access to view income records." />;
   }
 
-  const canManageIncomeRecords = isSystemAdmin(user) || eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("FINANCIAL_CONTROLLER");
+  const canManageIncomeRecords = eventRoles.includes("FINANCIAL_CONTROLLER");
 
   try {
     const incomeRecords = await listIncomeRecords({ eventId: event.id, search });

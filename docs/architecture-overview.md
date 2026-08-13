@@ -69,11 +69,12 @@ The system provides event finance transparency for MU CSE Society while protecti
 ## Access Model
 - Public visitors can browse public events and published summaries
 - Students can register, submit payment proof, and submit complaints
-- Event managers prepare requests and operational event-side records
-- Finance controllers verify payments, record income, settle expenses, and manage reconciliation
-- Approvers handle approval decisions and publication authority
-- System admins retain protected broad access including audit views
-- Complaint review authority exists for protected complaint routing flows
+- `SYSTEM_ADMIN` is the only global internal role. It creates events, assigns event teams, manages platform accounts, and retains governance/audit oversight.
+- `EVENT_ADMIN`, `EVENT_MANAGEMENT_USER`, `FINANCIAL_CONTROLLER`, `ORGANIZATIONAL_APPROVER`, and `COMPLAINT_REVIEW_AUTHORITY` are assigned through `EventTeamMember` for a specific event.
+- Event-team permissions never fall back to a global operational role. Lists are filtered to assigned event IDs, and direct record/document actions resolve and verify the owning event.
+- One user may be assigned to multiple events, with a different role in each event, without sharing access with any unassigned event.
+- Public event pages provide an event-context team sign-in. The global dashboard sign-in accepts only the System Admin.
+- System Admin can configure and publish a draft. Later operational lifecycle changes belong to the assigned Event Admin or Event Manager.
 
 ## Public Summary Rule
 Public summaries appear only when:
@@ -93,13 +94,7 @@ Public summaries appear only when:
 - Published financial summaries
 
 ### Internal
-- Verification queue
-- Income records
-- Budgets
-- Requests
-- Expense ledger
-- Approvals
-- Complaints review
-- Reconciliation
-- Publication controls
-- Audit log
+- `/dashboard` and `/dashboard/events` provide global System Admin governance.
+- `/dashboard/my-events` lists only the authenticated user's active event assignments.
+- `/dashboard/events/[slug]/*` contains event-scoped verification, income, budgets, requests, expenses, approvals, complaints, reconciliation, and publication controls.
+- `/dashboard/audit` remains a protected global System Admin view.

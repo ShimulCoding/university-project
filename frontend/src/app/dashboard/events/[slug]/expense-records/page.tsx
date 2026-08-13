@@ -72,7 +72,7 @@ export default async function EventExpenseRecordsPage({
     return <StatePanel icon={ShieldAlert} tone="warning" title="Access restricted" description="Your event role does not include access to view expense records." />;
   }
 
-  const canManageExpenseRecords = isSystemAdmin(user) || eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("FINANCIAL_CONTROLLER");
+  const canManageExpenseRecords = eventRoles.includes("FINANCIAL_CONTROLLER");
 
   try {
     const [expenseRecords, expenseRequests, activeBudgets] = await Promise.all([

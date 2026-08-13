@@ -140,20 +140,20 @@ router.get(
 );
 router.post(
   "/expense-records",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   upload.array("supportingDocument", 15),
   validateRequest(createExpenseRecordSchema),
   asyncHandler(requestsController.createExpenseRecord),
 );
 router.post(
   "/expense-records/:expenseRecordId/settle",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   validateRequest(settleExpenseRecordSchema),
   asyncHandler(requestsController.settleExpenseRecord),
 );
 router.post(
   "/expense-records/:expenseRecordId/void",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   validateRequest(voidExpenseRecordSchema),
   asyncHandler(requestsController.voidExpenseRecord),
 );

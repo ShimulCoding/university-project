@@ -84,7 +84,7 @@ export default async function EventDashboardPublicationsPage({
     return <StatePanel icon={ShieldAlert} tone="warning" title="Access restricted" description="Your event role does not include access to view publications." />;
   }
 
-  const canPublish = isSystemAdmin(user) || eventRoles.includes("ORGANIZATIONAL_APPROVER");
+  const canPublish = eventRoles.includes("ORGANIZATIONAL_APPROVER");
 
   const [reports, allPublishedSummaries] = await Promise.all([
     listReconciliationReports({ eventId: event.id, status: "FINALIZED" }),

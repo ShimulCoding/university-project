@@ -37,6 +37,14 @@ export const internalLoginSchema = z.object({
   }),
 });
 
+export const eventTeamLoginSchema = z.object({
+  body: z.object({
+    email: z.string().trim().email(),
+    password: z.string().min(8).max(72),
+    eventLookupKey: z.string().trim().min(1).max(160),
+  }),
+});
+
 export const forgotPasswordSchema = z.object({
   body: z.object({
     studentId: z.string().trim().min(1, "Student ID is required."),

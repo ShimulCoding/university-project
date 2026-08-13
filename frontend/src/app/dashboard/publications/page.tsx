@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { ShieldAlert, Globe, FileCheck, CheckCircle2, AlertTriangle, ArrowRight, XCircle, Database, Lock, Eye } from "lucide-react";
 
-import { getCurrentUser } from "@/lib/api/student";
-import { hasAnyRole } from "@/lib/access";
 import { listPublicFinancialSummaries } from "@/lib/api/public";
 import {
   getReconciliationReport,
@@ -58,8 +56,7 @@ export default async function DashboardPublicationsPage({
 }) {
   const params = await searchParams;
   const reportId = typeof params.reportId === "string" ? params.reportId : undefined;
-  const user = await getCurrentUser();
-  const canPublish = hasAnyRole(user, ["SYSTEM_ADMIN", "ORGANIZATIONAL_APPROVER"]);
+  const canPublish = false;
   const [reports, publishedSummaries] = await Promise.all([
     listReconciliationReports({ status: "FINALIZED" }),
     listPublicFinancialSummaries(),

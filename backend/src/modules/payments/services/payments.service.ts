@@ -4,11 +4,15 @@ import { documentDirectories, uploadRules } from "../../../config/uploads";
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
-import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
+import {
+  assertAnyEventScopedAccess,
+  assertEventScopedOperationalAccess,
+  assertSystemAdminOrEventRole,
+  scopeEventFilters,
+} from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { sanitizeOptionalText } from "../../../utils/text-utils";
 import { cleanupStoredUpload, cleanupStoredUploads, storeValidatedUpload } from "../../../utils/upload-utils";
-import { hasFinanceAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { eventsRepository } from "../../events/repositories/events.repository";
@@ -31,6 +35,10 @@ import type {
 } from "../types/payments.types";
 
 const financeEventRoles = [RoleCode.FINANCIAL_CONTROLLER] as RoleCode[];
+const financeReadEventRoles = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.FINANCIAL_CONTROLLER,
+] as RoleCode[];
 
 async function storeUpload(
   file: Express.Multer.File,
@@ -44,10 +52,42 @@ async function storeUpload(
   });
 }
 
-function assertFinancePermissions(viewer: AuthenticatedUser) {
-  if (!hasFinanceAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to manage finance verification or income records.");
-  }
+/**
+ * Assert the user has Finance Controller access for the given event.
+ * System Admin gets governance read-only — not operational finance access.
+ */
+function assertEventFinancePermissions(viewer: AuthenticatedUser, eventId: string) {
+  assertEventScopedOperationalAccess(
+    viewer,
+    eventId,
+    financeEventRoles,
+    "You are not assigned as Finance Controller for this event.",
+  );
+}
+
+/**
+ * Assert the user can read finance data for the given event.
+ * Allows Finance Controller + Event Admin.
+ */
+function assertEventFinanceReadPermissions(viewer: AuthenticatedUser, eventId: string) {
+  assertSystemAdminOrEventRole(
+    viewer,
+    eventId,
+    financeReadEventRoles,
+    "You are not assigned to this event with finance access.",
+  );
+}
+
+/**
+ * For list endpoints: check the user has at least one event assignment
+ * with finance roles. System Admin can list across all events.
+ */
+function assertHasAnyFinanceAssignment(viewer: AuthenticatedUser) {
+  assertAnyEventScopedAccess(
+    viewer,
+    financeReadEventRoles,
+    "You are not assigned to any event with finance access.",
+  );
 }
 
 export const paymentsService = {
@@ -67,20 +107,14 @@ export const paymentsService = {
     const isOwner = registration.participantId === actor.id;
 
     if (!isOwner) {
-      if (!hasFinanceAccess(actor.roles)) {
-        throw new AppError(403, "You are not allowed to submit payment proof for this registration.");
-      }
-      assertEventScopedAccess(actor, registration.eventId, financeEventRoles);
+      // Non-owner needs event-scoped finance access
+      assertEventFinancePermissions(actor, registration.eventId);
     }
 
     if (registration.paymentState === RegistrationPaymentState.VERIFIED) {
       throw new AppError(409, "This registration has already been verified.");
     }
 
-    // When paymentState is REJECTED, the student is allowed to resubmit a new proof.
-    // The authoritative guard below checks for an actual pending proof in the database
-    // rather than relying on the registration-level state, which avoids false blocks
-    // when the state and proof records are momentarily out of sync.
     const pendingProof = await paymentsRepository.findPendingPaymentProofForRegistration(registrationId);
 
     if (pendingProof) {
@@ -168,9 +202,9 @@ export const paymentsService = {
   },
 
   async listVerificationQueue(viewer: AuthenticatedUser, filters: PaymentVerificationQueueFilters) {
-    assertFinancePermissions(viewer);
+    assertHasAnyFinanceAssignment(viewer);
 
-    const scopedFilters = scopeEventFilters(viewer, filters, financeEventRoles);
+    const scopedFilters = scopeEventFilters(viewer, filters, financeReadEventRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [queue, totalItems] = await Promise.all([
       paymentsRepository.listPendingVerificationQueue(scopedFilters, paginationOptions),
@@ -189,15 +223,14 @@ export const paymentsService = {
     input: PaymentProofDecisionInput,
     auditMetadata?: AuditMetadata,
   ) {
-    assertFinancePermissions(actor);
-
     const paymentProof = await paymentsRepository.findPaymentProofById(paymentProofId);
 
     if (!paymentProof) {
       throw new AppError(404, "Payment proof not found.");
     }
 
-    assertEventScopedAccess(actor, paymentProof.registration.eventId, financeEventRoles);
+    // System Admin cannot verify payments — only event-scoped Finance Controller
+    assertEventFinancePermissions(actor, paymentProof.registration.eventId);
 
     if (paymentProof.state !== PaymentProofState.PENDING_VERIFICATION) {
       throw new AppError(409, "Only pending payment proofs can be reviewed.");
@@ -264,15 +297,14 @@ export const paymentsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
-    assertFinancePermissions(actor);
-
     const event = await eventsRepository.findById(input.eventId);
 
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
 
-    assertEventScopedAccess(actor, event.id, financeEventRoles);
+    // Only event-scoped Finance Controller can create income records
+    assertEventFinancePermissions(actor, event.id);
 
     const referenceText = sanitizeOptionalText(input.referenceText);
 
@@ -350,15 +382,13 @@ export const paymentsService = {
     input: VoidIncomeRecordInput,
     auditMetadata?: AuditMetadata,
   ) {
-    assertFinancePermissions(actor);
-
     const existingRecord = await paymentsRepository.findIncomeRecordById(incomeRecordId);
 
     if (!existingRecord) {
       throw new AppError(404, "Income record not found.");
     }
 
-    assertEventScopedAccess(actor, existingRecord.eventId, financeEventRoles);
+    assertEventFinancePermissions(actor, existingRecord.eventId);
 
     if (existingRecord.state === IncomeState.REJECTED) {
       throw new AppError(409, "Income record is already voided or rejected.");
@@ -419,15 +449,13 @@ export const paymentsService = {
     incomeRecordId: string,
     auditMetadata?: AuditMetadata,
   ) {
-    assertFinancePermissions(actor);
-
     const existingRecord = await paymentsRepository.findIncomeRecordById(incomeRecordId);
 
     if (!existingRecord) {
       throw new AppError(404, "Income record not found.");
     }
 
-    assertEventScopedAccess(actor, existingRecord.eventId, financeEventRoles);
+    assertEventFinancePermissions(actor, existingRecord.eventId);
 
     if (existingRecord.state === IncomeState.VERIFIED) {
       throw new AppError(409, "Income record is already verified.");
@@ -484,9 +512,9 @@ export const paymentsService = {
   },
 
   async listIncomeRecords(viewer: AuthenticatedUser, filters: IncomeRecordFilters) {
-    assertFinancePermissions(viewer);
+    assertHasAnyFinanceAssignment(viewer);
 
-    const scopedFilters = scopeEventFilters(viewer, filters, financeEventRoles);
+    const scopedFilters = scopeEventFilters(viewer, filters, financeReadEventRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [incomeRecords, totalItems] = await Promise.all([
       paymentsRepository.listIncomeRecords(scopedFilters, paginationOptions),
@@ -500,15 +528,13 @@ export const paymentsService = {
   },
 
   async getIncomeRecordById(viewer: AuthenticatedUser, incomeRecordId: string) {
-    assertFinancePermissions(viewer);
-
     const incomeRecord = await paymentsRepository.findIncomeRecordById(incomeRecordId);
 
     if (!incomeRecord) {
       throw new AppError(404, "Income record not found.");
     }
 
-    assertEventScopedAccess(viewer, incomeRecord.eventId, financeEventRoles);
+    assertEventFinanceReadPermissions(viewer, incomeRecord.eventId);
 
     return mapIncomeRecord(incomeRecord);
   },

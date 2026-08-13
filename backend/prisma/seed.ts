@@ -35,7 +35,7 @@ async function seedAdminUser() {
 
   if (!fullName || !email || !password) {
     console.log("Seed admin values are incomplete. Skipping admin user seed.");
-    return;
+    return null;
   }
 
   const normalizedEmail = normalizeEmail(email);
@@ -82,6 +82,7 @@ async function seedAdminUser() {
   }
 
   console.log(`Seeded system admin user: ${normalizedEmail}`);
+  return user;
 }
 
 /**
@@ -91,7 +92,7 @@ async function seedAdminUser() {
  * They do NOT receive global roles in the UserRole table.
  * This ensures they can only access data within their assigned event.
  */
-async function seedDemoEventTeam() {
+async function seedDemoEventTeam(systemAdminId?: string) {
   const demoPassword = process.env.SEED_DEMO_PASSWORD?.trim() || "DemoPass123!";
   const passwordHash = await bcrypt.hash(demoPassword, 12);
 
@@ -167,6 +168,7 @@ async function seedDemoEventTeam() {
       description:
         "A demonstration event for reviewing the event-scoped role architecture. All demo team members are assigned to this event.",
       status: EventStatus.PUBLISHED,
+      ...(systemAdminId ? { createdById: systemAdminId } : {}),
     },
     create: {
       title: "Demo Event 2026",
@@ -179,6 +181,7 @@ async function seedDemoEventTeam() {
       startsAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
       endsAt: new Date(Date.now() + 46 * 24 * 60 * 60 * 1000),
       capacity: 100,
+      ...(systemAdminId ? { createdById: systemAdminId } : {}),
     },
   });
 
@@ -211,8 +214,8 @@ async function seedDemoEventTeam() {
 
 async function main() {
   await seedRoles();
-  await seedAdminUser();
-  await seedDemoEventTeam();
+  const systemAdmin = await seedAdminUser();
+  await seedDemoEventTeam(systemAdmin?.id);
 
   console.log("Prisma seed completed.");
 }

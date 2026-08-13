@@ -5,7 +5,7 @@ import { RoleCode } from "@prisma/client";
 
 import { uploadRules } from "../../../config/uploads";
 import { authenticate } from "../../../middlewares/authenticate";
-import { authorize } from "../../../middlewares/authorize";
+import { authorizeEventScoped } from "../../../middlewares/authorize";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
 import { complaintsController } from "../controllers/complaints.controller";
@@ -28,11 +28,12 @@ const upload = multer({
   },
 });
 
-const requireComplaintReviewer = authorize(
+const requireComplaintReviewer = authorizeEventScoped([
   RoleCode.SYSTEM_ADMIN,
+  RoleCode.EVENT_ADMIN,
   RoleCode.COMPLAINT_REVIEW_AUTHORITY,
   RoleCode.ORGANIZATIONAL_APPROVER,
-);
+]);
 
 router.use(authenticate);
 

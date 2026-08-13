@@ -2,9 +2,8 @@ import { EventStatus, ReconciliationState, RoleCode } from "@prisma/client";
 
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
-import { assertEventScopedAccess } from "../../../utils/event-scope";
+import { assertEventScopedOperationalAccess } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
-import { hasPublicSummaryPublishAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { getReconciliationPayload } from "../../reconciliation/reconciliation.mappers";
@@ -20,10 +19,13 @@ const publishableEventStatuses: EventStatus[] = [
 
 const publicSummaryPublishEventRoles = [RoleCode.ORGANIZATIONAL_APPROVER] as RoleCode[];
 
-function assertPublishPermissions(actor: AuthenticatedUser) {
-  if (!hasPublicSummaryPublishAccess(actor.roles)) {
-    throw new AppError(403, "You are not allowed to publish public financial summaries.");
-  }
+function assertPublishPermissions(actor: AuthenticatedUser, eventId: string) {
+  assertEventScopedOperationalAccess(
+    actor,
+    eventId,
+    publicSummaryPublishEventRoles,
+    "Only the Organizational Approver assigned to this event can publish public financial summaries.",
+  );
 }
 
 function assertReportEventSnapshotIsCurrent(
@@ -98,8 +100,6 @@ export const publicService = {
     publicSummaryId: string,
     auditMetadata?: AuditMetadata,
   ) {
-    assertPublishPermissions(actor);
-
     const summary = await publicRepository.findSummaryById(publicSummaryId);
 
     if (!summary) {
@@ -110,7 +110,7 @@ export const publicService = {
       throw new AppError(409, "Only published summaries can be unpublished.");
     }
 
-    assertEventScopedAccess(actor, summary.eventId, publicSummaryPublishEventRoles);
+    assertPublishPermissions(actor, summary.eventId);
 
     const unpublishedSummary = await publicRepository.unpublishSummary(publicSummaryId);
 
@@ -136,15 +136,13 @@ export const publicService = {
     reconciliationReportId: string,
     auditMetadata?: AuditMetadata,
   ) {
-    assertPublishPermissions(actor);
-
     const report = await reconciliationRepository.findReportById(reconciliationReportId);
 
     if (!report) {
       throw new AppError(404, "Reconciliation report not found.");
     }
 
-    assertEventScopedAccess(actor, report.eventId, publicSummaryPublishEventRoles);
+    assertPublishPermissions(actor, report.eventId);
 
     if (report.status !== ReconciliationState.FINALIZED) {
       throw new AppError(409, "Only finalized reconciliation reports can be published publicly.");

@@ -16,8 +16,10 @@ type EventOption = Pick<EventSummary, "id" | "title">;
 
 export function PaymentDecisionForm({
   paymentProofId,
+  canDecide = true,
 }: {
   paymentProofId: string;
+  canDecide?: boolean;
 }) {
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
 
@@ -26,10 +28,17 @@ export function PaymentDecisionForm({
       <CardHeader>
         <CardTitle className="text-xl">Verification decision</CardTitle>
         <CardDescription>
-          Move this proof into a verified or rejected state with an explicit reviewer remark.
+          {canDecide
+            ? "Move this proof into a verified or rejected state with an explicit reviewer remark."
+            : "This proof is visible for governance oversight. Only the Finance Controller assigned to this event can decide it."}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
+        {!canDecide ? (
+          <div className="mb-4 rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-3 text-sm leading-6 text-muted-foreground">
+            Verification controls are disabled for this session.
+          </div>
+        ) : null}
         <form
           className="grid gap-4"
           onSubmit={(event) => {
@@ -48,6 +57,7 @@ export function PaymentDecisionForm({
         >
           <Field label="Decision">
             <Select
+              disabled={!canDecide}
               name="decision"
               onChange={clearFeedback}
               options={[
@@ -61,6 +71,7 @@ export function PaymentDecisionForm({
             description="Required when rejecting. This note remains inside the protected workflow."
           >
             <Textarea
+              disabled={!canDecide}
               name="remark"
               rows={4}
               placeholder="Explain the review decision clearly."
@@ -68,7 +79,7 @@ export function PaymentDecisionForm({
             />
           </Field>
           <FeedbackMessage feedback={feedback} />
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending || !canDecide}>
             {isPending ? "Saving decision..." : "Save decision"}
           </Button>
         </form>

@@ -9,13 +9,13 @@ import {
 
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
-import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
-import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import {
-  hasReconciliationFinalizeAccess,
-  hasReconciliationManagementAccess,
-  hasReconciliationReadAccess,
-} from "../../../utils/role-checks";
+  assertAnyEventScopedAccess,
+  assertEventScopedOperationalAccess,
+  assertSystemAdminOrEventRole,
+  scopeEventFilters,
+} from "../../../utils/event-scope";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { eventsRepository } from "../../events/repositories/events.repository";
@@ -45,21 +45,38 @@ const reconciliationManagementEventRoles = [RoleCode.FINANCIAL_CONTROLLER] as Ro
 const reconciliationFinalizeEventRoles = [RoleCode.ORGANIZATIONAL_APPROVER] as RoleCode[];
 
 function assertReconciliationReadPermissions(viewer: AuthenticatedUser) {
-  if (!hasReconciliationReadAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to view reconciliation reports.");
-  }
+  assertAnyEventScopedAccess(
+    viewer,
+    reconciliationReadEventRoles,
+    "You are not allowed to view reconciliation reports.",
+  );
 }
 
-function assertReconciliationManagementPermissions(viewer: AuthenticatedUser) {
-  if (!hasReconciliationManagementAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to generate or review reconciliation reports.");
-  }
+function assertReconciliationReadPermissionsForEvent(viewer: AuthenticatedUser, eventId: string) {
+  assertSystemAdminOrEventRole(
+    viewer,
+    eventId,
+    reconciliationReadEventRoles,
+    "You are not assigned to this event with reconciliation read access.",
+  );
 }
 
-function assertReconciliationFinalizePermissions(viewer: AuthenticatedUser) {
-  if (!hasReconciliationFinalizeAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to finalize reconciliation reports.");
-  }
+function assertReconciliationManagementPermissions(viewer: AuthenticatedUser, eventId: string) {
+  assertEventScopedOperationalAccess(
+    viewer,
+    eventId,
+    reconciliationManagementEventRoles,
+    "Only the Finance Controller assigned to this event can generate or review reconciliation reports.",
+  );
+}
+
+function assertReconciliationFinalizePermissions(viewer: AuthenticatedUser, eventId: string) {
+  assertEventScopedOperationalAccess(
+    viewer,
+    eventId,
+    reconciliationFinalizeEventRoles,
+    "Only the Organizational Approver assigned to this event can finalize reconciliation reports.",
+  );
 }
 
 const reconcilableEventStatuses: EventStatus[] = [EventStatus.COMPLETED, EventStatus.CLOSED];
@@ -362,7 +379,7 @@ export const reconciliationService = {
       throw new AppError(404, "Reconciliation report not found.");
     }
 
-    assertEventScopedAccess(viewer, report.eventId, reconciliationReadEventRoles);
+    assertReconciliationReadPermissionsForEvent(viewer, report.eventId);
 
     return mapReconciliationReport(report);
   },
@@ -372,15 +389,13 @@ export const reconciliationService = {
     input: GenerateReconciliationInput,
     auditMetadata?: AuditMetadata,
   ) {
-    assertReconciliationManagementPermissions(actor);
-
     const event = await eventsRepository.findById(input.eventId);
 
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
 
-    assertEventScopedAccess(actor, event.id, reconciliationManagementEventRoles);
+    assertReconciliationManagementPermissions(actor, event.id);
 
     assertEventCanBeReconciled(event.status);
 
@@ -412,15 +427,13 @@ export const reconciliationService = {
   },
 
   async reviewReport(actor: AuthenticatedUser, reportId: string, auditMetadata?: AuditMetadata) {
-    assertReconciliationManagementPermissions(actor);
-
     const report = await reconciliationRepository.findReportById(reportId);
 
     if (!report) {
       throw new AppError(404, "Reconciliation report not found.");
     }
 
-    assertEventScopedAccess(actor, report.eventId, reconciliationManagementEventRoles);
+    assertReconciliationManagementPermissions(actor, report.eventId);
 
     if (report.status !== ReconciliationState.DRAFT) {
       throw new AppError(409, "Only draft reconciliation reports can be marked as reviewed.");
@@ -453,15 +466,13 @@ export const reconciliationService = {
   },
 
   async finalizeReport(actor: AuthenticatedUser, reportId: string, auditMetadata?: AuditMetadata) {
-    assertReconciliationFinalizePermissions(actor);
-
     const report = await reconciliationRepository.findReportById(reportId);
 
     if (!report) {
       throw new AppError(404, "Reconciliation report not found.");
     }
 
-    assertEventScopedAccess(actor, report.eventId, reconciliationFinalizeEventRoles);
+    assertReconciliationFinalizePermissions(actor, report.eventId);
 
     if (report.status !== ReconciliationState.REVIEWED) {
       throw new AppError(409, "Only reviewed reconciliation reports can be finalized.");

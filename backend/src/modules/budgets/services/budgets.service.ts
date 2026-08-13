@@ -3,13 +3,13 @@ import { BudgetState, Prisma, RoleCode } from "@prisma/client";
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
-import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
-import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import {
-  hasApproverAccess,
-  hasBudgetManagementAccess,
-  hasFinanceReadAccess,
-} from "../../../utils/role-checks";
+  assertAnyEventScopedAccess,
+  assertEventScopedOperationalAccess,
+  assertSystemAdminOrEventRole,
+  scopeEventFilters,
+} from "../../../utils/event-scope";
+import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { eventsRepository } from "../../events/repositories/events.repository";
@@ -56,22 +56,39 @@ const allowedBudgetStateTransitions: Record<BudgetState, BudgetState[]> = {
   [BudgetState.REVISED]: [],
 };
 
-function assertBudgetReadPermissions(viewer: AuthenticatedUser) {
-  if (!hasFinanceReadAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to view budget records.");
-  }
+function assertBudgetReadPermissions(viewer: AuthenticatedUser, eventId: string) {
+  assertSystemAdminOrEventRole(
+    viewer,
+    eventId,
+    budgetReadRoles,
+    "You are not assigned to this event with budget read access.",
+  );
 }
 
-function assertBudgetManagementPermissions(viewer: AuthenticatedUser) {
-  if (!hasBudgetManagementAccess(viewer.roles)) {
-    throw new AppError(403, "Only event-management roles can create or submit budget versions.");
-  }
+function assertHasAnyBudgetReadAssignment(viewer: AuthenticatedUser) {
+  assertAnyEventScopedAccess(
+    viewer,
+    budgetReadRoles,
+    "You are not assigned to any event with budget access.",
+  );
 }
 
-function assertBudgetApprovalPermissions(viewer: AuthenticatedUser) {
-  if (!hasApproverAccess(viewer.roles)) {
-    throw new AppError(403, "Only approver roles can approve budget versions.");
-  }
+function assertBudgetManagementPermissions(viewer: AuthenticatedUser, eventId: string) {
+  assertEventScopedOperationalAccess(
+    viewer,
+    eventId,
+    budgetManagementRoles,
+    "Only event-management roles assigned to this event can manage budget versions.",
+  );
+}
+
+function assertBudgetApprovalPermissions(viewer: AuthenticatedUser, eventId: string) {
+  assertEventScopedOperationalAccess(
+    viewer,
+    eventId,
+    budgetApprovalRoles,
+    "Only the Organizational Approver assigned to this event can approve budget versions.",
+  );
 }
 
 function calculateBudgetTotal(items: BudgetItemInput[]) {
@@ -175,7 +192,7 @@ function mapBudgetWithApproval(
 
 export const budgetsService = {
   async listBudgets(viewer: AuthenticatedUser, filters: BudgetFilters) {
-    assertBudgetReadPermissions(viewer);
+    assertHasAnyBudgetReadAssignment(viewer);
 
     const scopedFilters = scopeEventFilters(viewer, filters, budgetReadRoles);
     const paginationOptions = getPaginationOptions(filters);
@@ -192,7 +209,7 @@ export const budgetsService = {
   },
 
   async getBudgetById(viewer: AuthenticatedUser, budgetId: string) {
-    assertBudgetReadPermissions(viewer);
+    // Read permission checked after loading to get eventId
 
     const budget = await budgetsRepository.findById(budgetId);
 
@@ -200,7 +217,7 @@ export const budgetsService = {
       throw new AppError(404, "Budget not found.");
     }
 
-    assertEventScopedAccess(viewer, budget.eventId, budgetReadRoles);
+    assertBudgetReadPermissions(viewer, budget.eventId);
 
     const approvalLookup = await getBudgetApprovalLookup([budget.id]);
 
@@ -212,15 +229,13 @@ export const budgetsService = {
     input: CreateBudgetInput,
     auditMetadata?: AuditMetadata,
   ) {
-    assertBudgetManagementPermissions(actor);
-
     const event = await eventsRepository.findById(input.eventId);
 
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
 
-    assertEventScopedAccess(actor, event.id, budgetManagementRoles);
+    assertBudgetManagementPermissions(actor, event.id);
 
     const latestBudget = await budgetsRepository.findLatestBudgetVersion(input.eventId);
     const version = latestBudget ? latestBudget.version + 1 : 1;
@@ -257,15 +272,13 @@ export const budgetsService = {
     input: ReviseBudgetInput,
     auditMetadata?: AuditMetadata,
   ) {
-    assertBudgetManagementPermissions(actor);
-
     const budget = await budgetsRepository.findById(budgetId);
 
     if (!budget) {
       throw new AppError(404, "Budget not found.");
     }
 
-    assertEventScopedAccess(actor, budget.eventId, budgetManagementRoles);
+    assertBudgetManagementPermissions(actor, budget.eventId);
 
     const latestBudget = await budgetsRepository.findLatestBudgetVersion(budget.eventId);
 
@@ -314,26 +327,20 @@ export const budgetsService = {
     input: UpdateBudgetStateInput,
     auditMetadata?: AuditMetadata,
   ) {
-    if (input.state === BudgetState.APPROVED || input.state === BudgetState.REVISED) {
-      assertBudgetApprovalPermissions(actor);
-    } else {
-      assertBudgetManagementPermissions(actor);
-    }
-
     const budget = await budgetsRepository.findById(budgetId);
 
     if (!budget) {
       throw new AppError(404, "Budget not found.");
     }
 
-    assertEventScopedAccess(
-      actor,
-      budget.eventId,
-      input.state === BudgetState.APPROVED || input.state === BudgetState.REVISED
-        ? budgetApprovalRoles
-        : budgetManagementRoles,
-    );
+    if (input.state === BudgetState.APPROVED || input.state === BudgetState.REVISED) {
+      assertBudgetApprovalPermissions(actor, budget.eventId);
+    } else {
+      assertBudgetManagementPermissions(actor, budget.eventId);
+    }
 
+    // Event-scoped access already checked above via assertBudgetApprovalPermissions
+    // or assertBudgetManagementPermissions — no redundant check needed
     assertBudgetStateTransition(budget.state, input.state);
 
     if (
@@ -381,15 +388,13 @@ export const budgetsService = {
     budgetId: string,
     auditMetadata?: AuditMetadata,
   ) {
-    assertBudgetManagementPermissions(actor);
-
     const budget = await budgetsRepository.findById(budgetId);
 
     if (!budget) {
       throw new AppError(404, "Budget not found.");
     }
 
-    assertEventScopedAccess(actor, budget.eventId, budgetManagementRoles);
+    assertBudgetManagementPermissions(actor, budget.eventId);
 
     if (budget.state !== BudgetState.APPROVED) {
       throw new AppError(409, "Only approved budget versions can be activated.");

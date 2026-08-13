@@ -1,112 +1,159 @@
 import { RoleCode } from "@prisma/client";
 
+import type { AuthenticatedUser } from "../types/auth";
+import {
+  hasAnyEventScopedRole,
+  hasEventScopedRole,
+  isSystemAdmin,
+} from "./event-scope";
+
 export function hasAnyRole(userRoles: RoleCode[], allowedRoles: RoleCode[]) {
   return allowedRoles.some((role) => userRoles.includes(role));
-}
-
-export function hasFinanceAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]);
-}
-
-export function hasApproverAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [RoleCode.SYSTEM_ADMIN, RoleCode.ORGANIZATIONAL_APPROVER]);
-}
-
-export function hasEventManagementAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [
-    RoleCode.SYSTEM_ADMIN,
-    RoleCode.EVENT_ADMIN,
-    RoleCode.EVENT_MANAGEMENT_USER,
-  ]);
-}
-
-export function hasEventManagementReadAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [
-    RoleCode.SYSTEM_ADMIN,
-    RoleCode.EVENT_ADMIN,
-    RoleCode.EVENT_MANAGEMENT_USER,
-    RoleCode.FINANCIAL_CONTROLLER,
-    RoleCode.ORGANIZATIONAL_APPROVER,
-  ]);
-}
-
-export function hasInternalRegistrationAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [
-    RoleCode.SYSTEM_ADMIN,
-    RoleCode.EVENT_ADMIN,
-    RoleCode.FINANCIAL_CONTROLLER,
-    RoleCode.EVENT_MANAGEMENT_USER,
-  ]);
-}
-
-export function hasBudgetManagementAccess(userRoles: RoleCode[]) {
-  return hasEventManagementAccess(userRoles);
-}
-
-export function hasRequestSubmissionAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_MANAGEMENT_USER]);
-}
-
-export function hasFinanceReadAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [
-    RoleCode.SYSTEM_ADMIN,
-    RoleCode.EVENT_ADMIN,
-    RoleCode.FINANCIAL_CONTROLLER,
-    RoleCode.ORGANIZATIONAL_APPROVER,
-    RoleCode.EVENT_MANAGEMENT_USER,
-  ]);
-}
-
-export function hasExpenseRecordManagementAccess(userRoles: RoleCode[]) {
-  return hasFinanceAccess(userRoles);
-}
-
-export function hasComplaintReviewAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [
-    RoleCode.SYSTEM_ADMIN,
-    RoleCode.EVENT_ADMIN,
-    RoleCode.COMPLAINT_REVIEW_AUTHORITY,
-    RoleCode.ORGANIZATIONAL_APPROVER,
-  ]);
-}
-
-export function hasReconciliationReadAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [
-    RoleCode.SYSTEM_ADMIN,
-    RoleCode.EVENT_ADMIN,
-    RoleCode.FINANCIAL_CONTROLLER,
-    RoleCode.ORGANIZATIONAL_APPROVER,
-    RoleCode.EVENT_MANAGEMENT_USER,
-  ]);
-}
-
-export function hasReconciliationManagementAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]);
-}
-
-export function hasReconciliationFinalizeAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [
-    RoleCode.SYSTEM_ADMIN,
-    RoleCode.ORGANIZATIONAL_APPROVER,
-  ]);
-}
-
-export function hasPublicSummaryPublishAccess(userRoles: RoleCode[]) {
-  return hasReconciliationFinalizeAccess(userRoles);
 }
 
 export function hasAuditReadAccess(userRoles: RoleCode[]) {
   return hasAnyRole(userRoles, [RoleCode.SYSTEM_ADMIN]);
 }
 
-/** Check if user has any internal role (global or event-scoped) */
-export function hasAnyInternalAccess(userRoles: RoleCode[]) {
-  return hasAnyRole(userRoles, [
-    RoleCode.SYSTEM_ADMIN,
+export function hasAnyInternalAccess(user: Pick<AuthenticatedUser, "roles" | "eventRoles">) {
+  return isSystemAdmin(user) || user.eventRoles.length > 0;
+}
+
+export function hasAnyEventAssignment(
+  user: Pick<AuthenticatedUser, "eventRoles">,
+  allowedRoles: RoleCode[],
+) {
+  return hasAnyEventScopedRole(user, allowedRoles);
+}
+
+export function hasEventFinanceAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventScopedRole(user, eventId, [RoleCode.FINANCIAL_CONTROLLER]);
+}
+
+export function hasEventApproverAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventScopedRole(user, eventId, [RoleCode.ORGANIZATIONAL_APPROVER]);
+}
+
+export function hasEventManagementAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventScopedRole(user, eventId, [
+    RoleCode.EVENT_ADMIN,
+    RoleCode.EVENT_MANAGEMENT_USER,
+  ]);
+}
+
+export function hasEventManagementReadAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventScopedRole(user, eventId, [
+    RoleCode.EVENT_ADMIN,
+    RoleCode.EVENT_MANAGEMENT_USER,
+    RoleCode.FINANCIAL_CONTROLLER,
+    RoleCode.ORGANIZATIONAL_APPROVER,
+    RoleCode.COMPLAINT_REVIEW_AUTHORITY,
+  ]);
+}
+
+export function hasEventInternalRegistrationAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventScopedRole(user, eventId, [
+    RoleCode.EVENT_ADMIN,
+    RoleCode.FINANCIAL_CONTROLLER,
+    RoleCode.EVENT_MANAGEMENT_USER,
+  ]);
+}
+
+export function hasEventBudgetManagementAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventManagementAccess(user, eventId);
+}
+
+export function hasEventRequestSubmissionAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventScopedRole(user, eventId, [
+    RoleCode.EVENT_ADMIN,
+    RoleCode.EVENT_MANAGEMENT_USER,
+  ]);
+}
+
+export function hasEventFinanceReadAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventScopedRole(user, eventId, [
     RoleCode.EVENT_ADMIN,
     RoleCode.FINANCIAL_CONTROLLER,
     RoleCode.ORGANIZATIONAL_APPROVER,
     RoleCode.EVENT_MANAGEMENT_USER,
-    RoleCode.COMPLAINT_REVIEW_AUTHORITY,
   ]);
+}
+
+export function hasEventExpenseRecordManagementAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventFinanceAccess(user, eventId);
+}
+
+export function hasEventComplaintReviewAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventScopedRole(user, eventId, [
+    RoleCode.EVENT_ADMIN,
+    RoleCode.COMPLAINT_REVIEW_AUTHORITY,
+    RoleCode.ORGANIZATIONAL_APPROVER,
+  ]);
+}
+
+export function hasEventReconciliationReadAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventScopedRole(user, eventId, [
+    RoleCode.EVENT_ADMIN,
+    RoleCode.FINANCIAL_CONTROLLER,
+    RoleCode.ORGANIZATIONAL_APPROVER,
+    RoleCode.EVENT_MANAGEMENT_USER,
+  ]);
+}
+
+export function hasEventReconciliationManagementAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventScopedRole(user, eventId, [RoleCode.FINANCIAL_CONTROLLER]);
+}
+
+export function hasEventReconciliationFinalizeAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventScopedRole(user, eventId, [RoleCode.ORGANIZATIONAL_APPROVER]);
+}
+
+export function hasEventPublicSummaryPublishAccess(
+  user: Pick<AuthenticatedUser, "eventRoles" | "roles">,
+  eventId: string,
+) {
+  return hasEventReconciliationFinalizeAccess(user, eventId);
+}
+
+export function hasGovernanceReadAccess(user: Pick<AuthenticatedUser, "roles">) {
+  return isSystemAdmin(user);
 }

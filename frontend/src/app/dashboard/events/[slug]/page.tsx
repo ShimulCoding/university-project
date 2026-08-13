@@ -23,6 +23,7 @@ import { formatEnumLabel, getEventStatusTone, formatDateTime } from "@/lib/forma
 import { eventDashboardNavigation } from "@/lib/navigation";
 import type { AppRole, ManagedEvent } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { EventStatusControl } from "@/components/internal/events-actions";
 import {
   Card,
   CardContent,
@@ -67,6 +68,8 @@ export default async function EventWorkspaceOverviewPage({
     isSystemAdmin(user) || eventRoles.includes("FINANCIAL_CONTROLLER");
   const canSeeApprovals =
     isSystemAdmin(user) || eventRoles.includes("ORGANIZATIONAL_APPROVER");
+  const canManageLifecycle =
+    eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("EVENT_MANAGEMENT_USER");
 
   const safeFetch = <T,>(promise: Promise<T>, fallback: T): Promise<T> =>
     promise.catch(() => fallback);
@@ -249,6 +252,8 @@ export default async function EventWorkspaceOverviewPage({
           );
         })}
       </section>
+
+      {canManageLifecycle ? <EventStatusControl event={event} /> : null}
 
       {/* QUICK ROUTES */}
       <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/40 backdrop-blur-xl">

@@ -64,9 +64,10 @@ export default async function EventApprovalsPage({
   if (!user || !event) return null;
 
   const eventRoles = isSystemAdmin(user) ? ["SYSTEM_ADMIN" as const] : getEventRolesForEvent(user, event.id);
-  const canApprove = isSystemAdmin(user) || eventRoles.includes("ORGANIZATIONAL_APPROVER");
+  const canSeeApprovals = isSystemAdmin(user) || eventRoles.includes("ORGANIZATIONAL_APPROVER");
+  const canApprove = eventRoles.includes("ORGANIZATIONAL_APPROVER");
 
-  if (!canApprove) {
+  if (!canSeeApprovals) {
     return <StatePanel icon={ShieldAlert} tone="warning" title="Access restricted" description="Your event role does not include authorization privileges." />;
   }
 
@@ -277,7 +278,7 @@ export default async function EventApprovalsPage({
                 <DecisionHistoryCard decisions={selectedRecord.approvalDecisions} />
                 
                 {/* DECISION MATRIX */}
-                <ApprovalDecisionForm item={selectedItem} />
+                <ApprovalDecisionForm item={selectedItem} canDecide={canApprove} />
               </div>
             ) : null}
           </div>

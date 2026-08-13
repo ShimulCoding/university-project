@@ -1,6 +1,7 @@
 import { Prisma, type RoleCode } from "@prisma/client";
 
 import { AppError } from "../../../utils/app-error";
+import { assertGlobalAccountRole } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
@@ -92,6 +93,7 @@ export const rolesService = {
     roleCode: RoleCode,
     auditMetadata?: AuditMetadata,
   ) {
+    assertGlobalAccountRole(roleCode);
     await rolesRepository.syncCatalog();
 
     const user = await usersRepository.findById(userId);

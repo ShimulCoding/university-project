@@ -1,4 +1,4 @@
-import type { EventStatus } from "@prisma/client";
+import type { EventStatus, RoleCode } from "@prisma/client";
 
 import type { PaginationInput } from "../../../utils/pagination";
 
@@ -18,8 +18,16 @@ export type CreateEventInput = {
   startsAt?: Date | undefined;
   endsAt?: Date | undefined;
   capacity?: number | undefined;
+  teamMembers?: EventTeamAssignmentInput[] | undefined;
 };
 
-export type UpdateEventInput = Partial<CreateEventInput>;
+export type UpdateEventInput = Partial<Omit<CreateEventInput, "teamMembers">>;
 
 export type RegistrationWindowState = "UPCOMING" | "OPEN" | "CLOSED" | "UNAVAILABLE";
+
+export type EventTeamAssignmentInput = {
+  email: string;
+  roleCode: RoleCode;
+  password?: string | undefined;
+  fullName?: string | undefined;
+};

@@ -40,7 +40,7 @@ router.get(
 );
 router.post(
   "/proofs/:paymentProofId/decision",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   validateRequest(paymentProofDecisionSchema),
   asyncHandler(paymentsController.decidePaymentProof),
 );
@@ -58,19 +58,19 @@ router.get(
 );
 router.post(
   "/income-records/:incomeRecordId/verify",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   validateRequest(incomeRecordIdParamSchema),
   asyncHandler(paymentsController.verifyIncomeRecord),
 );
 router.post(
   "/income-records/:incomeRecordId/void",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   validateRequest(voidIncomeRecordSchema),
   asyncHandler(paymentsController.voidIncomeRecord),
 );
 router.post(
   "/income-records",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   upload.array("evidenceFile", 15),
   asyncHandler(paymentsController.createIncomeRecord),
 );

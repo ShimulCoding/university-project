@@ -250,7 +250,7 @@ export default async function PaymentVerificationQueuePage({
                 />
                 
                 {/* DECISION MATRIX */}
-                <PaymentDecisionForm paymentProofId={selectedProof.id} />
+                <PaymentDecisionForm paymentProofId={selectedProof.id} canDecide={false} />
               </div>
             )}
           </div>

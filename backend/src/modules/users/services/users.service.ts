@@ -2,6 +2,7 @@ import { AccountStatus, RoleCode } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import { AppError } from "../../../utils/app-error";
+import { assertGlobalAccountRole } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hashPassword } from "../../../utils/password";
 import { normalizeEmail } from "../../../utils/normalize-email";
@@ -54,6 +55,8 @@ export const usersService = {
     const email = normalizeEmail(input.email);
     const passwordHash = await hashPassword(input.password);
     const roleCodes = [...new Set(input.roleCodes ?? [RoleCode.GENERAL_STUDENT])];
+
+    roleCodes.forEach(assertGlobalAccountRole);
 
     const createdUser = await prisma.$transaction(async (tx) => {
       await rolesRepository.syncCatalog(tx);

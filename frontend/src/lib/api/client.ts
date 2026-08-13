@@ -39,7 +39,8 @@ export async function apiFetchClient<T>(
       !options?._isRetry &&
       path !== "/auth/refresh" &&
       path !== "/auth/login" &&
-      path !== "/auth/internal-login"
+      path !== "/auth/internal-login" &&
+      path !== "/auth/event-team-login"
     ) {
       const refreshResponse = await fetch(buildApiUrl("/auth/refresh"), {
         method: "POST",

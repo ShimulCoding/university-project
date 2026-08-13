@@ -1,10 +1,10 @@
-import { redirect } from "next/navigation";
-
 import { getCurrentUser } from "@/lib/api/student";
 import { getEventRolesForEvent, hasEventAccess, isSystemAdmin } from "@/lib/access";
 import { apiFetchServer } from "@/lib/api/server";
 import type { AppRole, ManagedEvent } from "@/types";
 import { EventDashboardShell } from "@/components/shell/event-dashboard-shell";
+import { EventTeamAccessPanel } from "@/components/internal/event-team-access-panel";
+import { LogoutButton } from "@/components/student/logout-button";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatePanel } from "@/components/ui/state-panel";
@@ -34,7 +34,20 @@ export default async function EventWorkspaceLayout({
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect(`/dashboard`);
+    return (
+      <PublicPageShell>
+        <main className="section-shell py-12 sm:py-16">
+          <PageHeader
+            eyebrow="Event workspace"
+            title="Sign in to this event's internal workspace"
+            description="Access is granted only when your active account has a team assignment for this exact event."
+          />
+          <div className="mt-8">
+            <EventTeamAccessPanel eventLookupKey={slug} />
+          </div>
+        </main>
+      </PublicPageShell>
+    );
   }
 
   const event = await getEventBySlug(slug);
@@ -78,6 +91,9 @@ export default async function EventWorkspaceLayout({
               title="No event team assignment found"
               description="Your account is authenticated but you are not listed as a team member for this specific event."
             />
+            <div className="mt-4">
+              <LogoutButton redirectTo={`/dashboard/events/${slug}`} />
+            </div>
           </div>
         </main>
       </PublicPageShell>

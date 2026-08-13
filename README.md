@@ -15,7 +15,7 @@ MU CSE Financial Transparency Platform is a full-stack academic project for even
 - Reconciliation generation, review, finalization, and warning display
 - Public financial summary publication based on finalized reconciliation
 - Protected audit log views
-- Role-aware internal dashboard shell and public-facing frontend
+- Global System Admin governance plus isolated event-team workspaces
 - Demo-safe seed and runtime verification helpers
 
 ## Tech Stack
@@ -164,6 +164,18 @@ npm run verify:demo:runtime --workspace backend
 
 ### Internal
 - `/dashboard`
+- `/dashboard/my-events`
+- `/dashboard/events/[slug]`
+- `/dashboard/events/[slug]/payments`
+- `/dashboard/events/[slug]/income-records`
+- `/dashboard/events/[slug]/budgets`
+- `/dashboard/events/[slug]/budget-requests`
+- `/dashboard/events/[slug]/expense-requests`
+- `/dashboard/events/[slug]/expense-records`
+- `/dashboard/events/[slug]/approvals`
+- `/dashboard/events/[slug]/complaints`
+- `/dashboard/events/[slug]/reconciliation`
+- `/dashboard/events/[slug]/publications`
 - `/dashboard/payments`
 - `/dashboard/income-records`
 - `/dashboard/budgets`
@@ -179,11 +191,17 @@ npm run verify:demo:runtime --workspace backend
 
 ## Roles
 - `SYSTEM_ADMIN`
+- `EVENT_ADMIN`
 - `FINANCIAL_CONTROLLER`
 - `ORGANIZATIONAL_APPROVER`
 - `EVENT_MANAGEMENT_USER`
 - `GENERAL_STUDENT`
 - `COMPLAINT_REVIEW_AUTHORITY`
+
+`SYSTEM_ADMIN` is global. All other internal operational roles are assigned per event through
+`EventTeamMember`; they do not grant access to any event without an active assignment. Event team
+members sign in from their event's public page, while the global `/dashboard` login is reserved for
+the System Admin.
 
 ## Demo Credentials
 ### Demo accounts seeded by `seed-demo-runtime-data.ts`
@@ -191,6 +209,7 @@ All of these use:
 `DemoPass123!`
 
 - Event manager: `demo.event.manager@example.com`
+- Event admin: `demo.event.admin@example.com`
 - Finance controller: `demo.finance@example.com`
 - Organizational approver: `demo.approver@example.com`
 - Student: `demo.active.student@example.com`

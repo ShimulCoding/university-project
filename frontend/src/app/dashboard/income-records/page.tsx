@@ -15,7 +15,7 @@ import {
   formatMoney,
   getIncomeStateTone,
 } from "@/lib/format";
-import { IncomeRecordForm, IncomeRecordStatePanel } from "@/components/internal/payments-actions";
+import { IncomeRecordStatePanel } from "@/components/internal/payments-actions";
 import { FilterCard } from "@/components/internal/filter-card";
 import { SupportingDocumentList } from "@/components/internal/supporting-document-list";
 import { Badge } from "@/components/ui/badge";
@@ -266,12 +266,11 @@ export default async function IncomeRecordsPage({
                 />
                 <IncomeRecordStatePanel
                   incomeRecordId={selectedIncome.id}
-                  allowVerify={selectedIncome.state === "RECORDED"}
-                  allowVoid={selectedIncome.state !== "REJECTED"}
+                  allowVerify={false}
+                  allowVoid={false}
                 />
               </div>
             ) : null}
-            <IncomeRecordForm events={events} />
           </div>
         </div>
       </div>

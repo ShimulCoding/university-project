@@ -23,7 +23,7 @@ export function getInternalRoles(user: UserProfile | null | undefined) {
     return [];
   }
 
-  return user.roles.filter((role) => internalWorkspaceRoles.includes(role));
+  return user.roles.filter((role) => role === "SYSTEM_ADMIN");
 }
 
 export function isInternalUser(user: UserProfile | null | undefined) {

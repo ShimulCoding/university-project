@@ -18,6 +18,17 @@
 - Access token plus refresh token flow
 - HTTP-only cookie-based session behavior from the backend
 - RBAC enforced by backend middleware and service boundaries
+- Global System Admin login and event-team login are separate entry boundaries.
+- Event-team login validates credentials and an active assignment for the requested event before issuing a session.
+- Authentication remains user-based; authorization is evaluated again for every event-linked API operation.
+
+## 3A. Event-Specific Internal Teams
+- `SYSTEM_ADMIN` remains global; operational roles are not stored as global `UserRole` assignments.
+- `EventTeamMember` links a user, event, and event role with assignment and revocation history.
+- Each event requires separate Event Admin, Event Manager, Finance Controller, and Approver accounts at creation.
+- Complaint Reviewer is an optional event assignment.
+- Required roles use separate accounts within an event to preserve separation of duties.
+- Existing accounts can be assigned to more than one event without resetting their credentials.
 
 ## 4. File And Document Handling
 - Files are stored on local disk in development through a storage adapter.

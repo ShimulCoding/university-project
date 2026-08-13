@@ -67,7 +67,7 @@ async function loginAsSeedAdmin() {
   assertCondition(email, "SEED_ADMIN_EMAIL is missing from the backend environment.");
   assertCondition(password, "SEED_ADMIN_PASSWORD is missing from the backend environment.");
 
-  const response = await fetch(`${baseUrl}/api/auth/login`, {
+  const response = await fetch(`${baseUrl}/api/auth/internal-login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -92,6 +92,32 @@ async function loginAsSeedAdmin() {
     cookieHeader,
     body,
   };
+}
+
+async function loginAsEventTeam(email: string, eventLookupKey: string) {
+  const response = await fetch(`${baseUrl}/api/auth/event-team-login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      password: "DemoPass123!",
+      eventLookupKey,
+    }),
+  });
+  const body = await readJson(response);
+
+  if (!response.ok) {
+    throw new Error(
+      `Event team login for ${email} failed with ${response.status}. Body: ${JSON.stringify(body)}`,
+    );
+  }
+
+  const cookieHeader = buildCookieHeader(response);
+  assertCondition(cookieHeader, `Event team login for ${email} did not return cookies.`);
+
+  return { cookieHeader, body };
 }
 
 async function main() {
@@ -165,8 +191,42 @@ async function main() {
     "Authenticated admin profile did not match the seeded admin user.",
   );
 
+  await fetchJson("/api/auth/internal-login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: "demo.finance@example.com",
+      password: "DemoPass123!",
+    }),
+    expectedStatus: 403,
+  });
+
+  const [financeLogin, eventManagerLogin, approverLogin] = await Promise.all([
+    loginAsEventTeam("demo.finance@example.com", demoActiveEventSlug),
+    loginAsEventTeam("demo.event.manager@example.com", demoActiveEventSlug),
+    loginAsEventTeam("demo.approver@example.com", demoActiveEventSlug),
+  ]);
+  const financeHeaders = { Cookie: financeLogin.cookieHeader };
+  const eventManagerHeaders = { Cookie: eventManagerLogin.cookieHeader };
+  const approverHeaders = { Cookie: approverLogin.cookieHeader };
+
+  const financeProfile = await fetchJson("/api/auth/me", { headers: financeHeaders });
+  const financeEventRoles =
+    (financeProfile.user as { eventRoles?: Array<{ roleCode?: string; event?: { slug?: string } }> })
+      ?.eventRoles ?? [];
+  assertCondition(
+    financeEventRoles.some(
+      (assignment) =>
+        assignment.roleCode === "FINANCIAL_CONTROLLER" &&
+        assignment.event?.slug === demoActiveEventSlug,
+    ),
+    "Finance account did not expose its active event assignment.",
+  );
+
   const verificationQueueResponse = await fetchJson("/api/payments/verification-queue", {
-    headers: authHeaders,
+    headers: financeHeaders,
   });
   const verificationQueue = Array.isArray(verificationQueueResponse.queue)
     ? verificationQueueResponse.queue
@@ -183,7 +243,7 @@ async function main() {
   );
 
   const incomeRecordsResponse = await fetchJson("/api/payments/income-records", {
-    headers: authHeaders,
+    headers: financeHeaders,
   });
   const incomeRecords = Array.isArray(incomeRecordsResponse.incomeRecords)
     ? incomeRecordsResponse.incomeRecords
@@ -200,7 +260,7 @@ async function main() {
   );
 
   const budgetRequestsResponse = await fetchJson("/api/requests/budget-requests", {
-    headers: authHeaders,
+    headers: eventManagerHeaders,
   });
   const budgetRequests = Array.isArray(budgetRequestsResponse.budgetRequests)
     ? budgetRequestsResponse.budgetRequests
@@ -217,7 +277,7 @@ async function main() {
   );
 
   const expenseRecordsResponse = await fetchJson("/api/requests/expense-records", {
-    headers: authHeaders,
+    headers: financeHeaders,
   });
   const expenseRecords = Array.isArray(expenseRecordsResponse.expenseRecords)
     ? expenseRecordsResponse.expenseRecords
@@ -236,7 +296,7 @@ async function main() {
   );
 
   const approvalsQueueResponse = await fetchJson("/api/approvals/queue", {
-    headers: authHeaders,
+    headers: approverHeaders,
   });
   const approvalsQueue = Array.isArray(approvalsQueueResponse.queue)
     ? approvalsQueueResponse.queue
@@ -253,7 +313,7 @@ async function main() {
   );
 
   const reconciliationResponse = await fetchJson("/api/reconciliation", {
-    headers: authHeaders,
+    headers: financeHeaders,
   });
   const reconciliationReports = Array.isArray(reconciliationResponse.reports)
     ? reconciliationResponse.reports

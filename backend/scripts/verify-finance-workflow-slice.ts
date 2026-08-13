@@ -73,12 +73,24 @@ function createUser(
   roles: RoleCode[],
   fullName: string,
 ): AuthenticatedUser {
+  const globalRoles: RoleCode[] = roles.filter(
+    (role) => role === RoleCode.SYSTEM_ADMIN || role === RoleCode.GENERAL_STUDENT,
+  );
+  const eventRoles = roles
+    .filter((role) => !globalRoles.includes(role))
+    .flatMap((roleCode) =>
+      ["event", "event1", "event2", "event3", "event4", "event5", "event6", "event7", "event8"].map(
+        (eventSeed) => ({ eventId: makeCuid(eventSeed), roleCode }),
+      ),
+    );
+
   return {
     id,
     fullName,
     email: `${fullName.toLowerCase().replace(/\s+/g, ".")}@example.com`,
     status: AccountStatus.ACTIVE,
-    roles,
+    roles: globalRoles,
+    eventRoles,
   };
 }
 
@@ -661,7 +673,7 @@ async function main() {
         ],
         async () =>
           budgetsService.createBudgetRevision(
-            financeActor,
+            eventManagerActor,
             baseBudget.id,
             {
               title: "Budget v3",
@@ -695,7 +707,7 @@ async function main() {
               },
             ],
             async () =>
-              budgetsService.updateBudgetState(financeActor, baseBudget.id, {
+              budgetsService.updateBudgetState(eventManagerActor, baseBudget.id, {
                 state: BudgetState.DRAFT,
               }),
           ),
@@ -1212,7 +1224,7 @@ async function main() {
         "Approval queue non-approver access",
         async () => approvalsService.listApprovalQueue(eventManagerActor, {}),
         403,
-        "not allowed",
+        "not assigned as Organizational Approver",
       );
 
       await expectAppError(

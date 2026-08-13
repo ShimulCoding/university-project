@@ -1,7 +1,7 @@
 # Final Handoff Summary
 
 ## What Has Been Completed
-- Full backend foundation with Express, Prisma, PostgreSQL, credentials auth, RBAC, audit logging, and modular domain wiring
+- Full backend foundation with Express, Prisma, PostgreSQL, credentials auth, event-scoped RBAC, audit logging, and modular domain wiring
 - Full frontend foundation with premium public shell, internal shell, role-aware dashboard, and live backend integration
 - Public flows for event discovery and published summaries
 - Student flows for registration, payment proof submission, registration tracking, and complaints
@@ -37,6 +37,18 @@
 
 ### Internal
 - `/dashboard`
+- `/dashboard/my-events`
+- `/dashboard/events/[slug]`
+- `/dashboard/events/[slug]/payments`
+- `/dashboard/events/[slug]/income-records`
+- `/dashboard/events/[slug]/budgets`
+- `/dashboard/events/[slug]/budget-requests`
+- `/dashboard/events/[slug]/expense-requests`
+- `/dashboard/events/[slug]/expense-records`
+- `/dashboard/events/[slug]/approvals`
+- `/dashboard/events/[slug]/complaints`
+- `/dashboard/events/[slug]/reconciliation`
+- `/dashboard/events/[slug]/publications`
 - `/dashboard/payments`
 - `/dashboard/income-records`
 - `/dashboard/budgets`
@@ -52,6 +64,7 @@
 
 ## Roles In The System
 - `SYSTEM_ADMIN`
+- `EVENT_ADMIN`
 - `FINANCIAL_CONTROLLER`
 - `ORGANIZATIONAL_APPROVER`
 - `EVENT_MANAGEMENT_USER`
@@ -68,7 +81,7 @@
 
 ## Demo Data Logic
 - Base seed creates roles plus a system admin from `backend/.env`
-- Demo runtime seed creates safe academic sample data for public and internal flows
+- Demo runtime seed creates safe academic sample data and event-specific team assignments without restoring global operational roles
 - The demo data is idempotent and can be re-run
 - Runtime verification checks the live backend and confirms key demo scenarios
 

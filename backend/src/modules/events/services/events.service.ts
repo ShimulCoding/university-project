@@ -1,24 +1,33 @@
-import { EventStatus, Prisma, RoleCode } from "@prisma/client";
+import { AccountStatus, EventStatus, Prisma, RoleCode } from "@prisma/client";
 
+import { prisma } from "../../../config/prisma";
+import type { DbClient } from "../../../types/database";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
-import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
 import {
-  hasEventManagementAccess,
-  hasEventManagementReadAccess,
-} from "../../../utils/role-checks";
+  assertAnyEventScopedAccess,
+  assertEventScopedOperationalAccess,
+  assertSystemAdminOrEventRole,
+  isSystemAdmin,
+  scopeEventFilters,
+} from "../../../utils/event-scope";
+import { hashPassword } from "../../../utils/password";
 import { normalizeEmail } from "../../../utils/normalize-email";
 import { slugify } from "../../../utils/slugify";
 import { sanitizeNullableText } from "../../../utils/text-utils";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
-import { rolesRepository } from "../../roles/repositories/roles.repository";
 import { usersRepository } from "../../users/repositories/users.repository";
 import { mapManageEvent, mapPublicEvent, publicEventStatuses } from "../events.mappers";
 import { reconciliationRepository } from "../../reconciliation/repositories/reconciliation.repository";
 import { eventsRepository } from "../repositories/events.repository";
-import type { CreateEventInput, EventListFilters, UpdateEventInput } from "../types/events.types";
+import type {
+  CreateEventInput,
+  EventListFilters,
+  EventTeamAssignmentInput,
+  UpdateEventInput,
+} from "../types/events.types";
 
 const allowedEventTransitions: Record<EventStatus, EventStatus[]> = {
   [EventStatus.DRAFT]: [EventStatus.PUBLISHED, EventStatus.ARCHIVED],
@@ -44,6 +53,7 @@ const eventReadRoles = [
   RoleCode.EVENT_MANAGEMENT_USER,
   RoleCode.FINANCIAL_CONTROLLER,
   RoleCode.ORGANIZATIONAL_APPROVER,
+  RoleCode.COMPLAINT_REVIEW_AUTHORITY,
 ] as RoleCode[];
 
 const eventManageRoles = [
@@ -51,33 +61,109 @@ const eventManageRoles = [
   RoleCode.EVENT_MANAGEMENT_USER,
 ] as RoleCode[];
 
+const requiredEventTeamRoles = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.EVENT_MANAGEMENT_USER,
+  RoleCode.FINANCIAL_CONTROLLER,
+  RoleCode.ORGANIZATIONAL_APPROVER,
+] as RoleCode[];
+
 function assertSystemAdmin(actor: AuthenticatedUser) {
   if (!actor.roles.includes(RoleCode.SYSTEM_ADMIN)) {
-    throw new AppError(403, "Only the System Admin can assign event-specific teams.");
+    throw new AppError(403, "Only the System Admin can create events and assign event-specific teams.");
   }
 }
 
-async function ensureUserHasRoleCapability(
-  userId: string,
-  roleCode: RoleCode,
-  assignedById: string,
+function deriveFullNameFromEmail(email: string) {
+  const localPart = email.split("@")[0] ?? "Event Team Member";
+  return localPart
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ")
+    .trim() || "Event Team Member";
+}
+
+function assertRequiredTeamAssignments(assignments: EventTeamAssignmentInput[] | undefined) {
+  const assignedRoles = new Set((assignments ?? []).map((assignment) => assignment.roleCode));
+  const missingRoles = requiredEventTeamRoles.filter((role) => !assignedRoles.has(role));
+
+  if (missingRoles.length > 0) {
+    throw new AppError(
+      400,
+      `Event creation requires assigned personnel for: ${missingRoles.join(", ")}.`,
+    );
+  }
+}
+
+function assertRequiredRoleSeparation(assignments: EventTeamAssignmentInput[]) {
+  const requiredAssignments = assignments.filter((assignment) =>
+    requiredEventTeamRoles.includes(assignment.roleCode),
+  );
+  const seenEmails = new Set<string>();
+
+  for (const assignment of requiredAssignments) {
+    const email = normalizeEmail(assignment.email);
+
+    if (seenEmails.has(email)) {
+      throw new AppError(
+        400,
+        "Required event roles must be assigned to separate Google email accounts to preserve separation of duties.",
+      );
+    }
+
+    seenEmails.add(email);
+  }
+}
+
+async function resolveAssignableUser(
+  actor: AuthenticatedUser,
+  input: EventTeamAssignmentInput,
+  db: DbClient = prisma,
 ) {
-  await rolesRepository.syncCatalog();
-  const role = await rolesRepository.findByCode(roleCode);
+  const email = normalizeEmail(input.email);
+  const existingUser = await usersRepository.findByEmail(email, db);
 
-  if (!role) {
-    throw new AppError(404, `Role ${roleCode} not found.`);
+  if (existingUser) {
+    if (existingUser.status !== AccountStatus.ACTIVE) {
+      throw new AppError(409, "This user account is not active and cannot be assigned to an event.");
+    }
+
+    return existingUser;
   }
 
-  const existingAssignment = await rolesRepository.findActiveAssignment(userId, role.id);
-
-  if (!existingAssignment) {
-    await rolesRepository.createAssignment({
-      userId,
-      roleId: role.id,
-      assignedById,
-    });
+  if (!input.password) {
+    throw new AppError(400, "A password is required when assigning a new event team account.");
   }
+
+  return usersRepository.createUser(
+    {
+      fullName: (input.fullName?.trim() || deriveFullNameFromEmail(email)).slice(0, 100),
+      email,
+      passwordHash: await hashPassword(input.password),
+      status: AccountStatus.ACTIVE,
+    },
+    db,
+  );
+}
+
+async function assignTeamMemberForEvent(
+  actor: AuthenticatedUser,
+  eventId: string,
+  input: EventTeamAssignmentInput,
+  db: DbClient = prisma,
+) {
+  const user = await resolveAssignableUser(actor, input, db);
+
+  return eventsRepository.assignTeamMember(
+    {
+      eventId,
+      userId: user.id,
+      roleCode: input.roleCode,
+      assignedById: actor.id,
+    },
+    db,
+  );
 }
 
 function assertPublicStatusFilter(status: EventStatus | undefined) {
@@ -127,15 +213,37 @@ function assertValidStatusTransition(currentStatus: EventStatus, nextStatus: Eve
 }
 
 function assertEventManagementReadPermissions(viewer: AuthenticatedUser) {
-  if (!hasEventManagementReadAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to view managed events.");
-  }
+  assertAnyEventScopedAccess(viewer, eventReadRoles, "You are not allowed to view managed events.");
 }
 
-function assertEventManagementPermissions(viewer: AuthenticatedUser) {
-  if (!hasEventManagementAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to manage events.");
+function assertEventManagementPermissions(
+  viewer: AuthenticatedUser,
+  eventId: string,
+  currentStatus: EventStatus,
+  nextStatus: EventStatus,
+) {
+  if (isSystemAdmin(viewer)) {
+    if (
+      currentStatus === EventStatus.DRAFT &&
+      ([EventStatus.DRAFT, EventStatus.PUBLISHED, EventStatus.ARCHIVED] as EventStatus[]).includes(
+        nextStatus,
+      )
+    ) {
+      return;
+    }
+
+    throw new AppError(
+      403,
+      "System Admin can configure and publish a draft event; later operational lifecycle changes belong to its assigned Event Admin or Event Manager.",
+    );
   }
+
+  assertEventScopedOperationalAccess(
+    viewer,
+    eventId,
+    eventManageRoles,
+    "Only the Event Admin or Event Manager assigned to this event can manage it.",
+  );
 }
 
 function isSlugCollisionError(error: unknown) {
@@ -216,13 +324,15 @@ export const eventsService = {
       throw new AppError(404, "Event not found.");
     }
 
-    assertEventScopedAccess(viewer, event.id, eventReadRoles);
+    assertSystemAdminOrEventRole(viewer, event.id, eventReadRoles);
 
     return mapManageEvent(event);
   },
 
   async createEvent(actor: AuthenticatedUser, input: CreateEventInput, auditMetadata?: AuditMetadata) {
-    assertEventManagementPermissions(actor);
+    assertSystemAdmin(actor);
+    assertRequiredTeamAssignments(input.teamMembers);
+    assertRequiredRoleSeparation(input.teamMembers ?? []);
 
     const nextStatus = input.status ?? EventStatus.DRAFT;
     const baseSlug = slugify(input.slug ?? input.title);
@@ -233,36 +343,53 @@ export const eventsService = {
 
     assertValidTimeline(input);
 
-    let event;
     let slug = await deriveUniqueEventSlug(baseSlug);
+    let eventInput = {
+      title: input.title.trim(),
+      slug,
+      description: sanitizeNullableText(input.description),
+      status: nextStatus,
+      registrationOpensAt: input.registrationOpensAt,
+      registrationClosesAt: input.registrationClosesAt,
+      startsAt: input.startsAt,
+      endsAt: input.endsAt,
+      capacity: input.capacity,
+      createdById: actor.id,
+    };
 
-    for (let attempt = 0; attempt < 10; attempt += 1) {
-      try {
-        event = await eventsRepository.createEvent({
-          title: input.title.trim(),
-          slug,
-          description: sanitizeNullableText(input.description),
-          status: nextStatus,
-          registrationOpensAt: input.registrationOpensAt,
-          registrationClosesAt: input.registrationClosesAt,
-          startsAt: input.startsAt,
-          endsAt: input.endsAt,
-          capacity: input.capacity,
-          createdById: actor.id,
-        });
-        break;
-      } catch (error) {
-        if (isSlugCollisionError(error)) {
-          slug = await deriveUniqueEventSlug(baseSlug);
-          continue;
+    const event = await prisma.$transaction(async (tx) => {
+      let createdEvent;
+
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        try {
+          createdEvent = await eventsRepository.createEvent(eventInput, tx);
+          break;
+        } catch (error) {
+          if (isSlugCollisionError(error)) {
+            slug = await deriveUniqueEventSlug(baseSlug);
+            eventInput = { ...eventInput, slug };
+            continue;
+          }
+          throw error;
         }
-        throw error;
       }
-    }
 
-    if (!event) {
-      throw new AppError(500, "Failed to derive a unique event slug after multiple attempts.");
-    }
+      if (!createdEvent) {
+        throw new AppError(500, "Failed to derive a unique event slug after multiple attempts.");
+      }
+
+      for (const assignment of input.teamMembers ?? []) {
+        await assignTeamMemberForEvent(actor, createdEvent.id, assignment, tx);
+      }
+
+      const freshEvent = await eventsRepository.findById(createdEvent.id, tx);
+
+      if (!freshEvent) {
+        throw new AppError(500, "Failed to reload event after team assignment.");
+      }
+
+      return freshEvent;
+    });
 
     await auditService.record({
       actorId: actor.id,
@@ -273,6 +400,10 @@ export const eventsService = {
       context: {
         slug: event.slug,
         status: event.status,
+        assignedTeamRoles: event.teamMembers.map((member) => ({
+          roleCode: member.roleCode,
+          userId: member.user.id,
+        })),
       },
       ...auditMetadata,
     });
@@ -286,17 +417,14 @@ export const eventsService = {
     input: UpdateEventInput,
     auditMetadata?: AuditMetadata,
   ) {
-    assertEventManagementPermissions(actor);
-
     const event = await eventsRepository.findByLookupKey(eventLookupKey);
 
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
 
-    assertEventScopedAccess(actor, event.id, eventManageRoles);
-
     const nextStatus = input.status ?? event.status;
+    assertEventManagementPermissions(actor, event.id, event.status, nextStatus);
     const nextSlugBase = input.slug ? slugify(input.slug) : undefined;
 
     if (input.slug && !nextSlugBase) {
@@ -370,7 +498,7 @@ export const eventsService = {
   async assignEventTeamMember(
     actor: AuthenticatedUser,
     eventLookupKey: string,
-    input: { email: string; roleCode: RoleCode },
+    input: EventTeamAssignmentInput,
     auditMetadata?: AuditMetadata,
   ) {
     assertSystemAdmin(actor);
@@ -381,19 +509,24 @@ export const eventsService = {
       throw new AppError(404, "Event not found.");
     }
 
-    const user = await usersRepository.findByEmail(normalizeEmail(input.email));
+    const normalizedEmail = normalizeEmail(input.email);
 
-    if (!user) {
-      throw new AppError(404, "User not found. Create the internal user account before assigning it to an event.");
+    if (
+      requiredEventTeamRoles.includes(input.roleCode) &&
+      event.teamMembers.some(
+        (member) =>
+          member.user.email === normalizedEmail &&
+          member.roleCode !== input.roleCode &&
+          requiredEventTeamRoles.includes(member.roleCode),
+      )
+    ) {
+      throw new AppError(
+        400,
+        "Required event roles must stay assigned to separate Google email accounts.",
+      );
     }
 
-    await ensureUserHasRoleCapability(user.id, input.roleCode, actor.id);
-    const member = await eventsRepository.assignTeamMember({
-      eventId: event.id,
-      userId: user.id,
-      roleCode: input.roleCode,
-      assignedById: actor.id,
-    });
+    const member = await assignTeamMemberForEvent(actor, event.id, input);
 
     const updatedEvent = await eventsRepository.findById(event.id);
 
@@ -409,7 +542,7 @@ export const eventsService = {
       summary: `Assigned ${input.roleCode} for ${event.title} to ${member.user.email}`,
       context: {
         eventId: event.id,
-        userId: user.id,
+        userId: member.user.id,
         roleCode: input.roleCode,
       },
       ...auditMetadata,
@@ -436,6 +569,19 @@ export const eventsService = {
 
     if (!existingMember || existingMember.eventId !== event.id || existingMember.revokedAt) {
       throw new AppError(404, "Active event team member not found.");
+    }
+
+    if (requiredEventTeamRoles.includes(existingMember.roleCode)) {
+      const remainingRequiredRoleMembers = event.teamMembers.filter(
+        (member) => member.id !== teamMemberId && member.roleCode === existingMember.roleCode,
+      );
+
+      if (remainingRequiredRoleMembers.length === 0) {
+        throw new AppError(
+          409,
+          `Assign another ${existingMember.roleCode} before revoking the current required event team member.`,
+        );
+      }
     }
 
     const revokedMember = await eventsRepository.revokeTeamMember(teamMemberId);

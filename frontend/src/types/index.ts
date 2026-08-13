@@ -269,6 +269,12 @@ export type EventSummary = {
 
 export type ManagedEvent = PublicEvent & {
   createdBy: ActorSummary | null;
+  teamMembers: Array<{
+    id: string;
+    roleCode: AppRole;
+    assignedAt: string;
+    user: ActorSummary;
+  }>;
 };
 
 export type PaymentVerificationQueueItem = {

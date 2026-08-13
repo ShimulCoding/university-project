@@ -13,8 +13,10 @@ import { FeedbackMessage, useActionState } from "@/components/internal/action-ut
 
 export function ApprovalDecisionForm({
   item,
+  canDecide = true,
 }: {
   item: ApprovalQueueItem;
+  canDecide?: boolean;
 }) {
   const [decision, setDecision] = useState("APPROVED");
   const [comment, setComment] = useState("");
@@ -25,12 +27,20 @@ export function ApprovalDecisionForm({
       <CardHeader>
         <CardTitle className="text-xl">Decision view</CardTitle>
         <CardDescription>
-          Approvals remain explicit and auditable. Reject or return actions require a comment.
+          {canDecide
+            ? "Approvals remain explicit and auditable. Reject or return actions require a comment."
+            : "This approval record is visible for oversight. Only the assigned event Approver can decide it."}
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 pt-0">
+        {!canDecide ? (
+          <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-3 text-sm leading-6 text-muted-foreground">
+            Decision controls are disabled for this session.
+          </div>
+        ) : null}
         <Field label="Decision">
           <Select
+            disabled={!canDecide}
             value={decision}
             onChange={(event) => {
               clearFeedback();
@@ -45,6 +55,7 @@ export function ApprovalDecisionForm({
         </Field>
         <Field label="Comment">
           <Textarea
+            disabled={!canDecide}
             rows={4}
             value={comment}
             onChange={(event) => {
@@ -56,7 +67,7 @@ export function ApprovalDecisionForm({
         </Field>
         <FeedbackMessage feedback={feedback} />
         <Button
-          disabled={isPending}
+          disabled={isPending || !canDecide}
           onClick={() =>
             void runAction(
               () =>

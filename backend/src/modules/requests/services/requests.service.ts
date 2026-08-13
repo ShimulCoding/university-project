@@ -9,15 +9,16 @@ import { documentDirectories, uploadRules } from "../../../config/uploads";
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
-import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
+import {
+  assertAnyEventScopedAccess,
+  assertEventScopedOperationalAccess,
+  assertSystemAdminOrEventRole,
+  hasEventScopedRole,
+  scopeEventFilters,
+} from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { sanitizeNullableText } from "../../../utils/text-utils";
 import { cleanupStoredUpload, cleanupStoredUploads, storeValidatedUpload } from "../../../utils/upload-utils";
-import {
-  hasExpenseRecordManagementAccess,
-  hasFinanceReadAccess,
-  hasRequestSubmissionAccess,
-} from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { eventsRepository } from "../../events/repositories/events.repository";
@@ -63,38 +64,74 @@ async function storeSupportingDocument(file: Express.Multer.File) {
   });
 }
 
-function assertRequestSubmissionPermissions(viewer: AuthenticatedUser) {
-  if (!hasRequestSubmissionAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to submit finance requests.");
-  }
+function assertHasAnyRequestSubmissionAssignment(viewer: AuthenticatedUser) {
+  assertAnyEventScopedAccess(
+    viewer,
+    requestSubmissionEventRoles,
+    "You are not assigned to any event with request submission access.",
+  );
 }
 
-function assertExpenseRecordManagementPermissions(viewer: AuthenticatedUser) {
-  if (!hasExpenseRecordManagementAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to manage expense records.");
-  }
+function assertRequestSubmissionPermissions(viewer: AuthenticatedUser, eventId: string) {
+  assertEventScopedOperationalAccess(
+    viewer,
+    eventId,
+    requestSubmissionEventRoles,
+    "Only the Event Admin or Event Manager assigned to this event can submit finance requests.",
+  );
 }
 
-function assertInternalFinanceReadPermissions(viewer: AuthenticatedUser) {
-  if (!hasFinanceReadAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to view these finance records.");
-  }
+function assertExpenseRecordManagementPermissions(viewer: AuthenticatedUser, eventId: string) {
+  assertEventScopedOperationalAccess(
+    viewer,
+    eventId,
+    expenseRecordEventRoles,
+    "Only the Finance Controller assigned to this event can manage expense records.",
+  );
 }
 
-function assertRequestAccess(viewer: AuthenticatedUser, requestedById: string | null | undefined) {
-  if (requestedById === viewer.id || hasFinanceReadAccess(viewer.roles)) {
+function assertHasAnyFinanceReadAssignment(viewer: AuthenticatedUser) {
+  assertAnyEventScopedAccess(
+    viewer,
+    financeReadEventRoles,
+    "You are not assigned to any event with finance read access.",
+  );
+}
+
+function assertInternalFinanceReadPermissions(viewer: AuthenticatedUser, eventId: string) {
+  assertSystemAdminOrEventRole(
+    viewer,
+    eventId,
+    financeReadEventRoles,
+    "You are not assigned to this event with finance read access.",
+  );
+}
+
+function assertRequestAccess(
+  viewer: AuthenticatedUser,
+  eventId: string,
+  requestedById: string | null | undefined,
+) {
+  if (
+    requestedById === viewer.id &&
+    hasEventScopedRole(viewer, eventId, requestSubmissionEventRoles)
+  ) {
     return;
   }
 
-  throw new AppError(403, "You are not allowed to access this request.");
+  assertInternalFinanceReadPermissions(viewer, eventId);
 }
 
-function assertRequestOwnership(viewer: AuthenticatedUser, requestedById: string | null | undefined) {
-  if (requestedById === viewer.id || viewer.roles.includes(RoleCode.SYSTEM_ADMIN)) {
-    return;
+function assertRequestOwnership(
+  viewer: AuthenticatedUser,
+  eventId: string,
+  requestedById: string | null | undefined,
+) {
+  if (requestedById !== viewer.id) {
+    throw new AppError(403, "You are not allowed to modify this request.");
   }
 
-  throw new AppError(403, "You are not allowed to modify this request.");
+  assertRequestSubmissionPermissions(viewer, eventId);
 }
 
 function assertEditableRequestState(state: RequestState) {
@@ -119,7 +156,7 @@ function getRequestSubmissionState(submit: boolean | undefined) {
 
 export const requestsService = {
   async listMyBudgetRequests(actor: AuthenticatedUser, filters: RequestFilters) {
-    assertRequestSubmissionPermissions(actor);
+    assertHasAnyRequestSubmissionAssignment(actor);
 
     const scopedFilters = scopeEventFilters(actor, filters, requestSubmissionEventRoles);
     const paginationOptions = getPaginationOptions(filters);
@@ -135,7 +172,7 @@ export const requestsService = {
   },
 
   async listBudgetRequests(viewer: AuthenticatedUser, filters: RequestFilters) {
-    assertInternalFinanceReadPermissions(viewer);
+    assertHasAnyFinanceReadAssignment(viewer);
 
     const scopedFilters = scopeEventFilters(viewer, filters, financeReadEventRoles);
     const paginationOptions = getPaginationOptions(filters);
@@ -157,10 +194,7 @@ export const requestsService = {
       throw new AppError(404, "Budget request not found.");
     }
 
-    assertRequestAccess(viewer, request.requestedById);
-    if (request.requestedById !== viewer.id) {
-      assertEventScopedAccess(viewer, request.eventId, financeReadEventRoles);
-    }
+    assertRequestAccess(viewer, request.eventId, request.requestedById);
     return mapBudgetRequest(request);
   },
 
@@ -170,15 +204,13 @@ export const requestsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
-    assertRequestSubmissionPermissions(actor);
-
     const event = await eventsRepository.findById(input.eventId);
 
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
 
-    assertEventScopedAccess(actor, event.id, requestSubmissionEventRoles);
+    assertRequestSubmissionPermissions(actor, event.id);
 
     const storedUploads = files && files.length > 0 ? await Promise.all(files.map(storeSupportingDocument)) : [];
 
@@ -253,16 +285,13 @@ export const requestsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
-    assertRequestSubmissionPermissions(actor);
-
     const existingRequest = await requestsRepository.findBudgetRequestById(budgetRequestId);
 
     if (!existingRequest) {
       throw new AppError(404, "Budget request not found.");
     }
 
-    assertRequestOwnership(actor, existingRequest.requestedById);
-    assertEventScopedAccess(actor, existingRequest.eventId, requestSubmissionEventRoles);
+    assertRequestOwnership(actor, existingRequest.eventId, existingRequest.requestedById);
     assertEditableRequestState(existingRequest.state);
     assertUpdatePayloadOrFile(input, files && files.length > 0 ? files[0] : undefined, "budget request");
 
@@ -336,16 +365,13 @@ export const requestsService = {
     budgetRequestId: string,
     auditMetadata?: AuditMetadata,
   ) {
-    assertRequestSubmissionPermissions(actor);
-
     const existingRequest = await requestsRepository.findBudgetRequestById(budgetRequestId);
 
     if (!existingRequest) {
       throw new AppError(404, "Budget request not found.");
     }
 
-    assertRequestOwnership(actor, existingRequest.requestedById);
-    assertEventScopedAccess(actor, existingRequest.eventId, requestSubmissionEventRoles);
+    assertRequestOwnership(actor, existingRequest.eventId, existingRequest.requestedById);
     assertEditableRequestState(existingRequest.state);
 
     const request = await requestsRepository.updateBudgetRequestState(
@@ -371,7 +397,7 @@ export const requestsService = {
   },
 
   async listMyExpenseRequests(actor: AuthenticatedUser, filters: RequestFilters) {
-    assertRequestSubmissionPermissions(actor);
+    assertHasAnyRequestSubmissionAssignment(actor);
 
     const scopedFilters = scopeEventFilters(actor, filters, requestSubmissionEventRoles);
     const paginationOptions = getPaginationOptions(filters);
@@ -387,7 +413,7 @@ export const requestsService = {
   },
 
   async listExpenseRequests(viewer: AuthenticatedUser, filters: RequestFilters) {
-    assertInternalFinanceReadPermissions(viewer);
+    assertHasAnyFinanceReadAssignment(viewer);
 
     const scopedFilters = scopeEventFilters(viewer, filters, financeReadEventRoles);
     const paginationOptions = getPaginationOptions(filters);
@@ -409,10 +435,7 @@ export const requestsService = {
       throw new AppError(404, "Expense request not found.");
     }
 
-    assertRequestAccess(viewer, request.requestedById);
-    if (request.requestedById !== viewer.id) {
-      assertEventScopedAccess(viewer, request.eventId, financeReadEventRoles);
-    }
+    assertRequestAccess(viewer, request.eventId, request.requestedById);
     return mapExpenseRequest(request);
   },
 
@@ -422,8 +445,6 @@ export const requestsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
-    assertRequestSubmissionPermissions(actor);
-
     if (!files || files.length === 0) {
       throw new AppError(400, "Expense requests require at least one supporting document.");
     }
@@ -434,7 +455,7 @@ export const requestsService = {
       throw new AppError(404, "Event not found.");
     }
 
-    assertEventScopedAccess(actor, event.id, requestSubmissionEventRoles);
+    assertRequestSubmissionPermissions(actor, event.id);
 
     const storedUploads = await Promise.all(files.map(storeSupportingDocument));
 
@@ -508,16 +529,13 @@ export const requestsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
-    assertRequestSubmissionPermissions(actor);
-
     const existingRequest = await requestsRepository.findExpenseRequestById(expenseRequestId);
 
     if (!existingRequest) {
       throw new AppError(404, "Expense request not found.");
     }
 
-    assertRequestOwnership(actor, existingRequest.requestedById);
-    assertEventScopedAccess(actor, existingRequest.eventId, requestSubmissionEventRoles);
+    assertRequestOwnership(actor, existingRequest.eventId, existingRequest.requestedById);
     assertEditableRequestState(existingRequest.state);
     assertUpdatePayloadOrFile(input, files && files.length > 0 ? files[0] : undefined, "expense request");
 
@@ -603,16 +621,13 @@ export const requestsService = {
     expenseRequestId: string,
     auditMetadata?: AuditMetadata,
   ) {
-    assertRequestSubmissionPermissions(actor);
-
     const existingRequest = await requestsRepository.findExpenseRequestById(expenseRequestId);
 
     if (!existingRequest) {
       throw new AppError(404, "Expense request not found.");
     }
 
-    assertRequestOwnership(actor, existingRequest.requestedById);
-    assertEventScopedAccess(actor, existingRequest.eventId, requestSubmissionEventRoles);
+    assertRequestOwnership(actor, existingRequest.eventId, existingRequest.requestedById);
     assertEditableRequestState(existingRequest.state);
 
     if (existingRequest.documents.length === 0) {
@@ -642,7 +657,7 @@ export const requestsService = {
   },
 
   async listExpenseRecords(viewer: AuthenticatedUser, filters: ExpenseRecordFilters) {
-    assertInternalFinanceReadPermissions(viewer);
+    assertHasAnyFinanceReadAssignment(viewer);
 
     const scopedFilters = scopeEventFilters(viewer, filters, financeReadEventRoles);
     const paginationOptions = getPaginationOptions(filters);
@@ -658,15 +673,13 @@ export const requestsService = {
   },
 
   async getExpenseRecordById(viewer: AuthenticatedUser, expenseRecordId: string) {
-    assertInternalFinanceReadPermissions(viewer);
-
     const record = await requestsRepository.findExpenseRecordById(expenseRecordId);
 
     if (!record) {
       throw new AppError(404, "Expense record not found.");
     }
 
-    assertEventScopedAccess(viewer, record.eventId, financeReadEventRoles);
+    assertInternalFinanceReadPermissions(viewer, record.eventId);
 
     return mapExpenseRecord(record);
   },
@@ -677,15 +690,13 @@ export const requestsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
-    assertExpenseRecordManagementPermissions(actor);
-
     const event = await eventsRepository.findById(input.eventId);
 
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
 
-    assertEventScopedAccess(actor, event.id, expenseRecordEventRoles);
+    assertExpenseRecordManagementPermissions(actor, event.id);
 
     let linkedExpenseRequest:
       | Awaited<ReturnType<typeof requestsRepository.findExpenseRequestById>>
@@ -785,15 +796,13 @@ export const requestsService = {
     input: SettleExpenseRecordInput,
     auditMetadata?: AuditMetadata,
   ) {
-    assertExpenseRecordManagementPermissions(actor);
-
     const existingRecord = await requestsRepository.findExpenseRecordById(expenseRecordId);
 
     if (!existingRecord) {
       throw new AppError(404, "Expense record not found.");
     }
 
-    assertEventScopedAccess(actor, existingRecord.eventId, expenseRecordEventRoles);
+    assertExpenseRecordManagementPermissions(actor, existingRecord.eventId);
 
     if (existingRecord.state === ExpenseRecordState.VOIDED) {
       throw new AppError(409, "Voided expense records cannot be settled.");
@@ -835,15 +844,13 @@ export const requestsService = {
     input: VoidExpenseRecordInput,
     auditMetadata?: AuditMetadata,
   ) {
-    assertExpenseRecordManagementPermissions(actor);
-
     const existingRecord = await requestsRepository.findExpenseRecordById(expenseRecordId);
 
     if (!existingRecord) {
       throw new AppError(404, "Expense record not found.");
     }
 
-    assertEventScopedAccess(actor, existingRecord.eventId, expenseRecordEventRoles);
+    assertExpenseRecordManagementPermissions(actor, existingRecord.eventId);
 
     if (existingRecord.state === ExpenseRecordState.VOIDED) {
       throw new AppError(409, "Expense record is already voided.");

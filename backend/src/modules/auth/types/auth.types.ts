@@ -15,6 +15,15 @@ export type LoginInput = {
   password: string;
 };
 
+export type InternalLoginInput = {
+  email: string;
+  password: string;
+};
+
+export type EventTeamLoginInput = InternalLoginInput & {
+  eventLookupKey: string;
+};
+
 export type ForgotPasswordInput = {
   studentId: string;
   email: string;
@@ -30,4 +39,3 @@ export type AuthSessionResult = {
   accessToken: string;
   refreshToken: string;
 };
-

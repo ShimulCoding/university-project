@@ -69,7 +69,8 @@ function moneyTotal(items: DemoBudgetItemInput[]) {
 
 function buildAuthUser(
   user: { id: string; fullName: string; email: string },
-  roles: RoleCode[],
+  eventRoles: Array<{ eventId: string; roleCode: RoleCode }>,
+  roles: RoleCode[] = [],
 ): AuthenticatedUser {
   return {
     id: user.id,
@@ -77,6 +78,7 @@ function buildAuthUser(
     email: user.email,
     status: AccountStatus.ACTIVE,
     roles,
+    eventRoles,
   };
 }
 
@@ -137,7 +139,34 @@ async function ensureUser(input: DemoUserInput) {
     },
   });
 
-  for (const roleCode of input.roles) {
+  const globalRoleCodes = input.roles.filter(
+    (roleCode) => roleCode === RoleCode.SYSTEM_ADMIN || roleCode === RoleCode.GENERAL_STUDENT,
+  );
+
+  const operationalRoles = await prisma.role.findMany({
+    where: {
+      code: {
+        in: [
+          RoleCode.EVENT_ADMIN,
+          RoleCode.FINANCIAL_CONTROLLER,
+          RoleCode.ORGANIZATIONAL_APPROVER,
+          RoleCode.EVENT_MANAGEMENT_USER,
+          RoleCode.COMPLAINT_REVIEW_AUTHORITY,
+        ],
+      },
+    },
+  });
+
+  await prisma.userRole.updateMany({
+    where: {
+      userId: user.id,
+      roleId: { in: operationalRoles.map((role) => role.id) },
+      revokedAt: null,
+    },
+    data: { revokedAt: new Date() },
+  });
+
+  for (const roleCode of globalRoleCodes) {
     const role = await prisma.role.findUnique({
       where: { code: roleCode },
     });
@@ -165,6 +194,46 @@ async function ensureUser(input: DemoUserInput) {
   }
 
   return user;
+}
+
+async function requireSystemAdmin() {
+  const systemAdmin = await prisma.user.findFirst({
+    where: {
+      status: AccountStatus.ACTIVE,
+      roles: {
+        some: {
+          revokedAt: null,
+          role: { code: RoleCode.SYSTEM_ADMIN },
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (!systemAdmin) {
+    throw new Error(
+      "An active SYSTEM_ADMIN must be seeded before demo runtime data. Run the Prisma seed first.",
+    );
+  }
+
+  return systemAdmin;
+}
+
+async function ensureEventTeamMember(
+  eventId: string,
+  userId: string,
+  roleCode: RoleCode,
+) {
+  return prisma.eventTeamMember.upsert({
+    where: {
+      eventId_userId_roleCode: { eventId, userId, roleCode },
+    },
+    update: {
+      assignedAt: new Date(),
+      revokedAt: null,
+    },
+    create: { eventId, userId, roleCode },
+  });
 }
 
 async function ensureEvent(input: {
@@ -531,7 +600,7 @@ async function ensureDerivedClosureArtifacts(
 
   if (existingSummary) {
     return {
-      reportId: existingSummary.reconciliation.reportId,
+      reportId: existingSummary.reconciliationReport.id,
       summaryId: existingSummary.id,
       summaryStatus: existingSummary.status,
     };
@@ -580,6 +649,7 @@ async function ensureDerivedClosureArtifacts(
 
 async function main() {
   await ensureRoleCatalog();
+  const demoSystemAdmin = await requireSystemAdmin();
 
   const demoEventManager = await ensureUser({
     fullName: "Demo Event Manager",
@@ -595,6 +665,11 @@ async function main() {
     fullName: "Demo Organizational Approver",
     email: "demo.approver@example.com",
     roles: [RoleCode.ORGANIZATIONAL_APPROVER],
+  });
+  const demoEventAdmin = await ensureUser({
+    fullName: "Demo Event Admin",
+    email: "demo.event.admin@example.com",
+    roles: [RoleCode.EVENT_ADMIN],
   });
   const demoActiveStudent = await ensureUser({
     fullName: "Demo Active Student",
@@ -612,9 +687,6 @@ async function main() {
     roles: [RoleCode.GENERAL_STUDENT],
   });
 
-  const financeActor = buildAuthUser(demoFinanceController, [RoleCode.FINANCIAL_CONTROLLER]);
-  const approverActor = buildAuthUser(demoApprover, [RoleCode.ORGANIZATIONAL_APPROVER]);
-
   const activeEvent = await ensureEvent({
     title: "Demo Open Finance Workshop 2026",
     slug: demoActiveEventSlug,
@@ -626,7 +698,7 @@ async function main() {
     startsAt: new Date("2026-06-15T09:00:00.000Z"),
     endsAt: new Date("2026-06-15T16:00:00.000Z"),
     capacity: 200,
-    createdById: demoEventManager.id,
+    createdById: demoSystemAdmin.id,
   });
 
   const closedEvent = await ensureEvent({
@@ -640,8 +712,30 @@ async function main() {
     startsAt: new Date("2026-01-25T09:00:00.000Z"),
     endsAt: new Date("2026-01-25T18:00:00.000Z"),
     capacity: 300,
-    createdById: demoEventManager.id,
+    createdById: demoSystemAdmin.id,
   });
+
+  const eventTeamAssignments = [
+    { userId: demoEventAdmin.id, roleCode: RoleCode.EVENT_ADMIN },
+    { userId: demoEventManager.id, roleCode: RoleCode.EVENT_MANAGEMENT_USER },
+    { userId: demoFinanceController.id, roleCode: RoleCode.FINANCIAL_CONTROLLER },
+    { userId: demoApprover.id, roleCode: RoleCode.ORGANIZATIONAL_APPROVER },
+  ];
+
+  for (const event of [activeEvent, closedEvent]) {
+    for (const assignment of eventTeamAssignments) {
+      await ensureEventTeamMember(event.id, assignment.userId, assignment.roleCode);
+    }
+  }
+
+  const financeActor = buildAuthUser(demoFinanceController, [
+    { eventId: activeEvent.id, roleCode: RoleCode.FINANCIAL_CONTROLLER },
+    { eventId: closedEvent.id, roleCode: RoleCode.FINANCIAL_CONTROLLER },
+  ]);
+  const approverActor = buildAuthUser(demoApprover, [
+    { eventId: activeEvent.id, roleCode: RoleCode.ORGANIZATIONAL_APPROVER },
+    { eventId: closedEvent.id, roleCode: RoleCode.ORGANIZATIONAL_APPROVER },
+  ]);
 
   const activeRegistration = await ensureRegistration({
     eventId: activeEvent.id,

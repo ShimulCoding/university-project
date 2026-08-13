@@ -135,6 +135,19 @@ export const authController = {
     response.status(200).json({ user: session.user });
   },
 
+  async eventTeamLogin(request: Request, response: Response) {
+    const session = await authService.eventTeamLogin(request.body, {
+      ipAddress: request.ip || undefined,
+      userAgent: request.get("user-agent") || undefined,
+      route: request.originalUrl,
+      method: request.method,
+    });
+
+    writeSessionCookies(response, session);
+
+    response.status(200).json({ user: session.user });
+  },
+
   async forgotPassword(request: Request, response: Response) {
     const result = await authService.forgotPassword(request.body, {
       ipAddress: request.ip || undefined,

@@ -3,6 +3,13 @@ import type { RoleCode } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
 
+/**
+ * Global role authorization middleware.
+ *
+ * Use ONLY for System Admin governance endpoints (event creation,
+ * user management, audit). For event-scoped operations, use
+ * authorizeEventScoped() instead.
+ */
 export function authorize(...allowedRoles: RoleCode[]) {
   return (request: Request, response: Response, next: NextFunction) => {
     const roles = request.auth?.roles ?? [];
@@ -21,14 +28,16 @@ export function authorize(...allowedRoles: RoleCode[]) {
  * Event-scoped authorization middleware.
  *
  * Allows access when:
- *   1. The user holds one of `allowedRoles` globally (UserRole), OR
+ *   1. The user holds SYSTEM_ADMIN globally (governance read-only access), OR
  *   2. The user has an active EventTeamMember assignment for the target
  *      event with a roleCode that is in `allowedRoles`.
  *
+ * IMPORTANT: Global operational roles (EVENT_ADMIN, FINANCIAL_CONTROLLER,
+ * ORGANIZATIONAL_APPROVER, EVENT_MANAGEMENT_USER) do NOT grant access
+ * through this middleware. Only event-specific team assignments count.
+ *
  * The target event is resolved from `req.params[eventIdParam]`, then
  * from `req.query.eventId`, and finally from `req.body.eventId`.
- *
- * System admins always pass (they hold SYSTEM_ADMIN globally).
  */
 export function authorizeEventScoped(
   allowedRoles: RoleCode[],
@@ -37,8 +46,8 @@ export function authorizeEventScoped(
   return async (request: Request, response: Response, next: NextFunction) => {
     const globalRoles = request.auth?.roles ?? [];
 
-    // Global role holders always pass (includes SYSTEM_ADMIN)
-    if (allowedRoles.some((role) => globalRoles.includes(role))) {
+    // System Admin always passes — they have governance/oversight access
+    if (globalRoles.includes("SYSTEM_ADMIN" as RoleCode)) {
       return next();
     }
 
@@ -50,7 +59,16 @@ export function authorizeEventScoped(
     const eventRef = typeof rawEventRef === "string" ? rawEventRef : undefined;
 
     if (!eventRef) {
-      // No event context — fall back to global role check (already failed above)
+      // No event context — check if user has ANY event assignment with one of the allowed roles
+      const eventRoles = request.auth?.user?.eventRoles ?? [];
+      const hasAnyAssignment = eventRoles.some(
+        (assignment) => allowedRoles.includes(assignment.roleCode as RoleCode),
+      );
+
+      if (hasAnyAssignment) {
+        return next();
+      }
+
       response
         .status(403)
         .json({ message: "You are not allowed to perform this action." });
@@ -70,7 +88,7 @@ export function authorizeEventScoped(
       return;
     }
 
-    // Check EventTeamMember assignments
+    // Check EventTeamMember assignments ONLY — no global role fallback
     const eventRoles = request.auth?.user?.eventRoles ?? [];
     const hasEventRole = eventRoles.some(
       (assignment) =>

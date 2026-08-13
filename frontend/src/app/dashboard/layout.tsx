@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/api/student";
 import { getInternalRoles, isSystemAdmin, isEventScopedOnlyUser } from "@/lib/access";
 import { InternalAccessPanel } from "@/components/internal/internal-access-panel";
 import { InternalSessionCard } from "@/components/internal/internal-session-card";
+import { EventTeamRouteBoundary } from "@/components/internal/event-team-route-boundary";
 import { RolePreviewProvider } from "@/components/providers/role-preview-provider";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
 import { DashboardShell } from "@/components/shell/dashboard-shell";
@@ -40,7 +41,7 @@ export default async function DashboardLayout({
   // They navigate to /dashboard/my-events and /dashboard/events/[slug]/* which
   // render their own shell — we just pass children through.
   if (isEventScopedOnlyUser(user)) {
-    return <>{children}</>;
+    return <EventTeamRouteBoundary>{children}</EventTeamRouteBoundary>;
   }
 
   if (internalRoles.length === 0) {

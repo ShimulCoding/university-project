@@ -12,7 +12,11 @@ import {
   getEventStatusTone,
   getWindowStateTone,
 } from "@/lib/format";
-import { EventCreateForm, EventStatusControl } from "@/components/internal/events-actions";
+import {
+  EventCreateForm,
+  EventStatusControl,
+  EventTeamManagement,
+} from "@/components/internal/events-actions";
 import { FilterCard } from "@/components/internal/filter-card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +50,7 @@ export default async function DashboardEventsPage({
       getCurrentUser(),
       listManagedEvents({ status, search }),
     ]);
-    const canManageEvents = hasAnyRole(user, ["SYSTEM_ADMIN"]);
+    const canCreateEvents = hasAnyRole(user, ["SYSTEM_ADMIN"]);
     const selectedEvent = events.find((event) => event.id === eventId) ?? events[0] ?? null;
 
     return (
@@ -62,9 +66,9 @@ export default async function DashboardEventsPage({
                 <Layers className="w-3 h-3 mr-1.5 inline-block" />
                 Initiative Lifecycle
               </Badge>
-              {canManageEvents ? (
+              {canCreateEvents ? (
                 <Badge variant="success" className="px-3 py-1 font-semibold tracking-wider uppercase border-success/30 bg-success/10 text-success backdrop-blur-md">
-                  Full Control
+                  Setup Control
                 </Badge>
               ) : (
                 <Badge variant="neutral" className="px-3 py-1 font-semibold tracking-wider uppercase border-border/30 bg-muted/10 text-muted-foreground backdrop-blur-md">
@@ -251,9 +255,18 @@ export default async function DashboardEventsPage({
               </Card>
             ) : null}
 
-            {canManageEvents && selectedEvent ? <EventStatusControl event={selectedEvent} /> : null}
+            {canCreateEvents && selectedEvent?.status === "DRAFT" ? (
+              <EventStatusControl
+                event={selectedEvent}
+                allowedStatuses={["PUBLISHED", "ARCHIVED"]}
+              />
+            ) : null}
 
-            {canManageEvents ? (
+            {canCreateEvents && selectedEvent ? (
+              <EventTeamManagement event={selectedEvent} />
+            ) : null}
+
+            {canCreateEvents ? (
               <EventCreateForm />
             ) : (
               <Card className="border-border/40 bg-background/50 backdrop-blur-xl shadow-lg relative overflow-hidden">
@@ -264,7 +277,7 @@ export default async function DashboardEventsPage({
                   <Badge variant="warning" className="w-fit mb-3 text-xs uppercase tracking-widest px-2 py-1">Restricted</Badge>
                   <CardTitle className="text-xl tracking-tight">Observer Mode</CardTitle>
                   <CardDescription className="text-muted-foreground leading-relaxed">
-                    Your current role permits inspection of event readiness, but lifecycle transitions and initiative creation require Event Management or System Administrator privileges.
+                    Your current role permits inspection of event readiness. Event creation is reserved for the System Admin, while lifecycle work belongs to assigned event personnel.
                   </CardDescription>
                 </CardHeader>
               </Card>

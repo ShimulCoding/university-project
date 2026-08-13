@@ -8,10 +8,13 @@ import {
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
-import { assertEventScopedAccess, scopeEventFilters } from "../../../utils/event-scope";
+import {
+  assertAnyEventScopedAccess,
+  assertEventScopedOperationalAccess,
+  scopeEventFilters,
+} from "../../../utils/event-scope";
 import { sanitizeOptionalText } from "../../../utils/text-utils";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
-import { hasApproverAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { mapApprovalQueueItem } from "../approvals.mappers";
@@ -24,10 +27,29 @@ import type { ApprovalDecisionInput, ApprovalQueueFilters } from "../types/appro
 
 const approverEventRoles = [RoleCode.ORGANIZATIONAL_APPROVER] as RoleCode[];
 
-function assertApproverPermissions(viewer: AuthenticatedUser) {
-  if (!hasApproverAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to review approval requests.");
-  }
+/**
+ * Assert the user has Organizational Approver access for the given event.
+ * System Admin has governance read-only — NOT operational approval access.
+ */
+function assertEventApproverPermissions(viewer: AuthenticatedUser, eventId: string) {
+  assertEventScopedOperationalAccess(
+    viewer,
+    eventId,
+    approverEventRoles,
+    "You are not assigned as Organizational Approver for this event.",
+  );
+}
+
+/**
+ * For list endpoints: check the user has at least one event assignment
+ * with approver roles. System Admin can list across all events.
+ */
+function assertHasAnyApproverAssignment(viewer: AuthenticatedUser) {
+  assertAnyEventScopedAccess(
+    viewer,
+    approverEventRoles,
+    "You are not assigned as Organizational Approver for any event.",
+  );
 }
 
 function assertPendingApprovalState(state: RequestState) {
@@ -49,7 +71,7 @@ function mapDecisionToRequestState(decision: ApprovalDecisionType) {
 
 export const approvalsService = {
   async listApprovalQueue(actor: AuthenticatedUser, filters: ApprovalQueueFilters) {
-    assertApproverPermissions(actor);
+    assertHasAnyApproverAssignment(actor);
 
     const queueItems: Array<ReturnType<typeof mapApprovalQueueItem>> = [];
     const scopedFilters = scopeEventFilters(actor, filters, approverEventRoles);
@@ -93,8 +115,7 @@ export const approvalsService = {
     input: ApprovalDecisionInput,
     auditMetadata?: AuditMetadata,
   ) {
-    assertApproverPermissions(actor);
-
+    // System Admin cannot make approval decisions — only event-scoped Approver
     const comment = sanitizeOptionalText(input.comment);
 
     if (entityType === ApprovalEntityType.BUDGET_REQUEST) {
@@ -104,7 +125,7 @@ export const approvalsService = {
         throw new AppError(404, "Budget request not found.");
       }
 
-      assertEventScopedAccess(actor, request.eventId, approverEventRoles);
+      assertEventApproverPermissions(actor, request.eventId);
 
       assertPendingApprovalState(request.state);
 
@@ -171,7 +192,7 @@ export const approvalsService = {
       throw new AppError(404, "Expense request not found.");
     }
 
-    assertEventScopedAccess(actor, request.eventId, approverEventRoles);
+    assertEventApproverPermissions(actor, request.eventId);
 
     assertPendingApprovalState(request.state);
 

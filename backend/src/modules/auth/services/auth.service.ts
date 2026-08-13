@@ -10,12 +10,21 @@ import { hashValue } from "../../../utils/hash";
 import { normalizeEmail } from "../../../utils/normalize-email";
 import { hashPassword, verifyPassword } from "../../../utils/password";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../../../utils/tokens";
+import { eventScopedInternalRoles } from "../../../utils/event-scope";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { rolesRepository } from "../../roles/repositories/roles.repository";
 import { mapUserProfile } from "../../users/users.mappers";
 import { usersRepository } from "../../users/repositories/users.repository";
-import type { AuthSessionResult, ForgotPasswordInput, LoginInput, RegisterInput, ResetPasswordInput } from "../types/auth.types";
+import type {
+  AuthSessionResult,
+  EventTeamLoginInput,
+  ForgotPasswordInput,
+  InternalLoginInput,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+} from "../types/auth.types";
 import { authRepository } from "../repositories/auth.repository";
 
 function getRefreshTokenExpiryDate() {
@@ -229,7 +238,7 @@ export const authService = {
     };
   },
 
-  async internalLogin(input: { email: string; password: string }, auditMetadata?: AuditMetadata): Promise<AuthSessionResult> {
+  async internalLogin(input: InternalLoginInput, auditMetadata?: AuditMetadata): Promise<AuthSessionResult> {
     const email = normalizeEmail(input.email);
     const user = await usersRepository.findByEmail(email);
 
@@ -247,6 +256,17 @@ export const authService = {
       throw new AppError(403, "This account is not active.");
     }
 
+    const isSystemAdmin = user.roles.some(
+      (assignment) => assignment.role.code === RoleCode.SYSTEM_ADMIN,
+    );
+
+    if (!isSystemAdmin) {
+      throw new AppError(
+        403,
+        "This sign-in is reserved for the System Admin. Use the sign-in link for your assigned event.",
+      );
+    }
+
     const updatedUser = await usersRepository.updateLastLogin(user.id);
     const tokens = await issueSession(user.id, auditMetadata);
 
@@ -256,6 +276,74 @@ export const authService = {
       entityType: "User",
       entityId: user.id,
       summary: `Internal login as ${user.email}`,
+      ...auditMetadata,
+    });
+
+    return {
+      user: mapUserProfile(updatedUser),
+      ...tokens,
+    };
+  },
+
+  async eventTeamLogin(
+    input: EventTeamLoginInput,
+    auditMetadata?: AuditMetadata,
+  ): Promise<AuthSessionResult> {
+    const email = normalizeEmail(input.email);
+    const user = await usersRepository.findByEmail(email);
+
+    if (!user) {
+      throw new AppError(401, "Invalid email or password.");
+    }
+
+    const passwordMatches = await verifyPassword(input.password, user.passwordHash);
+
+    if (!passwordMatches) {
+      throw new AppError(401, "Invalid email or password.");
+    }
+
+    if (user.status !== AccountStatus.ACTIVE) {
+      throw new AppError(403, "This account is not active.");
+    }
+
+    const event = await prisma.event.findFirst({
+      where: {
+        OR: [{ id: input.eventLookupKey }, { slug: input.eventLookupKey }],
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+      },
+    });
+
+    if (!event) {
+      throw new AppError(404, "Event not found.");
+    }
+
+    const hasActiveEventAssignment = user.eventTeamMemberships.some(
+      (membership) =>
+        membership.eventId === event.id &&
+        eventScopedInternalRoles.some((roleCode) => roleCode === membership.roleCode),
+    );
+
+    if (!hasActiveEventAssignment) {
+      throw new AppError(403, "This account is not assigned to the selected event.");
+    }
+
+    const updatedUser = await usersRepository.updateLastLogin(user.id);
+    const tokens = await issueSession(user.id, auditMetadata);
+
+    await auditService.record({
+      actorId: user.id,
+      action: "auth.event_team_login",
+      entityType: "Event",
+      entityId: event.id,
+      summary: `Opened event team session for ${event.title}`,
+      context: {
+        eventId: event.id,
+        eventSlug: event.slug,
+      },
       ...auditMetadata,
     });
 

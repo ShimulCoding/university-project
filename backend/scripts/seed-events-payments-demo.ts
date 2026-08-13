@@ -55,7 +55,33 @@ async function ensureUser(input: {
     },
   });
 
-  for (const roleCode of input.roles) {
+  const globalRoleCodes = input.roles.filter(
+    (roleCode) => roleCode === RoleCode.SYSTEM_ADMIN || roleCode === RoleCode.GENERAL_STUDENT,
+  );
+  const operationalRoles = await prisma.role.findMany({
+    where: {
+      code: {
+        in: [
+          RoleCode.EVENT_ADMIN,
+          RoleCode.FINANCIAL_CONTROLLER,
+          RoleCode.ORGANIZATIONAL_APPROVER,
+          RoleCode.EVENT_MANAGEMENT_USER,
+          RoleCode.COMPLAINT_REVIEW_AUTHORITY,
+        ],
+      },
+    },
+  });
+
+  await prisma.userRole.updateMany({
+    where: {
+      userId: user.id,
+      roleId: { in: operationalRoles.map((role) => role.id) },
+      revokedAt: null,
+    },
+    data: { revokedAt: new Date() },
+  });
+
+  for (const roleCode of globalRoleCodes) {
     const role = await prisma.role.findUnique({
       where: { code: roleCode },
     });
@@ -83,6 +109,39 @@ async function ensureUser(input: {
   }
 
   return user;
+}
+
+async function requireSystemAdmin() {
+  const systemAdmin = await prisma.user.findFirst({
+    where: {
+      status: AccountStatus.ACTIVE,
+      roles: {
+        some: {
+          revokedAt: null,
+          role: { code: RoleCode.SYSTEM_ADMIN },
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (!systemAdmin) {
+    throw new Error(
+      "An active SYSTEM_ADMIN must be seeded before demo flow data. Run the Prisma seed first.",
+    );
+  }
+
+  return systemAdmin;
+}
+
+async function ensureEventTeamMember(eventId: string, userId: string, roleCode: RoleCode) {
+  return prisma.eventTeamMember.upsert({
+    where: {
+      eventId_userId_roleCode: { eventId, userId, roleCode },
+    },
+    update: { assignedAt: new Date(), revokedAt: null },
+    create: { eventId, userId, roleCode },
+  });
 }
 
 async function ensureDemoEvent(createdById: string) {
@@ -193,6 +252,7 @@ async function ensureManualIncome(eventId: string, recordedById: string) {
 
 async function main() {
   await ensureRoleCatalog();
+  const demoSystemAdmin = await requireSystemAdmin();
 
   const demoManager = await ensureUser({
     fullName: "Demo Event Manager",
@@ -208,6 +268,20 @@ async function main() {
     roles: [RoleCode.FINANCIAL_CONTROLLER],
   });
 
+  const demoEventAdmin = await ensureUser({
+    fullName: "Demo Event Admin",
+    email: "demo.event.admin@example.com",
+    password: "DemoPass123!",
+    roles: [RoleCode.EVENT_ADMIN],
+  });
+
+  const demoApprover = await ensureUser({
+    fullName: "Demo Organizational Approver",
+    email: "demo.approver@example.com",
+    password: "DemoPass123!",
+    roles: [RoleCode.ORGANIZATIONAL_APPROVER],
+  });
+
   const demoStudent = await ensureUser({
     fullName: "Demo Student",
     email: "demo.student@example.com",
@@ -215,7 +289,13 @@ async function main() {
     roles: [RoleCode.GENERAL_STUDENT],
   });
 
-  const demoEvent = await ensureDemoEvent(demoManager.id);
+  const demoEvent = await ensureDemoEvent(demoSystemAdmin.id);
+  await Promise.all([
+    ensureEventTeamMember(demoEvent.id, demoEventAdmin.id, RoleCode.EVENT_ADMIN),
+    ensureEventTeamMember(demoEvent.id, demoManager.id, RoleCode.EVENT_MANAGEMENT_USER),
+    ensureEventTeamMember(demoEvent.id, demoFinance.id, RoleCode.FINANCIAL_CONTROLLER),
+    ensureEventTeamMember(demoEvent.id, demoApprover.id, RoleCode.ORGANIZATIONAL_APPROVER),
+  ]);
   const demoRegistration = await ensureDemoRegistration(
     demoEvent.id,
     demoStudent.id,

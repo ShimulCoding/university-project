@@ -64,8 +64,8 @@ export default async function EventBudgetRequestsPage({
     return <StatePanel icon={ShieldAlert} tone="warning" title="Access restricted" description="Your event role does not include access to view budget requests." />;
   }
 
-  const canCreateOrReviseBudgets = isSystemAdmin(user) || eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("EVENT_MANAGEMENT_USER");
-  const canApproveBudgets = isSystemAdmin(user) || eventRoles.includes("ORGANIZATIONAL_APPROVER");
+  const canCreateOrReviseBudgets = eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("EVENT_MANAGEMENT_USER");
+  const canApproveBudgets = eventRoles.includes("ORGANIZATIONAL_APPROVER");
 
   try {
     const budgets = await listBudgets({ eventId: event.id, state });

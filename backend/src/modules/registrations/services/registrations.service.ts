@@ -1,11 +1,14 @@
 import { randomBytes } from "crypto";
 
-import { EventStatus, Prisma } from "@prisma/client";
+import { EventStatus, Prisma, RoleCode } from "@prisma/client";
 
 import { AppError } from "../../../utils/app-error";
 import { sanitizeOptionalText } from "../../../utils/text-utils";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
-import { hasFinanceAccess, hasInternalRegistrationAccess } from "../../../utils/role-checks";
+import {
+  assertSystemAdminOrEventRole,
+  hasEventScopedRole,
+} from "../../../utils/event-scope";
 import type { AuthenticatedUser } from "../../../types/auth";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
@@ -18,6 +21,14 @@ import {
 } from "../registrations.mappers";
 import { registrationsRepository } from "../repositories/registrations.repository";
 import type { CreateRegistrationInput, RegistrationListFilters } from "../types/registrations.types";
+
+const registrationInternalReadRoles = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.FINANCIAL_CONTROLLER,
+  RoleCode.EVENT_MANAGEMENT_USER,
+] as RoleCode[];
+
+const registrationFinanceRoles = [RoleCode.FINANCIAL_CONTROLLER] as RoleCode[];
 
 function buildRegistrationCode() {
   return `REG-${randomBytes(4).toString("hex").toUpperCase()}`;
@@ -171,13 +182,17 @@ export const registrationsService = {
     }
 
     const isOwner = registration.participantId === viewer.id;
-    const canViewInternally = hasInternalRegistrationAccess(viewer.roles);
 
-    if (!isOwner && !canViewInternally) {
-      throw new AppError(403, "You are not allowed to view this registration.");
+    if (!isOwner) {
+      assertSystemAdminOrEventRole(
+        viewer,
+        registration.event.id,
+        registrationInternalReadRoles,
+        "You are not allowed to view this registration.",
+      );
     }
 
-    if (hasFinanceAccess(viewer.roles)) {
+    if (hasEventScopedRole(viewer, registration.event.id, registrationFinanceRoles)) {
       return mapRegistrationForFinance(registration);
     }
 
@@ -193,22 +208,25 @@ export const registrationsService = {
     eventId: string,
     filters: RegistrationListFilters,
   ) {
-    if (!hasInternalRegistrationAccess(viewer.roles)) {
-      throw new AppError(403, "You are not allowed to view event registrations.");
-    }
-
     const event = await eventsRepository.findById(eventId);
 
     if (!event) {
       throw new AppError(404, "Event not found.");
     }
 
+    assertSystemAdminOrEventRole(
+      viewer,
+      event.id,
+      registrationInternalReadRoles,
+      "You are not allowed to view event registrations.",
+    );
+
     const paginationOptions = getPaginationOptions(filters);
     const [registrations, totalItems] = await Promise.all([
       registrationsRepository.listByEvent(eventId, paginationOptions),
       registrationsRepository.countByEvent(eventId),
     ]);
-    const financeView = hasFinanceAccess(viewer.roles);
+    const financeView = hasEventScopedRole(viewer, event.id, registrationFinanceRoles);
 
     return {
       registrations: registrations.map((registration) =>

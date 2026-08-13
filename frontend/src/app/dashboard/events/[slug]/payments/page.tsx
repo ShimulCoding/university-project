@@ -55,6 +55,7 @@ export default async function EventPaymentsPage({
 
   const eventRoles = isSystemAdmin(user) ? ["SYSTEM_ADMIN" as const] : getEventRolesForEvent(user, event.id);
   const canSeeFinance = isSystemAdmin(user) || eventRoles.includes("FINANCIAL_CONTROLLER") || eventRoles.includes("EVENT_ADMIN");
+  const canDecide = eventRoles.includes("FINANCIAL_CONTROLLER");
 
   if (!canSeeFinance) {
     return <StatePanel icon={ShieldAlert} tone="warning" title="Access restricted" description="Your event role does not include payment verification access." />;
@@ -259,7 +260,10 @@ export default async function EventPaymentsPage({
                 />
                 
                 {/* DECISION MATRIX */}
-                <PaymentDecisionForm paymentProofId={selectedProof.id} />
+                <PaymentDecisionForm
+                  paymentProofId={selectedProof.id}
+                  canDecide={canDecide}
+                />
               </div>
             )}
           </div>

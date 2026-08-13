@@ -4,10 +4,17 @@ import { documentDirectories, uploadRules } from "../../../config/uploads";
 import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
+import {
+  assertAnyEventScopedAccess,
+  assertEventScopedOperationalAccess,
+  assertSystemAdminOrEventRole,
+  hasEventScopedRole,
+  isSystemAdmin,
+  scopeEventFilters,
+} from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { sanitizeOptionalText } from "../../../utils/text-utils";
 import { cleanupStoredUpload, cleanupStoredUploads, storeValidatedUpload } from "../../../utils/upload-utils";
-import { hasComplaintReviewAccess } from "../../../utils/role-checks";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { eventsRepository } from "../../events/repositories/events.repository";
@@ -63,18 +70,60 @@ const allowedComplaintTransitions: Record<ComplaintState, ComplaintState[]> = {
   [ComplaintState.CLOSED]: [],
 };
 
-function assertComplaintReviewPermissions(viewer: AuthenticatedUser) {
-  if (!hasComplaintReviewAccess(viewer.roles)) {
-    throw new AppError(403, "You are not allowed to review complaints.");
-  }
+const complaintReviewEventRoles = [
+  RoleCode.EVENT_ADMIN,
+  RoleCode.COMPLAINT_REVIEW_AUTHORITY,
+  RoleCode.ORGANIZATIONAL_APPROVER,
+] as RoleCode[];
+
+function assertHasAnyComplaintReviewAssignment(viewer: AuthenticatedUser) {
+  assertAnyEventScopedAccess(
+    viewer,
+    complaintReviewEventRoles,
+    "You are not allowed to review complaints.",
+  );
 }
 
-function assertComplaintAccess(viewer: AuthenticatedUser, submittedById: string | null | undefined) {
-  if (submittedById === viewer.id || hasComplaintReviewAccess(viewer.roles)) {
+function assertComplaintReviewPermissions(viewer: AuthenticatedUser, eventId: string | null) {
+  if (!eventId) {
+    if (isSystemAdmin(viewer)) {
+      return;
+    }
+
+    throw new AppError(403, "Only the System Admin can review complaints without an event scope.");
+  }
+
+  assertEventScopedOperationalAccess(
+    viewer,
+    eventId,
+    complaintReviewEventRoles,
+    "You are not assigned to review complaints for this event.",
+  );
+}
+
+function assertComplaintAccess(
+  viewer: AuthenticatedUser,
+  eventId: string | null,
+  submittedById: string | null | undefined,
+) {
+  if (submittedById === viewer.id) {
     return;
   }
 
-  throw new AppError(403, "You are not allowed to access this complaint.");
+  if (!eventId) {
+    if (isSystemAdmin(viewer)) {
+      return;
+    }
+
+    throw new AppError(403, "You are not allowed to access this complaint.");
+  }
+
+  assertSystemAdminOrEventRole(
+    viewer,
+    eventId,
+    complaintReviewEventRoles,
+    "You are not allowed to access this complaint.",
+  );
 }
 
 function assertComplaintTransition(currentState: ComplaintState, nextState: ComplaintState) {
@@ -90,17 +139,24 @@ function assertComplaintTransition(currentState: ComplaintState, nextState: Comp
   }
 }
 
-function getActorComplaintRoleCode(actor: AuthenticatedUser): ComplaintRoutingRoleCode | undefined {
-  if (actor.roles.includes(RoleCode.SYSTEM_ADMIN)) {
+function getActorComplaintRoleCode(
+  actor: AuthenticatedUser,
+  eventId: string | null,
+): ComplaintRoutingRoleCode | undefined {
+  if (!eventId && isSystemAdmin(actor)) {
     return RoleCode.SYSTEM_ADMIN;
   }
 
-  if (actor.roles.includes(RoleCode.COMPLAINT_REVIEW_AUTHORITY)) {
+  if (eventId && hasEventScopedRole(actor, eventId, [RoleCode.COMPLAINT_REVIEW_AUTHORITY])) {
     return RoleCode.COMPLAINT_REVIEW_AUTHORITY;
   }
 
-  if (actor.roles.includes(RoleCode.ORGANIZATIONAL_APPROVER)) {
+  if (eventId && hasEventScopedRole(actor, eventId, [RoleCode.ORGANIZATIONAL_APPROVER])) {
     return RoleCode.ORGANIZATIONAL_APPROVER;
+  }
+
+  if (eventId && hasEventScopedRole(actor, eventId, [RoleCode.EVENT_ADMIN])) {
+    return RoleCode.EVENT_ADMIN;
   }
 
   return undefined;
@@ -131,17 +187,18 @@ async function transitionComplaint(
   },
   auditMetadata: AuditMetadata | undefined,
 ) {
-  assertComplaintReviewPermissions(actor);
-
   const complaint = await complaintsRepository.findComplaintById(complaintId);
 
   if (!complaint) {
     throw new AppError(404, "Complaint not found.");
   }
 
+  assertComplaintReviewPermissions(actor, complaint.event?.id ?? null);
   assertComplaintTransition(complaint.state, nextState);
 
-  const fromRoleId = await getRoleIdByCode(getActorComplaintRoleCode(actor));
+  const fromRoleId = await getRoleIdByCode(
+    getActorComplaintRoleCode(actor, complaint.event?.id ?? null),
+  );
   const toRoleId = await getRoleIdByCode(input.toRoleCode);
   const note = sanitizeOptionalText(input.note);
 
@@ -201,9 +258,11 @@ export const complaintsService = {
       throw new AppError(404, "Complaint not found.");
     }
 
-    assertComplaintAccess(viewer, complaint.submittedById);
+    assertComplaintAccess(viewer, complaint.event?.id ?? null, complaint.submittedById);
 
-    return hasComplaintReviewAccess(viewer.roles)
+    return isSystemAdmin(viewer) ||
+      (complaint.event?.id &&
+        hasEventScopedRole(viewer, complaint.event.id, complaintReviewEventRoles))
       ? mapComplaintForReview(complaint)
       : mapComplaintForSubmitter(complaint);
   },
@@ -301,12 +360,13 @@ export const complaintsService = {
   },
 
   async listReviewQueue(viewer: AuthenticatedUser, filters: ComplaintQueueFilters) {
-    assertComplaintReviewPermissions(viewer);
+    assertHasAnyComplaintReviewAssignment(viewer);
 
+    const scopedFilters = scopeEventFilters(viewer, filters, complaintReviewEventRoles);
     const paginationOptions = getPaginationOptions(filters);
     const [complaints, totalItems] = await Promise.all([
-      complaintsRepository.listReviewQueue(filters, paginationOptions),
-      complaintsRepository.countReviewQueue(filters),
+      complaintsRepository.listReviewQueue(scopedFilters, paginationOptions),
+      complaintsRepository.countReviewQueue(scopedFilters),
     ]);
 
     return {

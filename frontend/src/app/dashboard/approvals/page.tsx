@@ -265,7 +265,7 @@ export default async function ApprovalsPage({
                 <DecisionHistoryCard decisions={selectedRecord.approvalDecisions} />
                 
                 {/* DECISION MATRIX */}
-                <ApprovalDecisionForm item={selectedItem} />
+                <ApprovalDecisionForm item={selectedItem} canDecide={false} />
               </div>
             ) : null}
           </div>

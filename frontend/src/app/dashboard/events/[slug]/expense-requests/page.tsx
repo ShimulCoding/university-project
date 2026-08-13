@@ -71,7 +71,7 @@ export default async function EventExpenseRequestsPage({
     return <StatePanel icon={ShieldAlert} tone="warning" title="Access restricted" description="Your event role does not include access to view expense requests." />;
   }
 
-  const canSubmitRequests = isSystemAdmin(user) || eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("EVENT_MANAGEMENT_USER");
+  const canSubmitRequests = eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("EVENT_MANAGEMENT_USER");
 
   try {
     const expenseRequests = await listExpenseRequests({ eventId: event.id, state });

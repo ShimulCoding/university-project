@@ -19,13 +19,13 @@ router.use(authenticate);
 
 router.get(
   "/queue",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.ORGANIZATIONAL_APPROVER]),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.ORGANIZATIONAL_APPROVER]),
   validateRequest(listApprovalQueueSchema),
   asyncHandler(approvalsController.listApprovalQueue),
 );
 router.post(
   "/:entityType/:entityId/decisions",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.ORGANIZATIONAL_APPROVER]),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.ORGANIZATIONAL_APPROVER]),
   validateRequest(approvalDecisionSchema),
   asyncHandler(approvalsController.decide),
 );

@@ -3,7 +3,7 @@ import { Router } from "express";
 import { RoleCode } from "@prisma/client";
 
 import { authenticate } from "../../../middlewares/authenticate";
-import { authorize } from "../../../middlewares/authorize";
+import { authorizeEventScoped } from "../../../middlewares/authorize";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
 import { registrationsController } from "../controllers/registrations.controller";
@@ -30,7 +30,12 @@ router.post(
 );
 router.get(
   "/event/:eventId",
-  authorize(RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_MANAGEMENT_USER, RoleCode.FINANCIAL_CONTROLLER),
+  authorizeEventScoped([
+    RoleCode.SYSTEM_ADMIN,
+    RoleCode.EVENT_ADMIN,
+    RoleCode.EVENT_MANAGEMENT_USER,
+    RoleCode.FINANCIAL_CONTROLLER,
+  ]),
   validateRequest(eventRegistrationsParamSchema),
   asyncHandler(registrationsController.listEventRegistrations),
 );

@@ -60,7 +60,11 @@ export default async function EventComplaintsPage({
   if (!user || !event) return null;
 
   const eventRoles = isSystemAdmin(user) ? ["SYSTEM_ADMIN" as const] : getEventRolesForEvent(user, event.id);
-  const canSeeComplaints = isSystemAdmin(user) || eventRoles.includes("EVENT_ADMIN");
+  const canManageComplaints =
+    eventRoles.includes("EVENT_ADMIN") ||
+    eventRoles.includes("ORGANIZATIONAL_APPROVER") ||
+    eventRoles.includes("COMPLAINT_REVIEW_AUTHORITY");
+  const canSeeComplaints = isSystemAdmin(user) || canManageComplaints;
 
   if (!canSeeComplaints) {
     return <StatePanel icon={ShieldAlert} tone="warning" title="Access restricted" description="Your event role does not include access to view complaints." />;
@@ -284,7 +288,10 @@ export default async function EventComplaintsPage({
                       emptyMessage="No evidence files were attached during submission."
                     />
                     <ComplaintRoutingCard routingHistory={selectedComplaint.routingHistory} />
-                    <ComplaintWorkflowPanel complaintId={selectedComplaint.id} />
+                    <ComplaintWorkflowPanel
+                      complaintId={selectedComplaint.id}
+                      canManage={canManageComplaints}
+                    />
                   </div>
                 </div>
               </div>

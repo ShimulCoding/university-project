@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, Receipt, CheckCircle2, CalendarDays, FileText, Tag, TrendingDown } from "lucide-react";
 
-import { getCurrentUser } from "@/lib/api/student";
-import { hasAnyRole } from "@/lib/access";
 import {
   getExpenseRequest,
   listExpenseRequests,
@@ -49,8 +47,7 @@ export default async function ExpenseRequestsPage({
     typeof params.expenseRequestId === "string" ? params.expenseRequestId : undefined;
 
   try {
-    const user = await getCurrentUser();
-    const canSubmitRequests = hasAnyRole(user, ["SYSTEM_ADMIN", "EVENT_MANAGEMENT_USER"]);
+    const canSubmitRequests = false;
     const [expenseRequests, events] = await Promise.all([
       listExpenseRequests({ eventId, state }),
       listInternalEventOptions(),

@@ -16,8 +16,10 @@ type ComplaintAction = "review" | "route" | "escalate" | "resolve" | "close";
 
 export function ComplaintWorkflowPanel({
   complaintId,
+  canManage = true,
 }: {
   complaintId: string;
+  canManage?: boolean;
 }) {
   const [action, setAction] = useState<ComplaintAction>("review");
   const [note, setNote] = useState("");
@@ -61,12 +63,20 @@ export function ComplaintWorkflowPanel({
       <CardHeader>
         <CardTitle className="text-xl">Complaint workflow actions</CardTitle>
         <CardDescription>
-          Review, routing, escalation, resolution, and closure remain protected and auditable.
+          {canManage
+            ? "Review, routing, escalation, resolution, and closure remain protected and auditable."
+            : "This complaint is visible for governance oversight. Workflow actions belong to the assigned event review team."}
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 pt-0">
+        {!canManage ? (
+          <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-3 text-sm leading-6 text-muted-foreground">
+            Complaint workflow controls are disabled for this session.
+          </div>
+        ) : null}
         <Field label="Action">
           <Select
+            disabled={!canManage}
             value={action}
             onChange={(event) => {
               clearFeedback();
@@ -84,6 +94,7 @@ export function ComplaintWorkflowPanel({
         {action === "route" || action === "escalate" ? (
           <Field label="Target role">
             <Select
+              disabled={!canManage}
               value={toRoleCode}
               onChange={(event) => {
                 clearFeedback();
@@ -95,6 +106,7 @@ export function ComplaintWorkflowPanel({
         ) : null}
         <Field label="Protected note">
           <Textarea
+            disabled={!canManage}
             rows={4}
             value={note}
             onChange={(event) => {
@@ -106,7 +118,7 @@ export function ComplaintWorkflowPanel({
         </Field>
         <FeedbackMessage feedback={feedback} />
         <Button
-          disabled={isPending}
+          disabled={isPending || !canManage}
           onClick={() =>
             void runAction(
               () =>

@@ -31,7 +31,7 @@ router.get(
 );
 router.post(
   "/generate",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   validateRequest(generateReconciliationReportSchema),
   asyncHandler(reconciliationController.generateReport),
 );
@@ -49,7 +49,7 @@ router.get(
 );
 router.post(
   "/:reportId/review",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.EVENT_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   validateRequest(reconciliationReportIdParamSchema),
   asyncHandler(reconciliationController.reviewReport),
 );

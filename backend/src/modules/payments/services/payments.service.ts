@@ -245,13 +245,16 @@ export const paymentsService = {
       input.decision === "APPROVE"
         ? RegistrationPaymentState.VERIFIED
         : RegistrationPaymentState.REJECTED;
+    const shouldInvalidateReconciliation = proofState === PaymentProofState.VERIFIED;
+    const staledAt = new Date();
+    const staleReason = `Payment proof ${paymentProof.id} was verified; reconciliation must be regenerated.`;
 
-    const reviewedPaymentProof = await prisma.$transaction(async (tx) => {
+    const { reviewedPaymentProof, staleReportCount } = await prisma.$transaction(async (tx) => {
       await paymentsRepository.updatePaymentProofReview(
         paymentProofId,
         {
           state: proofState,
-          reviewedAt: new Date(),
+          reviewedAt: staledAt,
           reviewerRemark,
           reviewedById: actor.id,
         },
@@ -270,7 +273,21 @@ export const paymentsService = {
         throw new AppError(500, "Failed to reload the reviewed payment proof.");
       }
 
-      return reloadedPaymentProof;
+      const staleResult = shouldInvalidateReconciliation
+        ? await reconciliationRepository.markReportsStaleForEvent(
+            {
+              eventId: paymentProof.registration.eventId,
+              reason: staleReason,
+              staledAt,
+            },
+            tx,
+          )
+        : { count: 0 };
+
+      return {
+        reviewedPaymentProof: reloadedPaymentProof,
+        staleReportCount: staleResult.count,
+      };
     });
 
     await auditService.record({
@@ -284,6 +301,7 @@ export const paymentsService = {
         eventId: reviewedPaymentProof.registration.event.id,
         decision: input.decision,
         reviewerRemark: reviewerRemark ?? null,
+        staleReconciliationReports: staleReportCount,
       },
       ...auditMetadata,
     });

@@ -13,6 +13,7 @@ import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagi
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { eventsRepository } from "../../events/repositories/events.repository";
+import { reconciliationRepository } from "../../reconciliation/repositories/reconciliation.repository";
 import { mapBudget } from "../budgets.mappers";
 import { budgetsRepository } from "../repositories/budgets.repository";
 import type {
@@ -286,10 +287,13 @@ export const budgetsService = {
       throw new AppError(409, "Only the latest budget version can be revised.");
     }
 
-    const newBudget = await prisma.$transaction(async (tx) => {
+    const staledAt = new Date();
+    const staleReason = `Active budget version ${budget.id} was revised; reconciliation must be regenerated.`;
+
+    const { newBudget, staleReportCount } = await prisma.$transaction(async (tx) => {
       await budgetsRepository.markBudgetRevised(budget.id, tx);
 
-      return budgetsRepository.createBudget(
+      const revisedBudget = await budgetsRepository.createBudget(
         {
           eventId: budget.eventId,
           version: budget.version + 1,
@@ -301,6 +305,22 @@ export const budgetsService = {
         },
         tx,
       );
+
+      const staleResult = budget.isActive
+        ? await reconciliationRepository.markReportsStaleForEvent(
+            {
+              eventId: budget.eventId,
+              reason: staleReason,
+              staledAt,
+            },
+            tx,
+          )
+        : { count: 0 };
+
+      return {
+        newBudget: revisedBudget,
+        staleReportCount: staleResult.count,
+      };
     });
 
     await auditService.record({
@@ -314,6 +334,7 @@ export const budgetsService = {
         previousBudgetId: budget.id,
         previousVersion: budget.version,
         nextVersion: newBudget.version,
+        staleReconciliationReports: staleReportCount,
       },
       ...auditMetadata,
     });
@@ -350,7 +371,10 @@ export const budgetsService = {
       throw new AppError(409, "Self-approval is not allowed for budget versions.");
     }
 
-    const updatedBudget =
+    const staledAt = new Date();
+    const staleReason = `Active budget changed to version ${budget.version}; reconciliation must be regenerated.`;
+
+    const { updatedBudget, staleReportCount } =
       input.state === BudgetState.APPROVED
         ? await prisma.$transaction(async (tx) => {
             const approvedBudget = await budgetsRepository.updateBudgetState(
@@ -359,11 +383,30 @@ export const budgetsService = {
               tx,
             );
             await budgetsRepository.deactivateEventBudgets(approvedBudget.eventId, tx);
-            return budgetsRepository.activateBudget(budgetId, tx);
+            const activatedBudget = await budgetsRepository.activateBudget(budgetId, tx);
+            const staleResult = await reconciliationRepository.markReportsStaleForEvent(
+              {
+                eventId: activatedBudget.eventId,
+                reason: staleReason,
+                staledAt,
+              },
+              tx,
+            );
+
+            return {
+              updatedBudget: activatedBudget,
+              staleReportCount: staleResult.count,
+            };
           })
         : input.state === BudgetState.REVISED
-          ? await budgetsRepository.markBudgetRevised(budgetId)
-          : await budgetsRepository.updateBudgetState(budgetId, input.state);
+          ? {
+              updatedBudget: await budgetsRepository.markBudgetRevised(budgetId),
+              staleReportCount: 0,
+            }
+          : {
+              updatedBudget: await budgetsRepository.updateBudgetState(budgetId, input.state),
+              staleReportCount: 0,
+            };
 
     await auditService.record({
       actorId: actor.id,
@@ -376,6 +419,7 @@ export const budgetsService = {
         previousState: budget.state,
         nextState: updatedBudget.state,
         autoActivated: input.state === BudgetState.APPROVED,
+        staleReconciliationReports: staleReportCount,
       },
       ...auditMetadata,
     });
@@ -404,9 +448,25 @@ export const budgetsService = {
       return mapBudget(budget);
     }
 
-    const activatedBudget = await prisma.$transaction(async (tx) => {
+    const staledAt = new Date();
+    const staleReason = `Active budget changed to version ${budget.version}; reconciliation must be regenerated.`;
+
+    const { activatedBudget, staleReportCount } = await prisma.$transaction(async (tx) => {
       await budgetsRepository.deactivateEventBudgets(budget.eventId, tx);
-      return budgetsRepository.activateBudget(budgetId, tx);
+      const nextActiveBudget = await budgetsRepository.activateBudget(budgetId, tx);
+      const staleResult = await reconciliationRepository.markReportsStaleForEvent(
+        {
+          eventId: nextActiveBudget.eventId,
+          reason: staleReason,
+          staledAt,
+        },
+        tx,
+      );
+
+      return {
+        activatedBudget: nextActiveBudget,
+        staleReportCount: staleResult.count,
+      };
     });
 
     await auditService.record({
@@ -418,6 +478,7 @@ export const budgetsService = {
       context: {
         eventId: activatedBudget.event.id,
         version: activatedBudget.version,
+        staleReconciliationReports: staleReportCount,
       },
       ...auditMetadata,
     });

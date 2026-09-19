@@ -29,7 +29,7 @@
 - Frontend: Next.js 16, React 19, TypeScript, Tailwind CSS, and ESLint flat configuration.
 - Backend: Express 5, TypeScript, Prisma 6, and PostgreSQL.
 - Demo students have stable Student IDs, and owner views expose safe payment-proof metadata without storage paths.
-- Production and development npm dependency audits report no known vulnerabilities.
+- npm dependency audit reports only three upstream Prisma CLI advisories (`@prisma/config` via `deepmerge-ts`); npm does not currently provide an installable remediation for the supported Prisma release.
 
 ## Verification
 - Run `npm run prisma:validate --workspace backend`.

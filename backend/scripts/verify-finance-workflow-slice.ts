@@ -5,7 +5,9 @@ import {
   BudgetState,
   EventStatus,
   ExpenseRecordState,
+  PaymentProofState,
   Prisma,
+  RegistrationPaymentState,
   RequestState,
   RoleCode,
 } from "@prisma/client";
@@ -20,6 +22,10 @@ import { budgetsService } from "../src/modules/budgets/services/budgets.service"
 import { budgetsRepository } from "../src/modules/budgets/repositories/budgets.repository";
 import { createBudgetSchema } from "../src/modules/budgets/validations/budgets.validation";
 import { eventsRepository } from "../src/modules/events/repositories/events.repository";
+import { paymentsRepository } from "../src/modules/payments/repositories/payments.repository";
+import { paymentsService } from "../src/modules/payments/services/payments.service";
+import { reconciliationRepository } from "../src/modules/reconciliation/repositories/reconciliation.repository";
+import { registrationsRepository } from "../src/modules/registrations/repositories/registrations.repository";
 import {
   mapBudgetRequest,
   mapExpenseRequest,
@@ -267,6 +273,38 @@ function createExpenseRecordContext(overrides: Partial<Record<string, unknown>> 
     recordedBy,
     expenseRequest,
     documents: [createSupportingDocument()],
+    ...overrides,
+  };
+}
+
+function createPaymentProofContext(overrides: Partial<Record<string, unknown>> = {}) {
+  const event = createEventSummary();
+
+  return {
+    id: makeCuid("paymentproof"),
+    registrationId: makeCuid("registration"),
+    externalChannel: "Bank transfer",
+    transactionReference: "TXN-1001",
+    referenceText: null,
+    amount: new Prisma.Decimal("125.00"),
+    state: PaymentProofState.PENDING_VERIFICATION,
+    submittedAt: new Date("2026-04-07T09:00:00.000Z"),
+    reviewedAt: null,
+    reviewerRemark: null,
+    reviewedBy: null,
+    documents: [],
+    registration: {
+      id: makeCuid("registration"),
+      eventId: event.id,
+      registrationCode: "REG-1001",
+      paymentState: RegistrationPaymentState.PENDING_VERIFICATION,
+      participantName: "Demo Student",
+      studentId: "CSE-2022-001",
+      email: "demo.student@example.com",
+      phone: null,
+      participant: null,
+      event,
+    },
     ...overrides,
   };
 }
@@ -602,6 +640,105 @@ async function main() {
   );
 
   results.push(
+    await runCheck("Financial totals invalidate reconciliation reports", async () => {
+      const pendingProof = createPaymentProofContext();
+      const verifiedProof = createPaymentProofContext({
+        state: PaymentProofState.VERIFIED,
+        reviewedAt: new Date("2026-04-07T10:00:00.000Z"),
+        reviewedBy: {
+          id: financeActor.id,
+          fullName: financeActor.fullName,
+          email: financeActor.email,
+        },
+        registration: {
+          ...pendingProof.registration,
+          paymentState: RegistrationPaymentState.VERIFIED,
+        },
+      });
+      const recordedExpense = createExpenseRecordContext({
+        state: ExpenseRecordState.RECORDED,
+        eventId: makeCuid("event"),
+      });
+      const settledExpense = createExpenseRecordContext({
+        state: ExpenseRecordState.SETTLED,
+        eventId: makeCuid("event"),
+        paidAt: new Date("2026-04-07T11:00:00.000Z"),
+      });
+      let proofLookupCount = 0;
+      let staleReportCount = 0;
+
+      await withPatches(
+        [
+          {
+            target: paymentsRepository as unknown as Record<string, unknown>,
+            key: "findPaymentProofById",
+            value: async () => {
+              proofLookupCount += 1;
+              return proofLookupCount === 1 ? pendingProof : verifiedProof;
+            },
+          },
+          {
+            target: paymentsRepository as unknown as Record<string, unknown>,
+            key: "updatePaymentProofReview",
+            value: async () => undefined,
+          },
+          {
+            target: registrationsRepository as unknown as Record<string, unknown>,
+            key: "updatePaymentState",
+            value: async () => undefined,
+          },
+          {
+            target: requestsRepository as unknown as Record<string, unknown>,
+            key: "findExpenseRecordById",
+            value: async () => recordedExpense,
+          },
+          {
+            target: requestsRepository as unknown as Record<string, unknown>,
+            key: "updateExpenseRecordState",
+            value: async () => settledExpense,
+          },
+          {
+            target: reconciliationRepository as unknown as Record<string, unknown>,
+            key: "markReportsStaleForEvent",
+            value: async () => {
+              staleReportCount += 1;
+              return { count: 1 };
+            },
+          },
+          {
+            target: prisma as unknown as Record<string, unknown>,
+            key: "$transaction",
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
+          },
+          {
+            target: auditService as unknown as Record<string, unknown>,
+            key: "record",
+            value: async () => undefined,
+          },
+        ],
+        async () => {
+          await paymentsService.decidePaymentProof(
+            financeActor,
+            pendingProof.id,
+            { decision: "APPROVE" },
+          );
+          await requestsService.settleExpenseRecord(
+            financeActor,
+            recordedExpense.id,
+            {},
+          );
+        },
+      );
+
+      assertCondition(
+        staleReportCount === 2,
+        "Verified payment proofs and settled expenses must each invalidate reconciliation reports.",
+      );
+      return "verified payment income and settled expenses invalidate prior reconciliation reports";
+    }),
+  );
+
+  results.push(
     await runCheck("Budget revision creates a new version and preserves history", async () => {
       const baseBudget = createBudgetContext();
       const revisedItems = [
@@ -610,6 +747,7 @@ async function main() {
       ];
       let markedBudgetId: string | null = null;
       let createdBudgetInput: Record<string, unknown> | null = null;
+      let staleReportCount = 0;
       const auditEntries: Array<Record<string, unknown>> = [];
 
       const result = await withPatches(
@@ -664,6 +802,14 @@ async function main() {
             value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
           },
           {
+            target: reconciliationRepository as unknown as Record<string, unknown>,
+            key: "markReportsStaleForEvent",
+            value: async () => {
+              staleReportCount += 1;
+              return { count: 1 };
+            },
+          },
+          {
             target: auditService as unknown as Record<string, unknown>,
             key: "record",
             value: async (entry: Record<string, unknown>) => {
@@ -694,6 +840,7 @@ async function main() {
         `Expected revised total to be 1500.75, received ${result.totalAmount}.`,
       );
       assertCondition(auditEntries.length === 1, "Budget revision was not audit logged.");
+      assertCondition(staleReportCount === 1, "Revising an active budget did not invalidate reconciliation reports.");
 
       await expectAppError(
         "Budget invalid state transition",
@@ -1136,6 +1283,7 @@ async function main() {
       );
 
       createdDocuments = 0;
+      let staleReportCount = 0;
 
       const uploadedRecord = await withPatches(
         [
@@ -1187,6 +1335,14 @@ async function main() {
             value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
           },
           {
+            target: reconciliationRepository as unknown as Record<string, unknown>,
+            key: "markReportsStaleForEvent",
+            value: async () => {
+              staleReportCount += 1;
+              return { count: 1 };
+            },
+          },
+          {
             target: auditService as unknown as Record<string, unknown>,
             key: "record",
             value: async () => undefined,
@@ -1213,6 +1369,7 @@ async function main() {
         uploadedRecord.state === ExpenseRecordState.SETTLED,
         "Expense record with paidAt should start in the settled state.",
       );
+      assertCondition(staleReportCount === 1, "A newly settled expense record did not invalidate reconciliation reports.");
 
       return "expense requests and settled expense records stay separate, with document rules enforced on each path";
     }),

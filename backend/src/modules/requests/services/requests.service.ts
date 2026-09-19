@@ -727,13 +727,16 @@ export const requestsService = {
     }
 
     const storedUploads = files && files.length > 0 ? await Promise.all(files.map(storeSupportingDocument)) : [];
+    const initialState = input.paidAt ? ExpenseRecordState.SETTLED : ExpenseRecordState.RECORDED;
+    const staledAt = new Date();
+    const staleReason = `Settled expense record for ${input.eventId} was created; reconciliation must be regenerated.`;
 
     try {
-      const record = await prisma.$transaction(async (tx) => {
+      const { record, staleReportCount } = await prisma.$transaction(async (tx) => {
         const createdRecord = await requestsRepository.createExpenseRecord(
           actor.id,
           input,
-          input.paidAt ? ExpenseRecordState.SETTLED : ExpenseRecordState.RECORDED,
+          initialState,
           tx,
         );
 
@@ -763,7 +766,21 @@ export const requestsService = {
           throw new AppError(500, "Failed to reload the created expense record.");
         }
 
-        return reloadedRecord;
+        const staleResult = initialState === ExpenseRecordState.SETTLED
+          ? await reconciliationRepository.markReportsStaleForEvent(
+              {
+                eventId: input.eventId,
+                reason: staleReason,
+                staledAt,
+              },
+              tx,
+            )
+          : { count: 0 };
+
+        return {
+          record: reloadedRecord,
+          staleReportCount: staleResult.count,
+        };
       });
 
       await auditService.record({
@@ -777,6 +794,7 @@ export const requestsService = {
           state: record.state,
           amount: record.amount,
           expenseRequestId: record.expenseRequest?.id ?? null,
+          staleReconciliationReports: staleReportCount,
         },
         ...auditMetadata,
       });
@@ -812,13 +830,32 @@ export const requestsService = {
       throw new AppError(409, "Expense record is already settled.");
     }
 
-    const record = await requestsRepository.updateExpenseRecordState(
-      expenseRecordId,
-      {
-        state: ExpenseRecordState.SETTLED,
-        paidAt: input.paidAt ?? new Date(),
-      },
-    );
+    const staledAt = new Date();
+    const staleReason = `Expense record ${existingRecord.id} was settled; reconciliation must be regenerated.`;
+
+    const { record, staleReportCount } = await prisma.$transaction(async (tx) => {
+      const settledRecord = await requestsRepository.updateExpenseRecordState(
+        expenseRecordId,
+        {
+          state: ExpenseRecordState.SETTLED,
+          paidAt: input.paidAt ?? staledAt,
+        },
+        tx,
+      );
+      const staleResult = await reconciliationRepository.markReportsStaleForEvent(
+        {
+          eventId: existingRecord.eventId,
+          reason: staleReason,
+          staledAt,
+        },
+        tx,
+      );
+
+      return {
+        record: settledRecord,
+        staleReportCount: staleResult.count,
+      };
+    });
 
     await auditService.record({
       actorId: actor.id,
@@ -831,6 +868,7 @@ export const requestsService = {
         previousState: existingRecord.state,
         nextState: record.state,
         paidAt: record.paidAt,
+        staleReconciliationReports: staleReportCount,
       },
       ...auditMetadata,
     });

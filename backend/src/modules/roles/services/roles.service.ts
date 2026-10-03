@@ -1,5 +1,6 @@
-import { Prisma, type RoleCode } from "@prisma/client";
+import { AccountStatus, Prisma, RoleCode } from "@prisma/client";
 
+import { prisma } from "../../../config/prisma";
 import { AppError } from "../../../utils/app-error";
 import { assertGlobalAccountRole } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
@@ -102,6 +103,13 @@ export const rolesService = {
       throw new AppError(404, "User not found.");
     }
 
+    if (roleCode === RoleCode.SYSTEM_ADMIN && user.eventTeamMemberships.length > 0) {
+      throw new AppError(
+        409,
+        "Revoke this user's active event team assignments before granting System Admin access.",
+      );
+    }
+
     const role = await rolesRepository.findByCode(roleCode);
 
     if (!role) {
@@ -149,6 +157,23 @@ export const rolesService = {
 
     if (assignment.revokedAt) {
       throw new AppError(409, "Role assignment has already been revoked.");
+    }
+
+    if (
+      assignment.role.code === RoleCode.SYSTEM_ADMIN &&
+      assignment.user.status === AccountStatus.ACTIVE
+    ) {
+      const activeSystemAdminAssignments = await prisma.userRole.count({
+        where: {
+          revokedAt: null,
+          role: { code: RoleCode.SYSTEM_ADMIN },
+          user: { status: AccountStatus.ACTIVE },
+        },
+      });
+
+      if (activeSystemAdminAssignments <= 1) {
+        throw new AppError(409, "The last active System Admin assignment cannot be revoked.");
+      }
     }
 
     const revokedAssignment = await rolesRepository.revokeAssignment(assignmentId);

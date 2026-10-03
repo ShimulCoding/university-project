@@ -124,6 +124,24 @@ export const usersService = {
       throw new AppError(404, "User not found.");
     }
 
+    if (
+      status !== AccountStatus.ACTIVE &&
+      existingUser.status === AccountStatus.ACTIVE &&
+      existingUser.roles.some((assignment) => assignment.role.code === RoleCode.SYSTEM_ADMIN)
+    ) {
+      const activeSystemAdminAssignments = await prisma.userRole.count({
+        where: {
+          revokedAt: null,
+          role: { code: RoleCode.SYSTEM_ADMIN },
+          user: { status: AccountStatus.ACTIVE },
+        },
+      });
+
+      if (activeSystemAdminAssignments <= 1) {
+        throw new AppError(409, "The last active System Admin account cannot be deactivated.");
+      }
+    }
+
     const updatedUser = await usersRepository.updateStatus(userId, status);
 
     await auditService.record({

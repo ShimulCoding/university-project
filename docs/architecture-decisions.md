@@ -25,10 +25,13 @@
 ## 3A. Event-Specific Internal Teams
 - `SYSTEM_ADMIN` remains global; operational roles are not stored as global `UserRole` assignments.
 - `EventTeamMember` links a user, event, and event role with assignment and revocation history.
+- Upgrades revoke legacy global operational assignments because their target event cannot be inferred safely; any replacement event assignments must be made explicitly by the System Admin.
 - Each event requires separate Event Admin, Event Manager, Finance Controller, and Approver accounts at creation.
 - Complaint Reviewer is an optional event assignment.
 - Required roles use separate accounts within an event to preserve separation of duties.
 - Existing accounts can be assigned to more than one event without resetting their credentials.
+- A user with active event assignments cannot be promoted to System Admin until those assignments are revoked.
+- The final active System Admin assignment cannot be revoked or deactivated.
 
 ## 4. File And Document Handling
 - Files are stored on local disk in development through a storage adapter.

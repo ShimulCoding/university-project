@@ -21,11 +21,9 @@ Password for all accounts below:
 | Student | `demo.verified.student.two@example.com` |
 
 ### System admin
-The system admin comes from `backend/.env` seed variables.
-
-Current verified local machine values:
-- Email: `shimulc17@gmail.com`
-- Password: `Admin@123456`
+The system admin comes from the `SEED_ADMIN_FULL_NAME`, `SEED_ADMIN_EMAIL`, and
+`SEED_ADMIN_PASSWORD` variables in `backend/.env`. Use the credentials configured
+for your local environment; they are not stored in this guide.
 
 ## Recommended Teacher Presentation Flow
 1. Open the homepage and explain the public-safe vs protected boundary.

@@ -16,10 +16,12 @@
 
 ## Security Invariants
 - No operational role receives cross-event access from `UserRole`.
+- Existing global operational role assignments are revoked when upgrading to the event-scoped role model; event membership history remains available for audit.
 - Direct record IDs are resolved to their event before authorization.
 - Required event roles must use separate accounts within the same event.
 - System Admin cannot execute event-team financial decisions.
 - System Admin accounts cannot also be assigned event operational roles.
+- At least one active System Admin assignment must remain available.
 - Revoking the final required role assignment is blocked until a replacement exists.
 - Refresh tokens are single-use, atomically rotated, and rejected after replay.
 - Password reset consumption and session revocation happen in one transaction.

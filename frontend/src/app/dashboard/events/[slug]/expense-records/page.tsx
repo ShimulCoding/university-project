@@ -66,7 +66,7 @@ export default async function EventExpenseRecordsPage({
   if (!user || !event) return null;
 
   const eventRoles = isSystemAdmin(user) ? ["SYSTEM_ADMIN" as const] : getEventRolesForEvent(user, event.id);
-  const canSeeExpenseRecords = isSystemAdmin(user) || eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("FINANCIAL_CONTROLLER") || eventRoles.includes("ORGANIZATIONAL_APPROVER");
+  const canSeeExpenseRecords = isSystemAdmin(user) || eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("FINANCIAL_CONTROLLER") || eventRoles.includes("ORGANIZATIONAL_APPROVER") || eventRoles.includes("EVENT_MANAGEMENT_USER");
 
   if (!canSeeExpenseRecords) {
     return <StatePanel icon={ShieldAlert} tone="warning" title="Access restricted" description="Your event role does not include access to view expense records." />;

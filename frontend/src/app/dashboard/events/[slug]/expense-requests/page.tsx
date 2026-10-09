@@ -18,7 +18,7 @@ import {
   getRequestStateTone,
 } from "@/lib/format";
 import type { ManagedEvent } from "@/types";
-import { ExpenseRequestForm, SubmitRequestButton } from "@/components/internal/requests-actions";
+import { ExpenseRequestForm, RequestEditForm, SubmitRequestButton } from "@/components/internal/requests-actions";
 import { DecisionHistoryCard } from "@/components/internal/decision-history-card";
 import { FilterCard } from "@/components/internal/filter-card";
 import { SupportingDocumentList } from "@/components/internal/supporting-document-list";
@@ -315,11 +315,15 @@ export default async function EventExpenseRequestsPage({
                 <DecisionHistoryCard decisions={selectedRequest.approvalDecisions} />
                 
                 {canSubmitRequests &&
+                selectedRequest.requestedBy?.id === user.id &&
                 (selectedRequest.state === "DRAFT" || selectedRequest.state === "RETURNED") ? (
+                  <>
+                  <RequestEditForm key={selectedRequest.id + selectedRequest.updatedAt} request={selectedRequest} kind="expense-requests" />
                   <SubmitRequestButton
                     endpoint={`/requests/expense-requests/${selectedRequest.id}/submit`}
                     label="Expense request"
                   />
+                  </>
                 ) : !canSubmitRequests ? (
                   <Card className="border-border/40 bg-background/50 backdrop-blur-xl shadow-lg relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">

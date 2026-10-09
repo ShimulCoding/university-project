@@ -273,7 +273,7 @@ export type ManagedEvent = PublicEvent & {
     id: string;
     roleCode: AppRole;
     assignedAt: string;
-    user: ActorSummary;
+    user: ActorSummary & { status: AccountStatus };
   }>;
 };
 

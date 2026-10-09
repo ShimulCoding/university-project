@@ -29,7 +29,7 @@ MU CSE Financial Transparency Platform is a full-stack academic project for even
 
 ## Repository Structure
 ```text
-F:\University-project
+E:\4.1\WEB +PROJECT\University-project
 |-- frontend\
 |   |-- src\app\                # Next.js routes
 |   |-- src\components\         # UI, shell, student, public, internal components
@@ -164,12 +164,15 @@ npm run verify:demo:runtime --workspace backend
 
 ### Internal
 - `/dashboard`
+- `/dashboard/events`
+- `/dashboard/users`
 - `/dashboard/my-events`
 - `/dashboard/events/[slug]`
 - `/dashboard/events/[slug]/payments`
 - `/dashboard/events/[slug]/income-records`
 - `/dashboard/events/[slug]/budgets`
 - `/dashboard/events/[slug]/budget-requests`
+- `/dashboard/events/[slug]/funding-requests`
 - `/dashboard/events/[slug]/expense-requests`
 - `/dashboard/events/[slug]/expense-records`
 - `/dashboard/events/[slug]/approvals`
@@ -221,11 +224,7 @@ The system admin is created from `backend/.env`:
 - Email: `SEED_ADMIN_EMAIL`
 - Password: `SEED_ADMIN_PASSWORD`
 
-On the prepared local machine used during final verification, that admin login is:
-- `shimulc17@gmail.com`
-- `Admin@123456`
-
-If you reseed with different env values, use your own admin credentials instead.
+Use the credentials configured in your local environment.
 
 ## Public Summary Logic
 - A public summary can only be published after reconciliation is `FINALIZED`.
@@ -276,3 +275,7 @@ The demo seed is idempotent and prepares realistic academic demo scenarios:
 - [docs/architecture-overview.md](./docs/architecture-overview.md)
 - [docs/git-workflow.md](./docs/git-workflow.md)
 - [docs/implementation-placeholders.md](./docs/implementation-placeholders.md)
+
+Detailed audit findings, permissions, migration notes, and verification evidence are in
+[`docs/event-role-architecture-audit.md`](docs/event-role-architecture-audit.md). Current repository
+memory is maintained in [`docs/PROJECT_STATE.md`](docs/PROJECT_STATE.md).

@@ -33,17 +33,20 @@ for your local environment; they are not stored in this guide.
 5. Show `/registrations/[registrationId]` and the payment-proof review state.
 6. Show `/complaints/new` and `/complaints`.
 7. On the event page, use **Event Team Sign In** as finance and open the event's `Verification` and `Income records` modules.
-8. Sign in from the same event as Event Manager and open its `Budget requests` and `Expense requests` modules.
+8. Sign in from the same event as Event Manager and open its itemized `Budget requests`, monetary `Funding requests`, and `Expense requests` modules. Show draft/returned owner edits and resubmission.
 9. Sign in from the same event as Approver and open its `Approvals`, `Complaints`, and `Publications` modules.
 10. Open the event's `Reconciliation` module and explain draft, reviewed, and finalized status.
 11. Open `/financial-summaries` and then the symposium summary detail page.
-12. Sign in as system admin and show `/dashboard/audit`.
+12. Sign in as System Admin at `/dashboard`, show event team readiness and draft publication at `/dashboard/events`, account administration at `/dashboard/users`, and `/dashboard/audit`.
 
 ## Important Demo Notes
 - Public pages never show payment proofs, complaint evidence, or reviewer notes.
 - Student pages show only student-owned data.
 - Event-team pages are scoped to the selected event and intentionally separated by responsibility.
 - The global `/dashboard` sign-in is reserved for System Admin; operational users must use an event's sign-in.
+- A signed-in account without an assignment for the requested event sees that event's team sign-in and can switch accounts.
+- System Admin handles general platform complaints; event reviewers handle event cases. System Admin event oversight is read-only.
+- Before presenting an older event, assign its real team in Events and teams. Draft publication requires four active accounts with separate responsibilities.
 - Public summary pages resolve to the latest published summary for each event.
 - Older published versions remain internal history for traceability.
 

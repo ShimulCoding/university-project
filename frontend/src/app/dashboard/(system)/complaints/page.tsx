@@ -8,6 +8,8 @@ import {
 } from "@/lib/api/internal";
 import { buildRelativeHref } from "@/lib/detail-query";
 import { ApiError } from "@/lib/api/shared";
+import { isSystemAdmin } from "@/lib/access";
+import { getCurrentUser } from "@/lib/api/student";
 import { formatDateTime, formatEnumLabel, getComplaintStateTone } from "@/lib/format";
 import { ComplaintWorkflowPanel } from "@/components/internal/complaints-actions";
 import { ComplaintRoutingCard } from "@/components/internal/complaint-routing-card";
@@ -40,6 +42,8 @@ export default async function ComplaintsPage({
   const state = typeof params.state === "string" ? params.state : undefined;
   const search = typeof params.search === "string" ? params.search : undefined;
   const complaintId = typeof params.complaintId === "string" ? params.complaintId : undefined;
+  const user = await getCurrentUser();
+  if (!isSystemAdmin(user)) return null;
 
   try {
     const [complaints, events] = await Promise.all([
@@ -76,7 +80,7 @@ export default async function ComplaintsPage({
             </h1>
             
             <p className="text-muted-foreground text-base md:text-lg leading-relaxed font-medium">
-              Review, evaluate, and resolve student and staff grievances. All cases are handled with strict confidentiality to ensure a fair and transparent resolution process across the university.
+              Handle general platform complaints. Event cases remain available for oversight; their assigned event reviewers perform review and resolution actions.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -276,7 +280,7 @@ export default async function ComplaintsPage({
                     <ComplaintRoutingCard routingHistory={selectedComplaint.routingHistory} />
                     <ComplaintWorkflowPanel
                       complaintId={selectedComplaint.id}
-                      canManage={false}
+                      canManage={selectedComplaint.event === null}
                     />
                   </div>
                 </div>

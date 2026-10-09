@@ -1,6 +1,6 @@
 import { AccountStatus, Prisma, RoleCode } from "@prisma/client";
 
-import { prisma } from "../../../config/prisma";
+import { governanceTransaction } from "../../../utils/governance-transaction";
 import { AppError } from "../../../utils/app-error";
 import { assertGlobalAccountRole } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
@@ -97,48 +97,50 @@ export const rolesService = {
     assertGlobalAccountRole(roleCode);
     await rolesRepository.syncCatalog();
 
-    const user = await usersRepository.findById(userId);
+    const assignment = await governanceTransaction(async (tx) => {
+      const user = await usersRepository.findById(userId, tx);
 
-    if (!user) {
-      throw new AppError(404, "User not found.");
-    }
+      if (!user) {
+        throw new AppError(404, "User not found.");
+      }
 
-    if (roleCode === RoleCode.SYSTEM_ADMIN && user.eventTeamMemberships.length > 0) {
-      throw new AppError(
-        409,
-        "Revoke this user's active event team assignments before granting System Admin access.",
-      );
-    }
+      if (roleCode === RoleCode.SYSTEM_ADMIN && user.eventTeamMemberships.length > 0) {
+        throw new AppError(
+          409,
+          "Revoke this user's active event team assignments before granting System Admin access.",
+        );
+      }
 
-    const role = await rolesRepository.findByCode(roleCode);
+      const role = await rolesRepository.findByCode(roleCode, tx);
 
-    if (!role) {
-      throw new AppError(404, "Role not found.");
-    }
+      if (!role) {
+        throw new AppError(404, "Role not found.");
+      }
 
-    const existingAssignment = await rolesRepository.findActiveAssignment(userId, role.id);
+      const existingAssignment = await rolesRepository.findActiveAssignment(userId, role.id, tx);
 
-    if (existingAssignment) {
-      throw new AppError(409, `User already has the ${roleCode} role.`);
-    }
+      if (existingAssignment) {
+        throw new AppError(409, `User already has the ${roleCode} role.`);
+      }
 
-    const assignment = await rolesRepository.createAssignment({
-      userId,
-      roleId: role.id,
-      assignedById: actorId,
-    });
-
-    await auditService.record({
-      actorId,
-      action: "roles.assign",
-      entityType: "UserRole",
-      entityId: assignment.id,
-      summary: `Assigned ${roleCode} to ${user.email}`,
-      context: {
+      const assignment = await rolesRepository.createAssignment({
         userId,
-        roleCode,
-      },
-      ...auditMetadata,
+        roleId: role.id,
+        assignedById: actorId,
+      }, tx);
+      await auditService.record({
+        actorId,
+        action: "roles.assign",
+        entityType: "UserRole",
+        entityId: assignment.id,
+        summary: `Assigned ${roleCode} to ${user.email}`,
+        context: {
+          userId,
+          roleCode,
+        },
+        ...auditMetadata,
+      }, tx);
+      return assignment;
     });
 
     return mapAssignment(assignment);
@@ -149,46 +151,46 @@ export const rolesService = {
     assignmentId: string,
     auditMetadata?: AuditMetadata,
   ) {
-    const assignment = await rolesRepository.findAssignmentById(assignmentId);
+    const revokedAssignment = await governanceTransaction(async (tx) => {
+      const assignment = await rolesRepository.findAssignmentById(assignmentId, tx);
 
-    if (!assignment) {
-      throw new AppError(404, "Role assignment not found.");
-    }
-
-    if (assignment.revokedAt) {
-      throw new AppError(409, "Role assignment has already been revoked.");
-    }
-
-    if (
-      assignment.role.code === RoleCode.SYSTEM_ADMIN &&
-      assignment.user.status === AccountStatus.ACTIVE
-    ) {
-      const activeSystemAdminAssignments = await prisma.userRole.count({
-        where: {
-          revokedAt: null,
-          role: { code: RoleCode.SYSTEM_ADMIN },
-          user: { status: AccountStatus.ACTIVE },
-        },
-      });
-
-      if (activeSystemAdminAssignments <= 1) {
-        throw new AppError(409, "The last active System Admin assignment cannot be revoked.");
+      if (!assignment) {
+        throw new AppError(404, "Role assignment not found.");
       }
-    }
 
-    const revokedAssignment = await rolesRepository.revokeAssignment(assignmentId);
+      if (assignment.revokedAt) {
+        throw new AppError(409, "Role assignment has already been revoked.");
+      }
 
-    await auditService.record({
-      actorId,
-      action: "roles.revoke",
-      entityType: "UserRole",
-      entityId: revokedAssignment.id,
-      summary: `Revoked ${revokedAssignment.role.code} from ${revokedAssignment.user.email}`,
-      context: {
-        userId: revokedAssignment.userId,
-        roleCode: revokedAssignment.role.code,
-      },
-      ...auditMetadata,
+      if (
+        assignment.role.code === RoleCode.SYSTEM_ADMIN &&
+        assignment.user.status === AccountStatus.ACTIVE
+      ) {
+        const remainingAdmins = await tx.user.count({
+          where: {
+            status: AccountStatus.ACTIVE,
+            roles: { some: { id: { not: assignmentId }, revokedAt: null, role: { code: RoleCode.SYSTEM_ADMIN } } },
+          },
+        });
+        if (remainingAdmins === 0) {
+          throw new AppError(409, "The last active System Admin assignment cannot be revoked.");
+        }
+      }
+
+      const revokedAssignment = await rolesRepository.revokeAssignment(assignmentId, tx);
+      await auditService.record({
+        actorId,
+        action: "roles.revoke",
+        entityType: "UserRole",
+        entityId: revokedAssignment.id,
+        summary: `Revoked ${revokedAssignment.role.code} from ${revokedAssignment.user.email}`,
+        context: {
+          userId: revokedAssignment.userId,
+          roleCode: revokedAssignment.role.code,
+        },
+        ...auditMetadata,
+      }, tx);
+      return revokedAssignment;
     });
 
     return mapAssignment(revokedAssignment);

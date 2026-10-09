@@ -3,6 +3,8 @@
 This folder contains the final handoff package for the completed project.
 
 ## Recommended Reading Order
+Start implementation tasks with `../AGENTS.md` and `PROJECT_STATE.md`.
+
 1. `handoff-summary.md`
 2. `setup-notes.md`
 3. `demo-guide.md`
@@ -18,3 +20,5 @@ This folder contains the final handoff package for the completed project.
 - `architecture-overview.md`: system structure and module overview
 - `git-workflow.md`: collaboration and commit workflow used by Shimul and Nayem
 - `implementation-placeholders.md`: completed feature checklist and submission-oriented delivery view
+- `PROJECT_STATE.md`: current architecture, invariants, verification requirements, and local data handoff
+- `event-role-architecture-audit.md`: event team audit findings, implementation plan, permissions, rollout, and verification evidence

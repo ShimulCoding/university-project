@@ -109,11 +109,11 @@ export function EventDashboardSidebar({
       <div className="space-y-3">
         <div className="data-kicker">Quick actions</div>
         <Link
-          href="/dashboard/my-events"
+          href={eventRoles.includes("SYSTEM_ADMIN") ? "/dashboard/events" : "/dashboard/my-events"}
           className="focus-ring flex items-center gap-3 rounded-[1.15rem] border border-border/70 bg-panel px-4 py-3 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-panel-muted"
         >
           <ArrowLeft className="h-4 w-4 text-primary" />
-          Back to My Events
+          {eventRoles.includes("SYSTEM_ADMIN") ? "Back to event administration" : "Back to My Events"}
         </Link>
         <Link
           href={`/events/${event.slug}`}

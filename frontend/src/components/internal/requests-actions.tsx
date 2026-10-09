@@ -3,8 +3,8 @@
 import { useRef, useState } from "react";
 import { Send, ShieldCheck } from "lucide-react";
 
-import type { BudgetRecord, EventSummary, ExpenseRequestRecord } from "@/types";
-import { postEmpty, postFormData, postJson } from "@/lib/api/client";
+import type { BudgetRecord, BudgetRequestRecord, EventSummary, ExpenseRequestRecord } from "@/types";
+import { apiFetchClient, postEmpty, postFormData, postJson } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -260,6 +260,33 @@ export function SubmitRequestButton({
           {isPending ? "Submitting..." : `Submit ${label.toLowerCase()}`}
         </Button>
       </CardContent>
+    </Card>
+  );
+}
+
+export function RequestEditForm({ request, kind }: {
+  request: BudgetRequestRecord | ExpenseRequestRecord;
+  kind: "budget-requests" | "expense-requests";
+}) {
+  const { feedback, isPending, runAction } = useActionState();
+  return (
+    <Card><CardHeader><CardTitle>Edit {request.state === "RETURNED" ? "returned" : "draft"} request</CardTitle><CardDescription>Update the request and supporting evidence, then submit it for review.</CardDescription></CardHeader>
+      <CardContent><form className="space-y-4" onSubmit={(event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        const evidence = data.getAll("supportingDocument").filter((file) => file instanceof File && file.size > 0);
+        data.delete("supportingDocument");
+        evidence.forEach((file) => data.append("supportingDocument", file));
+        void runAction(() => apiFetchClient(`/requests/${kind}/${request.id}`, { method: "PATCH", body: data }), "Request updated. Submit it when ready for review.");
+      }}>
+        <Field label="Purpose"><Input name="purpose" defaultValue={request.purpose} required /></Field>
+        <Field label="Amount"><Input name="amount" type="number" min="0.01" step="0.01" defaultValue={request.amount} required /></Field>
+        {"category" in request ? <Field label="Category"><Input name="category" defaultValue={request.category} required /></Field> : null}
+        <Field label="Justification"><Textarea name="justification" defaultValue={request.justification ?? ""} rows={3} /></Field>
+        <Field label="Additional supporting documents"><Input name="supportingDocument" type="file" multiple /></Field>
+        <FeedbackMessage feedback={feedback} />
+        <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : "Save request changes"}</Button>
+      </form></CardContent>
     </Card>
   );
 }

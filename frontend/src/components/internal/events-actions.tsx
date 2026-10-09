@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import type { AppRole, EventStatus, ManagedEvent } from "@/types";
+import { getMissingEventTeamRoles } from "@/lib/access";
 import { apiFetchClient, patchJson, postJson } from "@/lib/api/client";
 import { formatEnumLabel } from "@/lib/format";
 import { FeedbackMessage, useActionState } from "@/components/internal/action-utils";
@@ -331,6 +332,8 @@ export function EventStatusControl({
   }));
   const [nextStatus, setNextStatus] = useState<EventStatus | "">(options[0]?.value ?? "");
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
+  const missingRoles = getMissingEventTeamRoles(event);
+  const publicationBlocked = event.status === "DRAFT" && nextStatus === "PUBLISHED" && missingRoles.length > 0;
 
   return (
     <Card>
@@ -354,9 +357,10 @@ export function EventStatusControl({
                 options={options}
               />
             </Field>
+            {publicationBlocked ? <p className="text-sm text-destructive">Assign active personnel before publishing: {missingRoles.map(formatEnumLabel).join(", ")}.</p> : null}
             <FeedbackMessage feedback={feedback} />
             <Button
-              disabled={isPending || !nextStatus}
+              disabled={isPending || !nextStatus || publicationBlocked}
               onClick={() =>
                 void runAction(
                   () => patchJson(`/events/${event.slug}`, { status: nextStatus }),
@@ -385,7 +389,7 @@ export function EventTeamManagement({ event }: { event: ManagedEvent }) {
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
   const requiredRoleCodes = new Set(requiredEventTeamRoles.map((role) => role.roleCode));
   const roleCounts = event.teamMembers.reduce<Record<string, number>>((counts, member) => {
-    counts[member.roleCode] = (counts[member.roleCode] ?? 0) + 1;
+    if (member.user.status === "ACTIVE") counts[member.roleCode] = (counts[member.roleCode] ?? 0) + 1;
     return counts;
   }, {});
   const canAssign =
@@ -401,11 +405,14 @@ export function EventTeamManagement({ event }: { event: ManagedEvent }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5 pt-0">
+        <div className="grid gap-2 sm:grid-cols-2">
+          {requiredEventTeamRoles.map((role) => <div key={role.roleCode} className="rounded-lg border border-border p-3 text-sm"><span className="font-semibold">{role.label}</span><p className={roleCounts[role.roleCode] ? "mt-1 text-muted-foreground" : "mt-1 text-destructive"}>{roleCounts[role.roleCode] ? `${roleCounts[role.roleCode]} active account(s)` : "Active assignment required"}</p></div>)}
+        </div>
         <div className="space-y-3">
           {event.teamMembers.map((member) => {
             const isOnlyRequiredMember =
               requiredRoleCodes.has(member.roleCode as RequiredEventTeamRole) &&
-              roleCounts[member.roleCode] === 1;
+              member.user.status === "ACTIVE" && roleCounts[member.roleCode] === 1;
 
             return (
               <div
@@ -415,6 +422,7 @@ export function EventTeamManagement({ event }: { event: ManagedEvent }) {
                 <div>
                   <div className="font-semibold text-foreground">{member.user.fullName}</div>
                   <div className="mt-1 text-sm text-muted-foreground">{member.user.email}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">Account: {formatEnumLabel(member.user.status)}</div>
                   <div className="mt-1 text-xs font-medium uppercase tracking-wider text-primary">
                     {formatEnumLabel(member.roleCode)}
                   </div>

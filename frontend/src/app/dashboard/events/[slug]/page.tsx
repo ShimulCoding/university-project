@@ -68,7 +68,8 @@ export default async function EventWorkspaceOverviewPage({
   const canSeeApprovals =
     isSystemAdmin(user) || eventRoles.includes("ORGANIZATIONAL_APPROVER");
   const canManageLifecycle =
-    eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("EVENT_MANAGEMENT_USER");
+    event.status !== "DRAFT" &&
+    (eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("EVENT_MANAGEMENT_USER"));
 
   const safeFetch = <T,>(promise: Promise<T>, fallback: T): Promise<T> =>
     promise.catch(() => fallback);
@@ -252,7 +253,7 @@ export default async function EventWorkspaceOverviewPage({
         })}
       </section>
 
-      {canManageLifecycle ? <EventStatusControl event={event} /> : null}
+      {canManageLifecycle ? <EventStatusControl key={event.id + event.status} event={event} /> : null}
 
       {/* QUICK ROUTES */}
       <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/40 backdrop-blur-xl">

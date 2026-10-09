@@ -41,7 +41,7 @@ export const roleMeta: Record<
   SYSTEM_ADMIN: {
     label: "System Administrator",
     shortLabel: "Admin",
-    description: "Monitors protected access, audit views, and cross-module integrity.",
+    description: "Creates and publishes events, assigns their teams, and manages platform access.",
     focus: "Role safety, protected views, and platform trust.",
   },
   EVENT_ADMIN: {
@@ -97,104 +97,11 @@ export type DashboardNavigationItem = {
 };
 
 export const dashboardNavigation: DashboardNavigationItem[] = [
-  {
-    href: "/dashboard",
-    label: "Overview",
-    description: "Global cross-event operating view",
-    icon: LayoutDashboard,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/events",
-    label: "Events",
-    description: "Create, launch, complete, and close events",
-    icon: CalendarDays,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/payments",
-    label: "Verification",
-    description: "Global payment proof queue and review",
-    icon: BadgeCheck,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/income-records",
-    label: "Income records",
-    description: "Global income tracking and evidence",
-    icon: Coins,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/budgets",
-    label: "Budgets",
-    description: "All approved event budgets",
-    icon: WalletCards,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/budget-requests",
-    label: "Budget requests",
-    description: "Budget versions, items, and review",
-    icon: ClipboardList,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/expense-requests",
-    label: "Expense requests",
-    description: "Requested spending before settlement",
-    icon: BriefcaseBusiness,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/expense-records",
-    label: "Expense records",
-    description: "Recorded and settled spending",
-    icon: ReceiptText,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/approvals",
-    label: "Approvals",
-    description: "Global decision queue and separation of duties",
-    icon: ClipboardCheck,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/complaints",
-    label: "Complaints",
-    description: "Protected review, routing, and escalation",
-    icon: ShieldEllipsis,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/reconciliation",
-    label: "Reconciliation",
-    description: "Closure reports and warning checks",
-    icon: Files,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/publications",
-    label: "Publications",
-    description: "Public-safe release boundary",
-    icon: Globe2,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/audit",
-    label: "Audit",
-    description: "Protected logs and trace detail",
-    icon: Archive,
-    roles: ["SYSTEM_ADMIN"],
-  },
-  {
-    href: "/dashboard/controls",
-    label: "Controls",
-    description: "Forms, filters, states, and queues",
-    icon: ShieldCheck,
-    roles: ["SYSTEM_ADMIN"],
-  },
+  { href: "/dashboard", label: "Overview", description: "Platform governance and event handoff", icon: LayoutDashboard, roles: ["SYSTEM_ADMIN"] },
+  { href: "/dashboard/events", label: "Events and teams", description: "Create, publish, and assign event teams", icon: CalendarDays, roles: ["SYSTEM_ADMIN"] },
+  { href: "/dashboard/users", label: "Accounts and roles", description: "Manage account status and global access", icon: ShieldCheck, roles: ["SYSTEM_ADMIN"] },
+  { href: "/dashboard/complaints", label: "Platform complaints", description: "Handle general complaints and oversee event cases", icon: ShieldEllipsis, roles: ["SYSTEM_ADMIN"] },
+  { href: "/dashboard/audit", label: "Audit", description: "Review protected platform activity", icon: Archive, roles: ["SYSTEM_ADMIN"] },
 ];
 
 /**
@@ -233,9 +140,16 @@ export const eventDashboardNavigation: DashboardNavigationItem[] = [
   {
     href: "/budget-requests",
     label: "Budget requests",
-    description: "Event funding proposals",
+    description: "Itemized budget versions and authorization",
     icon: ClipboardList,
-    roles: ["EVENT_ADMIN", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
+    roles: ["EVENT_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
+  },
+  {
+    href: "/funding-requests",
+    label: "Funding requests",
+    description: "Propose and track additional event funding",
+    icon: Landmark,
+    roles: ["EVENT_ADMIN", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER", "EVENT_MANAGEMENT_USER"],
   },
   {
     href: "/expense-requests",
@@ -256,7 +170,7 @@ export const eventDashboardNavigation: DashboardNavigationItem[] = [
     label: "Approvals",
     description: "Event approval queue",
     icon: ClipboardCheck,
-    roles: ["EVENT_ADMIN", "ORGANIZATIONAL_APPROVER"],
+    roles: ["ORGANIZATIONAL_APPROVER"],
   },
   {
     href: "/complaints",

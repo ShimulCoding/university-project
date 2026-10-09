@@ -77,7 +77,7 @@ export default async function EventReconciliationPage({
   if (!user || !event) return null;
 
   const eventRoles = isSystemAdmin(user) ? ["SYSTEM_ADMIN" as const] : getEventRolesForEvent(user, event.id);
-  const canSeeReconciliation = isSystemAdmin(user) || eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("FINANCIAL_CONTROLLER") || eventRoles.includes("ORGANIZATIONAL_APPROVER");
+  const canSeeReconciliation = isSystemAdmin(user) || eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("FINANCIAL_CONTROLLER") || eventRoles.includes("ORGANIZATIONAL_APPROVER") || eventRoles.includes("EVENT_MANAGEMENT_USER");
 
   if (!canSeeReconciliation) {
     return <StatePanel icon={ShieldAlert} tone="warning" title="Access restricted" description="Your event role does not include access to view reconciliation reports." />;

@@ -32,6 +32,13 @@
 - Existing accounts can be assigned to more than one event without resetting their credentials.
 - A user with active event assignments cannot be promoted to System Admin until those assignments are revoked.
 - The final active System Admin assignment cannot be revoked or deactivated.
+- Draft publication is a System Admin handoff action and requires all four active separated required roles.
+- Team mutations, draft publication, global role mutations, and account status changes use serializable transactions with bounded retries to prevent concurrent changes from orphaning a required role or the last administrator.
+- Inactive accounts never count as replacements. Account deactivation checks required-role availability in every affected event.
+- Governance audit writes are atomic with their changes and populate the existing event relation when event context is available.
+- The frontend root dashboard layout stays neutral; global pages use a System Admin route group and event pages own their sign-in/shell.
+- Monetary funding requests and itemized budget versions keep separate workflows. Draft/returned request edits are restricted to their assigned owner.
+- General complaints without an event are handled by System Admin; event cases retain event reviewer authority.
 
 ## 4. File And Document Handling
 - Files are stored on local disk in development through a storage adapter.
@@ -55,6 +62,6 @@
 ## 7. Git And Collaboration Decision
 - One root repository only
 - One root `package-lock.json` because npm workspaces are used
-- Shimul commits normally
+- Shimul commits with explicit `--author="Shimul <shimulc17@gmail.com>"`
 - Nayem commits with explicit `--author`
 - `main` stays stable and short-lived branches are recommended for larger work

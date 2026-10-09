@@ -9,6 +9,7 @@ import { PublicPageShell } from "@/components/shell/public-page-shell";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatePanel } from "@/components/ui/state-panel";
 import { ShieldAlert } from "lucide-react";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,11 @@ export default async function EventWorkspaceLayout({
   const { slug } = await params;
   const user = await getCurrentUser();
 
-  if (!user) {
+  const assignedToLookup = user?.eventRoles.some(
+    (assignment) => assignment.event.slug === slug || assignment.eventId === slug,
+  );
+
+  if (!user || (!isSystemAdmin(user) && !assignedToLookup)) {
     return (
       <PublicPageShell>
         <main className="section-shell py-12 sm:py-16">
@@ -43,6 +48,12 @@ export default async function EventWorkspaceLayout({
             description="Access is granted only when your active account has a team assignment for this exact event."
           />
           <div className="mt-8">
+            {user ? (
+              <div className="mb-6 rounded-2xl border border-border p-5 text-sm">
+                <p>You are signed in as {user.fullName} ({user.email}). This account has no active team assignment for this event. Sign in below with an assigned account.</p>
+                <Link className="mt-3 inline-block font-semibold text-primary" href="/dashboard/my-events">View my assigned events</Link>
+              </div>
+            ) : null}
             <EventTeamAccessPanel eventLookupKey={slug} />
           </div>
         </main>

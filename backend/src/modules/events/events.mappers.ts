@@ -31,6 +31,7 @@ export const eventManageInclude = Prisma.validator<Prisma.EventInclude>()({
           id: true,
           fullName: true,
           email: true,
+          status: true,
         },
       },
     },
@@ -127,6 +128,7 @@ export function mapManageEvent(event: EventWithManagementContext) {
         id: member.user.id,
         fullName: member.user.fullName,
         email: member.user.email,
+        status: member.user.status,
       },
     })),
   };

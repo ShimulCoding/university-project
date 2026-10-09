@@ -13,10 +13,12 @@ import { Button } from "@/components/ui/button";
 
 const dashboardTitles: Record<string, { title: string; description: string }> = {
   "/dashboard": {
-    title: "Internal command surface",
+    title: "System administration",
     description:
-      "A role-aware foundation for verification, approvals, protected audit review, and publication-safe operations.",
+      "Create and publish events, assign their teams, manage platform accounts, and review the audit trail.",
   },
+  "/dashboard/users": { title: "Accounts and roles", description: "Manage global access and account status. Assign operational roles through each event team." },
+  "/dashboard/events": { title: "Events and teams", description: "Create upcoming events, assign separate teams, and publish drafts for event operations." },
   "/dashboard/controls": {
     title: "Control patterns",
     description:
@@ -103,7 +105,7 @@ export function DashboardHeader({ user }: { user: UserProfile }) {
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
           {current?.description ??
-            "A role-aware foundation for verification, approvals, protected audit review, and publication-safe operations."}
+            "Create and publish events, assign their teams, manage platform accounts, and review the audit trail."}
         </p>
         <div className="mt-5 rounded-[1.15rem] border border-border/70 bg-panel-muted px-4 py-4">
           <div className="data-kicker">Current role focus</div>

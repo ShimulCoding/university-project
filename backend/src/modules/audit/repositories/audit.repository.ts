@@ -25,10 +25,14 @@ function buildAuditWhere(filters: AuditFilters): Prisma.AuditLogWhereInput {
 
 export const auditRepository = {
   create(input: CreateAuditLogInput, db: DbClient = prisma) {
+    const eventId = input.eventId ??
+      (typeof input.context?.eventId === "string" ? input.context.eventId : undefined) ??
+      (input.entityType === "Event" ? input.entityId : undefined);
     const createData: Prisma.AuditLogCreateInput = {
       action: input.action,
       entityType: input.entityType,
       entityId: input.entityId,
+      ...(eventId ? { event: { connect: { id: eventId } } } : {}),
       ...(input.actorId ? { actor: { connect: { id: input.actorId } } } : {}),
       ...(input.summary ? { summary: input.summary } : {}),
       ...(input.context ? { context: input.context as Prisma.InputJsonValue } : {}),

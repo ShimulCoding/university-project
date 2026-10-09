@@ -1,6 +1,8 @@
 import { AccountStatus, RoleCode } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
+import { governanceTransaction } from "../../../utils/governance-transaction";
+import { assertEventTeamReady, requiredEventTeamRoles } from "../../../utils/event-team";
 import { AppError } from "../../../utils/app-error";
 import { assertGlobalAccountRole } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
@@ -94,19 +96,16 @@ export const usersService = {
         throw new AppError(500, "Failed to load the newly created user.");
       }
 
+      await auditService.record({
+        actorId,
+        action: "users.create",
+        entityType: "User",
+        entityId: freshUser.id,
+        summary: `Created user ${freshUser.email}`,
+        context: { assignedRoles: roleCodes },
+        ...auditMetadata,
+      }, tx);
       return freshUser;
-    });
-
-    await auditService.record({
-      actorId,
-      action: "users.create",
-      entityType: "User",
-      entityId: createdUser.id,
-      summary: `Created user ${createdUser.email}`,
-      context: {
-        assignedRoles: roleCodes,
-      },
-      ...auditMetadata,
     });
 
     return mapUserProfile(createdUser);
@@ -118,43 +117,53 @@ export const usersService = {
     status: AccountStatus,
     auditMetadata?: AuditMetadata,
   ) {
-    const existingUser = await usersRepository.findById(userId);
+    const updatedUser = await governanceTransaction(async (tx) => {
+      const existingUser = await usersRepository.findById(userId, tx);
 
-    if (!existingUser) {
-      throw new AppError(404, "User not found.");
-    }
-
-    if (
-      status !== AccountStatus.ACTIVE &&
-      existingUser.status === AccountStatus.ACTIVE &&
-      existingUser.roles.some((assignment) => assignment.role.code === RoleCode.SYSTEM_ADMIN)
-    ) {
-      const activeSystemAdminAssignments = await prisma.userRole.count({
-        where: {
-          revokedAt: null,
-          role: { code: RoleCode.SYSTEM_ADMIN },
-          user: { status: AccountStatus.ACTIVE },
-        },
-      });
-
-      if (activeSystemAdminAssignments <= 1) {
-        throw new AppError(409, "The last active System Admin account cannot be deactivated.");
+      if (!existingUser) {
+        throw new AppError(404, "User not found.");
       }
-    }
 
-    const updatedUser = await usersRepository.updateStatus(userId, status);
+      if (
+        status !== AccountStatus.ACTIVE &&
+        existingUser.status === AccountStatus.ACTIVE &&
+        existingUser.roles.some((assignment) => assignment.role.code === RoleCode.SYSTEM_ADMIN)
+      ) {
+        const remainingAdmins = await tx.user.count({
+          where: {
+            id: { not: userId },
+            status: AccountStatus.ACTIVE,
+            roles: { some: { revokedAt: null, role: { code: RoleCode.SYSTEM_ADMIN } } },
+          },
+        });
+        if (remainingAdmins === 0) {
+          throw new AppError(409, "The last active System Admin account cannot be deactivated.");
+        }
+      }
 
-    await auditService.record({
-      actorId,
-      action: "users.status.update",
-      entityType: "User",
-      entityId: userId,
-      summary: `Changed user status to ${status}`,
-      context: {
-        previousStatus: existingUser.status,
-        nextStatus: status,
-      },
-      ...auditMetadata,
+      if (status !== AccountStatus.ACTIVE && existingUser.status === AccountStatus.ACTIVE) {
+        const affectedEvents = new Set(existingUser.eventTeamMemberships
+          .filter((member) => requiredEventTeamRoles.includes(member.roleCode))
+          .map((member) => member.eventId));
+        for (const eventId of affectedEvents) {
+          await assertEventTeamReady(eventId, tx, { userId });
+        }
+      }
+
+      const updatedUser = await usersRepository.updateStatus(userId, status, tx);
+      await auditService.record({
+        actorId,
+        action: "users.status.update",
+        entityType: "User",
+        entityId: userId,
+        summary: `Changed user status to ${status}`,
+        context: {
+          previousStatus: existingUser.status,
+          nextStatus: status,
+        },
+        ...auditMetadata,
+      }, tx);
+      return updatedUser;
     });
 
     return mapUserProfile(updatedUser);

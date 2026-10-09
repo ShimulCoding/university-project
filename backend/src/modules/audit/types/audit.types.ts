@@ -9,6 +9,7 @@ export type AuditMetadata = {
 
 export type CreateAuditLogInput = AuditMetadata & {
   actorId?: string | undefined;
+  eventId?: string | undefined;
   action: string;
   entityType: string;
   entityId: string;

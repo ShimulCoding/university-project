@@ -330,6 +330,10 @@ export const authService = {
         eventScopedInternalRoles.some((roleCode) => roleCode === membership.roleCode),
     );
 
+    if (user.roles.some((assignment) => assignment.role.code === RoleCode.SYSTEM_ADMIN)) {
+      throw new AppError(403, "System Admin accounts must use the System Admin sign-in.");
+    }
+
     if (!hasActiveEventAssignment) {
       throw new AppError(403, "This account is not assigned to the selected event.");
     }

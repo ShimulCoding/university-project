@@ -36,6 +36,10 @@ const eventModuleTitles: Record<string, { title: string; description: string }> 
     title: "Expense requests",
     description: "Review spending requests for this event.",
   },
+  "/funding-requests": {
+    title: "Funding requests",
+    description: "Create and track requests for additional funding within this event.",
+  },
   "/expense-records": {
     title: "Expense records",
     description: "Track settled expenses for this event.",
@@ -115,7 +119,9 @@ export function EventDashboardHeader({
       <div className="flex flex-col items-stretch gap-3 md:min-w-[280px]">
         <div className="flex flex-wrap gap-3">
           <Button asChild variant="outline" size="sm">
-            <Link href="/dashboard/my-events">My Events</Link>
+            <Link href={eventRoles.includes("SYSTEM_ADMIN") ? "/dashboard/events" : "/dashboard/my-events"}>
+              {eventRoles.includes("SYSTEM_ADMIN") ? "All events" : "My Events"}
+            </Link>
           </Button>
           <Button asChild variant="secondary" size="sm">
             <Link href={`/events/${event.slug}`}>Public page</Link>
@@ -124,7 +130,7 @@ export function EventDashboardHeader({
         </div>
         <div className="rounded-[1.15rem] border border-border/70 bg-panel-muted px-4 py-3">
           <Badge variant="info" className="w-fit mb-2">
-            Event team member
+            {eventRoles.includes("SYSTEM_ADMIN") ? "Read-only system oversight" : "Event team member"}
           </Badge>
           <div className="text-sm font-semibold text-foreground">{user.fullName}</div>
           <div className="text-xs text-muted-foreground mt-1">{user.email}</div>

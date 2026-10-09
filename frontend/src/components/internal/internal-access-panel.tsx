@@ -13,8 +13,8 @@ import { Input } from "@/components/ui/input";
 
 export function InternalAccessPanel() {
   const router = useRouter();
-  const [email, setEmail] = useState("shimulc17@gmail.com");
-  const [password, setPassword] = useState("Admin@123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,7 +64,6 @@ export function InternalAccessPanel() {
             <UserCog className="h-4 w-4 text-primary" />
             System Admin
           </div>
-          <div className="mt-2 text-xs text-muted-foreground font-mono">shimulc17@gmail.com</div>
           <div className="mt-3 text-sm leading-6 text-muted-foreground">
             Full platform access — create events, assign teams, manage users, audit logs, and global financial oversight.
           </div>
@@ -102,6 +101,7 @@ export function InternalAccessPanel() {
           >
             <Input
               type="email"
+              autoComplete="username"
               value={email}
               onChange={(event) => {
                 setErrorMessage(null);
@@ -118,6 +118,7 @@ export function InternalAccessPanel() {
           >
             <Input
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(event) => {
                 setErrorMessage(null);

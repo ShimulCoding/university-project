@@ -23,7 +23,7 @@ export function DashboardSidebar({ user }: { user: UserProfile }) {
         <AppLogo />
         <div className="rounded-[1.35rem] border border-primary/10 bg-primary px-4 py-4 text-primary-foreground shadow-panel">
           <div className="flex items-center justify-between gap-3">
-            <div className="data-kicker text-primary-foreground/70">Role preview</div>
+            <div className="data-kicker text-primary-foreground/70">System administration</div>
             <Badge className="border-white/10 bg-white/10 text-white" variant="neutral">
               {activeRoleMeta.shortLabel}
             </Badge>

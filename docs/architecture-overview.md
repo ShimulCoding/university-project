@@ -50,6 +50,7 @@ The system provides event finance transparency for MU CSE Society while protecti
 - `User`
 - `Role`
 - `UserRole`
+- `EventTeamMember`
 - `Event`
 - `Registration`
 - `PaymentProof`
@@ -75,6 +76,8 @@ The system provides event finance transparency for MU CSE Society while protecti
 - One user may be assigned to multiple events, with a different role in each event, without sharing access with any unassigned event.
 - Public event pages provide an event-context team sign-in. The global dashboard sign-in accepts only the System Admin.
 - System Admin can configure and publish a draft. Later operational lifecycle changes belong to the assigned Event Admin or Event Manager.
+- Draft publication verifies all four required roles have active separate accounts. Account status/team changes require active replacements and use serializable transactions with audit records in the same transaction.
+- General complaints without an event remain System Admin responsibilities; event complaint actions remain assigned to event reviewers.
 
 ## Public Summary Rule
 Public summaries appear only when:
@@ -95,6 +98,12 @@ Public summaries appear only when:
 
 ### Internal
 - `/dashboard` and `/dashboard/events` provide global System Admin governance.
+- Global pages use `(system)/layout.tsx`; the root dashboard layout is neutral so event sign-in is never intercepted by the System Admin shell.
+- `/dashboard/users` provides global account creation, status, and role administration.
 - `/dashboard/my-events` lists only the authenticated user's active event assignments.
 - `/dashboard/events/[slug]/*` contains event-scoped verification, income, budgets, requests, expenses, approvals, complaints, reconciliation, and publication controls.
+- `/dashboard/events/[slug]/budget-requests` retains itemized budget creation/revision; `/funding-requests` provides monetary budget requests with owner editing, resubmission, evidence, and decision history.
 - `/dashboard/audit` remains a protected global System Admin view.
+- Older global operational URLs remain protected read-only oversight views. Global complaint actions are enabled only for cases without an event.
+
+See [the event team audit](event-role-architecture-audit.md) for the detailed permission matrix and verification evidence.

@@ -66,6 +66,14 @@ npm run db:generate
 npm run db:migrate
 ```
 
+For an existing environment, apply the committed migrations without creating a new one:
+
+```powershell
+npm exec --workspace backend -- prisma migrate deploy
+```
+
+The legacy-role migration revokes global operational roles and mixed admin/event memberships. Assign each event's chosen personnel through System Admin → Events and teams; do not automatically copy former global operators into every event.
+
 ### Seed roles and system admin
 ```powershell
 npm run prisma:seed --workspace backend
@@ -100,6 +108,24 @@ npm run build --workspace backend
 ```
 
 ## Runtime Verification
+Before the live demo check, run the isolated event-workspace verification against a migrated database with the role catalog initialized:
+
+```powershell
+npm run verify:event-workspaces --workspace backend
+```
+
+This creates temporary uniquely named accounts/events/evidence and removes its own fixtures. It does not require demo reseeding. It verifies 87 HTTP/boundary checks, including concurrent changes and request return/edit/resubmit behavior.
+
+To add eight rendered frontend checks, start the built backend and frontend, then run:
+
+```powershell
+$env:VERIFY_FRONTEND_BASE_URL = "http://localhost:3000"
+npm run verify:event-workspaces --workspace backend
+Remove-Item Env:VERIFY_FRONTEND_BASE_URL
+```
+
+Use a local isolated database for verification. Stop the backend before running Prisma client generation on Windows.
+
 Run:
 ```powershell
 npm run verify:demo:runtime --workspace backend

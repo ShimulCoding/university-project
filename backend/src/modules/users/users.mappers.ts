@@ -1,9 +1,11 @@
 import { Prisma, type AccountStatus, type EventStatus, type RoleCode } from "@prisma/client";
+import { eventScopedInternalRoles, globalAccountRoles } from "../../utils/event-scope";
 
 export const userWithActiveRolesInclude = Prisma.validator<Prisma.UserInclude>()({
   roles: {
     where: {
       revokedAt: null,
+      role: { code: { in: [...globalAccountRoles] } },
     },
     include: {
       role: true,
@@ -12,6 +14,7 @@ export const userWithActiveRolesInclude = Prisma.validator<Prisma.UserInclude>()
   eventTeamMemberships: {
     where: {
       revokedAt: null,
+      roleCode: { in: [...eventScopedInternalRoles] },
     },
     select: {
       eventId: true,

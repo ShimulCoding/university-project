@@ -1,4 +1,9 @@
-import type { AppRole, EventStatus, UserProfile } from "@/types";
+import type { AppRole, EventStatus, ManagedEvent, UserProfile } from "@/types";
+
+export function getMissingEventTeamRoles(event: Pick<ManagedEvent, "teamMembers">): AppRole[] {
+  const requiredRoles: AppRole[] = ["EVENT_ADMIN", "EVENT_MANAGEMENT_USER", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER"];
+  return requiredRoles.filter((role) => !event.teamMembers.some((member) => member.roleCode === role && member.user.status === "ACTIVE"));
+}
 
 export const internalWorkspaceRoles: AppRole[] = [
   "SYSTEM_ADMIN",
@@ -60,7 +65,7 @@ export function getEventRolesForEvent(
   eventId: string,
 ): AppRole[] {
   if (!user) return [];
-  if (isSystemAdmin(user)) return internalWorkspaceRoles;
+  if (isSystemAdmin(user)) return ["SYSTEM_ADMIN"];
   return (user.eventRoles ?? [])
     .filter((assignment) => assignment.eventId === eventId)
     .map((assignment) => assignment.roleCode);

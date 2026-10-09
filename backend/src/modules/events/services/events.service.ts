@@ -1,4 +1,4 @@
-import { AccountStatus, EventStatus, Prisma, RoleCode } from "@prisma/client";
+import { AccountStatus, EventStatus, RoleCode } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
@@ -13,6 +13,8 @@ import {
   scopeEventFilters,
 } from "../../../utils/event-scope";
 import { hashPassword } from "../../../utils/password";
+import { governanceTransaction } from "../../../utils/governance-transaction";
+import { assertEventTeamReady, requiredEventTeamRoles } from "../../../utils/event-team";
 import { normalizeEmail } from "../../../utils/normalize-email";
 import { slugify } from "../../../utils/slugify";
 import { sanitizeNullableText } from "../../../utils/text-utils";
@@ -61,13 +63,6 @@ const eventManageRoles = [
   RoleCode.EVENT_MANAGEMENT_USER,
 ] as RoleCode[];
 
-const requiredEventTeamRoles = [
-  RoleCode.EVENT_ADMIN,
-  RoleCode.EVENT_MANAGEMENT_USER,
-  RoleCode.FINANCIAL_CONTROLLER,
-  RoleCode.ORGANIZATIONAL_APPROVER,
-] as RoleCode[];
-
 function assertSystemAdmin(actor: AuthenticatedUser) {
   if (!actor.roles.includes(RoleCode.SYSTEM_ADMIN)) {
     throw new AppError(403, "Only the System Admin can create events and assign event-specific teams.");
@@ -108,7 +103,7 @@ function assertRequiredRoleSeparation(assignments: EventTeamAssignmentInput[]) {
     if (seenEmails.has(email)) {
       throw new AppError(
         400,
-        "Required event roles must be assigned to separate Google email accounts to preserve separation of duties.",
+        "Required event roles must be assigned to separate accounts to preserve separation of duties.",
       );
     }
 
@@ -249,6 +244,10 @@ function assertEventManagementPermissions(
     );
   }
 
+  if (currentStatus === EventStatus.DRAFT) {
+    throw new AppError(403, "Only the System Admin can configure and publish an event draft.");
+  }
+
   assertEventScopedOperationalAccess(
     viewer,
     eventId,
@@ -257,22 +256,11 @@ function assertEventManagementPermissions(
   );
 }
 
-function isSlugCollisionError(error: unknown) {
-  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") {
-    return false;
-  }
-
-  const target = error.meta?.target as string[] | string | undefined;
-  return Array.isArray(target)
-    ? target.includes("slug")
-    : typeof target === "string" && target.includes("slug");
-}
-
-async function deriveUniqueEventSlug(baseSlug: string, existingEventId?: string | undefined) {
+async function deriveUniqueEventSlug(baseSlug: string, existingEventId?: string | undefined, db: DbClient = prisma) {
   let slug = baseSlug;
 
   for (let attempt = 0; attempt < 100; attempt += 1) {
-    const existingEvent = await eventsRepository.findBySlug(slug);
+    const existingEvent = await eventsRepository.findBySlug(slug, db);
 
     if (!existingEvent || existingEvent.id === existingEventId) {
       return slug;
@@ -354,40 +342,20 @@ export const eventsService = {
 
     assertValidTimeline(input);
 
-    let slug = await deriveUniqueEventSlug(baseSlug);
-    let eventInput = {
-      title: input.title.trim(),
-      slug,
-      description: sanitizeNullableText(input.description),
-      status: nextStatus,
-      registrationOpensAt: input.registrationOpensAt,
-      registrationClosesAt: input.registrationClosesAt,
-      startsAt: input.startsAt,
-      endsAt: input.endsAt,
-      capacity: input.capacity,
-      createdById: actor.id,
-    };
-
-    const event = await prisma.$transaction(async (tx) => {
-      let createdEvent;
-
-      for (let attempt = 0; attempt < 10; attempt += 1) {
-        try {
-          createdEvent = await eventsRepository.createEvent(eventInput, tx);
-          break;
-        } catch (error) {
-          if (isSlugCollisionError(error)) {
-            slug = await deriveUniqueEventSlug(baseSlug);
-            eventInput = { ...eventInput, slug };
-            continue;
-          }
-          throw error;
-        }
-      }
-
-      if (!createdEvent) {
-        throw new AppError(500, "Failed to derive a unique event slug after multiple attempts.");
-      }
+    const event = await governanceTransaction(async (tx) => {
+      const slug = await deriveUniqueEventSlug(baseSlug, undefined, tx);
+      const createdEvent = await eventsRepository.createEvent({
+        title: input.title.trim(),
+        slug,
+        description: sanitizeNullableText(input.description),
+        status: nextStatus,
+        registrationOpensAt: input.registrationOpensAt,
+        registrationClosesAt: input.registrationClosesAt,
+        startsAt: input.startsAt,
+        endsAt: input.endsAt,
+        capacity: input.capacity,
+        createdById: actor.id,
+      }, tx);
 
       for (const assignment of input.teamMembers ?? []) {
         await assignTeamMemberForEvent(actor, createdEvent.id, assignment, tx);
@@ -399,24 +367,23 @@ export const eventsService = {
         throw new AppError(500, "Failed to reload event after team assignment.");
       }
 
+      await auditService.record({
+        actorId: actor.id,
+        action: "events.create",
+        entityType: "Event",
+        entityId: freshEvent.id,
+        summary: `Created event ${freshEvent.title}`,
+        context: {
+          slug: freshEvent.slug,
+          status: freshEvent.status,
+          assignedTeamRoles: freshEvent.teamMembers.map((member) => ({
+            roleCode: member.roleCode,
+            userId: member.user.id,
+          })),
+        },
+        ...auditMetadata,
+      }, tx);
       return freshEvent;
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "events.create",
-      entityType: "Event",
-      entityId: event.id,
-      summary: `Created event ${event.title}`,
-      context: {
-        slug: event.slug,
-        status: event.status,
-        assignedTeamRoles: event.teamMembers.map((member) => ({
-          roleCode: member.roleCode,
-          userId: member.user.id,
-        })),
-      },
-      ...auditMetadata,
     });
 
     return mapManageEvent(event);
@@ -428,98 +395,86 @@ export const eventsService = {
     input: UpdateEventInput,
     auditMetadata?: AuditMetadata,
   ) {
-    const event = await eventsRepository.findByLookupKey(eventLookupKey);
+    const updatedEvent = await governanceTransaction(async (tx) => {
+      const event = await eventsRepository.findByLookupKey(eventLookupKey, tx);
 
-    if (!event) {
-      throw new AppError(404, "Event not found.");
-    }
-
-    const nextStatus = input.status ?? event.status;
-    assertEventManagementPermissions(actor, event.id, event.status, nextStatus);
-    const nextSlugBase = input.slug ? slugify(input.slug) : undefined;
-    const nextDescription = sanitizeNullableText(input.description);
-
-    if (input.slug && !nextSlugBase) {
-      throw new AppError(400, "Unable to derive a valid event slug.");
-    }
-
-    assertValidStatusTransition(event.status, nextStatus);
-
-    const hasMeaningfulChange =
-      (input.title !== undefined && input.title.trim() !== event.title) ||
-      (nextSlugBase !== undefined && nextSlugBase !== event.slug) ||
-      (input.description !== undefined && nextDescription !== event.description) ||
-      (input.status !== undefined && input.status !== event.status) ||
-      (input.registrationOpensAt !== undefined &&
-        input.registrationOpensAt.getTime() !== event.registrationOpensAt?.getTime()) ||
-      (input.registrationClosesAt !== undefined &&
-        input.registrationClosesAt.getTime() !== event.registrationClosesAt?.getTime()) ||
-      (input.startsAt !== undefined &&
-        input.startsAt.getTime() !== event.startsAt?.getTime()) ||
-      (input.endsAt !== undefined && input.endsAt.getTime() !== event.endsAt?.getTime()) ||
-      (input.capacity !== undefined && input.capacity !== event.capacity);
-
-    if (!hasMeaningfulChange) {
-      throw new AppError(400, "No event changes were supplied.");
-    }
-
-    assertValidTimeline({
-      registrationOpensAt: input.registrationOpensAt ?? event.registrationOpensAt ?? undefined,
-      registrationClosesAt: input.registrationClosesAt ?? event.registrationClosesAt ?? undefined,
-      startsAt: input.startsAt ?? event.startsAt ?? undefined,
-      endsAt: input.endsAt ?? event.endsAt ?? undefined,
-    });
-
-    let updatedEvent;
-    let nextSlug = nextSlugBase ? await deriveUniqueEventSlug(nextSlugBase, event.id) : undefined;
-
-    for (let attempt = 0; attempt < 10; attempt += 1) {
-      try {
-        updatedEvent = await eventsRepository.updateEvent(event.id, {
-          title: input.title?.trim(),
-          slug: nextSlug,
-          description: nextDescription,
-          status: nextStatus,
-          registrationOpensAt: input.registrationOpensAt,
-          registrationClosesAt: input.registrationClosesAt,
-          startsAt: input.startsAt,
-          endsAt: input.endsAt,
-          capacity: input.capacity,
-        });
-        break;
-      } catch (error) {
-        if (nextSlugBase && isSlugCollisionError(error)) {
-          nextSlug = await deriveUniqueEventSlug(nextSlugBase, event.id);
-          continue;
-        }
-        throw error;
+      if (!event) {
+        throw new AppError(404, "Event not found.");
       }
-    }
 
-    if (!updatedEvent) {
-      throw new AppError(500, "Failed to derive a unique event slug after multiple attempts.");
-    }
+      const nextStatus = input.status ?? event.status;
+      assertEventManagementPermissions(actor, event.id, event.status, nextStatus);
+      if (event.status === EventStatus.DRAFT && nextStatus === EventStatus.PUBLISHED) {
+        await assertEventTeamReady(event.id, tx);
+      }
+      const nextSlugBase = input.slug ? slugify(input.slug) : undefined;
+      const nextDescription = sanitizeNullableText(input.description);
 
-    const staleResult = await reconciliationRepository.markReportsStaleForEvent({
-      eventId: updatedEvent.id,
-      reason: `Event ${updatedEvent.id} changed after reconciliation generation; regenerate before review, finalization, or publication.`,
-      staledAt: new Date(),
-    });
+      if (input.slug && !nextSlugBase) {
+        throw new AppError(400, "Unable to derive a valid event slug.");
+      }
 
-    await auditService.record({
-      actorId: actor.id,
-      action: "events.update",
-      entityType: "Event",
-      entityId: updatedEvent.id,
-      summary: `Updated event ${updatedEvent.title}`,
-      context: {
-        previousStatus: event.status,
-        nextStatus: updatedEvent.status,
-        updatedFields: Object.keys(input),
-        slug: updatedEvent.slug,
-        staleReconciliationReports: staleResult.count,
-      },
-      ...auditMetadata,
+      assertValidStatusTransition(event.status, nextStatus);
+
+      const hasMeaningfulChange =
+        (input.title !== undefined && input.title.trim() !== event.title) ||
+        (nextSlugBase !== undefined && nextSlugBase !== event.slug) ||
+        (input.description !== undefined && nextDescription !== event.description) ||
+        (input.status !== undefined && input.status !== event.status) ||
+        (input.registrationOpensAt !== undefined &&
+          input.registrationOpensAt.getTime() !== event.registrationOpensAt?.getTime()) ||
+        (input.registrationClosesAt !== undefined &&
+          input.registrationClosesAt.getTime() !== event.registrationClosesAt?.getTime()) ||
+        (input.startsAt !== undefined &&
+          input.startsAt.getTime() !== event.startsAt?.getTime()) ||
+        (input.endsAt !== undefined && input.endsAt.getTime() !== event.endsAt?.getTime()) ||
+        (input.capacity !== undefined && input.capacity !== event.capacity);
+
+      if (!hasMeaningfulChange) {
+        throw new AppError(400, "No event changes were supplied.");
+      }
+
+      assertValidTimeline({
+        registrationOpensAt: input.registrationOpensAt ?? event.registrationOpensAt ?? undefined,
+        registrationClosesAt: input.registrationClosesAt ?? event.registrationClosesAt ?? undefined,
+        startsAt: input.startsAt ?? event.startsAt ?? undefined,
+        endsAt: input.endsAt ?? event.endsAt ?? undefined,
+      });
+
+      const nextSlug = nextSlugBase ? await deriveUniqueEventSlug(nextSlugBase, event.id, tx) : undefined;
+      const updatedEvent = await eventsRepository.updateEvent(event.id, {
+        title: input.title?.trim(),
+        slug: nextSlug,
+        description: nextDescription,
+        status: nextStatus,
+        registrationOpensAt: input.registrationOpensAt,
+        registrationClosesAt: input.registrationClosesAt,
+        startsAt: input.startsAt,
+        endsAt: input.endsAt,
+        capacity: input.capacity,
+      }, tx);
+
+      const staleResult = await reconciliationRepository.markReportsStaleForEvent({
+        eventId: updatedEvent.id,
+        reason: `Event ${updatedEvent.id} changed after reconciliation generation; regenerate before review, finalization, or publication.`,
+        staledAt: new Date(),
+      }, tx);
+      await auditService.record({
+        actorId: actor.id,
+        action: "events.update",
+        entityType: "Event",
+        entityId: updatedEvent.id,
+        summary: `Updated event ${updatedEvent.title}`,
+        context: {
+          previousStatus: event.status,
+          nextStatus: updatedEvent.status,
+          updatedFields: Object.keys(input),
+          slug: updatedEvent.slug,
+          staleReconciliationReports: staleResult.count,
+        },
+        ...auditMetadata,
+      }, tx);
+      return updatedEvent;
     });
 
     return mapManageEvent(updatedEvent);
@@ -533,49 +488,51 @@ export const eventsService = {
   ) {
     assertSystemAdmin(actor);
 
-    const event = await eventsRepository.findByLookupKey(eventLookupKey);
+    const updatedEvent = await governanceTransaction(async (tx) => {
+      const event = await eventsRepository.findByLookupKey(eventLookupKey, tx);
 
-    if (!event) {
-      throw new AppError(404, "Event not found.");
-    }
+      if (!event) {
+        throw new AppError(404, "Event not found.");
+      }
 
-    const normalizedEmail = normalizeEmail(input.email);
+      const normalizedEmail = normalizeEmail(input.email);
 
-    if (
-      requiredEventTeamRoles.includes(input.roleCode) &&
-      event.teamMembers.some(
-        (member) =>
-          member.user.email === normalizedEmail &&
-          member.roleCode !== input.roleCode &&
-          requiredEventTeamRoles.includes(member.roleCode),
-      )
-    ) {
-      throw new AppError(
-        400,
-        "Required event roles must stay assigned to separate Google email accounts.",
-      );
-    }
+      if (
+        requiredEventTeamRoles.includes(input.roleCode) &&
+        event.teamMembers.some(
+          (member) =>
+            member.user.email === normalizedEmail &&
+            member.roleCode !== input.roleCode &&
+            requiredEventTeamRoles.includes(member.roleCode),
+        )
+      ) {
+        throw new AppError(
+          400,
+          "Required event roles must stay assigned to separate accounts.",
+        );
+      }
 
-    const member = await assignTeamMemberForEvent(actor, event.id, input);
+      const member = await assignTeamMemberForEvent(actor, event.id, input, tx);
 
-    const updatedEvent = await eventsRepository.findById(event.id);
+      const updatedEvent = await eventsRepository.findById(event.id, tx);
 
-    if (!updatedEvent) {
-      throw new AppError(500, "Failed to reload event team after assignment.");
-    }
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "events.team.assign",
-      entityType: "EventTeamMember",
-      entityId: member.id,
-      summary: `Assigned ${input.roleCode} for ${event.title} to ${member.user.email}`,
-      context: {
-        eventId: event.id,
-        userId: member.user.id,
-        roleCode: input.roleCode,
-      },
-      ...auditMetadata,
+      if (!updatedEvent) {
+        throw new AppError(500, "Failed to reload event team after assignment.");
+      }
+      await auditService.record({
+        actorId: actor.id,
+        action: "events.team.assign",
+        entityType: "EventTeamMember",
+        entityId: member.id,
+        summary: `Assigned ${input.roleCode} for ${event.title} to ${member.user.email}`,
+        context: {
+          eventId: event.id,
+          userId: member.user.id,
+          roleCode: input.roleCode,
+        },
+        ...auditMetadata,
+      }, tx);
+      return updatedEvent;
     });
 
     return mapManageEvent(updatedEvent);
@@ -589,50 +546,43 @@ export const eventsService = {
   ) {
     assertSystemAdmin(actor);
 
-    const event = await eventsRepository.findByLookupKey(eventLookupKey);
+    const updatedEvent = await governanceTransaction(async (tx) => {
+      const event = await eventsRepository.findByLookupKey(eventLookupKey, tx);
 
-    if (!event) {
-      throw new AppError(404, "Event not found.");
-    }
-
-    const existingMember = await eventsRepository.findTeamMemberById(teamMemberId);
-
-    if (!existingMember || existingMember.eventId !== event.id || existingMember.revokedAt) {
-      throw new AppError(404, "Active event team member not found.");
-    }
-
-    if (requiredEventTeamRoles.includes(existingMember.roleCode)) {
-      const remainingRequiredRoleMembers = event.teamMembers.filter(
-        (member) => member.id !== teamMemberId && member.roleCode === existingMember.roleCode,
-      );
-
-      if (remainingRequiredRoleMembers.length === 0) {
-        throw new AppError(
-          409,
-          `Assign another ${existingMember.roleCode} before revoking the current required event team member.`,
-        );
+      if (!event) {
+        throw new AppError(404, "Event not found.");
       }
-    }
 
-    const revokedMember = await eventsRepository.revokeTeamMember(teamMemberId);
-    const updatedEvent = await eventsRepository.findById(event.id);
+      const existingMember = await eventsRepository.findTeamMemberById(teamMemberId, tx);
 
-    if (!updatedEvent) {
-      throw new AppError(500, "Failed to reload event team after revocation.");
-    }
+      if (!existingMember || existingMember.eventId !== event.id || existingMember.revokedAt) {
+        throw new AppError(404, "Active event team member not found.");
+      }
 
-    await auditService.record({
-      actorId: actor.id,
-      action: "events.team.revoke",
-      entityType: "EventTeamMember",
-      entityId: revokedMember.id,
-      summary: `Revoked ${revokedMember.roleCode} for ${event.title} from ${revokedMember.user.email}`,
-      context: {
-        eventId: event.id,
-        userId: revokedMember.userId,
-        roleCode: revokedMember.roleCode,
-      },
-      ...auditMetadata,
+      if (requiredEventTeamRoles.includes(existingMember.roleCode)) {
+        await assertEventTeamReady(event.id, tx, { membershipId: teamMemberId });
+      }
+
+      const revokedMember = await eventsRepository.revokeTeamMember(teamMemberId, tx);
+      const updatedEvent = await eventsRepository.findById(event.id, tx);
+
+      if (!updatedEvent) {
+        throw new AppError(500, "Failed to reload event team after revocation.");
+      }
+      await auditService.record({
+        actorId: actor.id,
+        action: "events.team.revoke",
+        entityType: "EventTeamMember",
+        entityId: revokedMember.id,
+        summary: `Revoked ${revokedMember.roleCode} for ${event.title} from ${revokedMember.user.email}`,
+        context: {
+          eventId: event.id,
+          userId: revokedMember.userId,
+          roleCode: revokedMember.roleCode,
+        },
+        ...auditMetadata,
+      }, tx);
+      return updatedEvent;
     });
 
     return mapManageEvent(updatedEvent);

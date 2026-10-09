@@ -1,6 +1,7 @@
 import { auditRepository } from "../repositories/audit.repository";
 import type { AuditFilters, CreateAuditLogInput } from "../types/audit.types";
 import type { AuthenticatedUser } from "../../../types/auth";
+import type { DbClient } from "../../../types/database";
 import { AppError } from "../../../utils/app-error";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { hasAuditReadAccess } from "../../../utils/role-checks";
@@ -33,8 +34,8 @@ function mapAuditLog(log: Awaited<ReturnType<typeof auditRepository.findById>>) 
 }
 
 export const auditService = {
-  record(input: CreateAuditLogInput) {
-    return auditRepository.create(input);
+  record(input: CreateAuditLogInput, db?: DbClient) {
+    return auditRepository.create(input, db);
   },
 
   async listAuditLogs(viewer: AuthenticatedUser, filters: AuditFilters) {

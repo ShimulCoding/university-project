@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { CalendarDays, SearchSlash, ShieldAlert, Clock, CalendarRange, Layers } from "lucide-react";
 
-import { hasAnyRole } from "@/lib/access";
-import { listManagedEvents } from "@/lib/api/internal";
+import { isSystemAdmin } from "@/lib/access";
+import { apiFetchServer } from "@/lib/api/server";
+import type { ManagedEvent } from "@/types";
 import { getCurrentUser } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/shared";
 import { buildRelativeHref } from "@/lib/detail-query";
@@ -19,6 +20,7 @@ import {
 } from "@/components/internal/events-actions";
 import { FilterCard } from "@/components/internal/filter-card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -44,14 +46,18 @@ export default async function DashboardEventsPage({
   const status = typeof params.status === "string" ? params.status : undefined;
   const search = typeof params.search === "string" ? params.search : undefined;
   const eventId = typeof params.eventId === "string" ? params.eventId : undefined;
+  const page = typeof params.page === "string" && /^[1-9]\d*$/.test(params.page) ? params.page : "1";
+  const user = await getCurrentUser();
+  if (!isSystemAdmin(user)) return null;
 
   try {
-    const [user, events] = await Promise.all([
-      getCurrentUser(),
-      listManagedEvents({ status, search }),
-    ]);
-    const canCreateEvents = hasAnyRole(user, ["SYSTEM_ADMIN"]);
-    const selectedEvent = events.find((event) => event.id === eventId) ?? events[0] ?? null;
+    const { events, pagination } = await apiFetchServer<{ events: ManagedEvent[]; pagination: { totalPages: number; totalItems: number } }>("/events/manage/list", {
+      query: { status, search, page, pageSize: "20" },
+    });
+    const canCreateEvents = true;
+    const selectedEvent = eventId
+      ? events.find((event) => event.id === eventId) ?? (await apiFetchServer<{ event: ManagedEvent }>(`/events/manage/${encodeURIComponent(eventId)}`)).event
+      : events[0] ?? null;
 
     return (
       <div className="flex flex-col gap-8 pb-16">
@@ -78,17 +84,17 @@ export default async function DashboardEventsPage({
             </div>
             
             <h1 className="text-3xl lg:text-5xl font-black tracking-tight text-foreground">
-              Event <span className="text-transparent bg-clip-text bg-gradient-to-br from-info via-info/80 to-info/50">Operations</span>
+              Event <span className="text-transparent bg-clip-text bg-gradient-to-br from-info via-info/80 to-info/50">Setup and Teams</span>
             </h1>
             
             <p className="text-muted-foreground text-lg leading-relaxed font-light">
-              Orchestrate the full initiative lifecycle — from draft creation through public registration, execution, reconciliation, and archival closure.
+              Create upcoming events, assign their teams, and publish when ready. Assigned personnel manage each published event from its own workspace.
             </p>
 
             <div className="flex flex-wrap items-center gap-2 pt-2">
               <Badge variant="neutral" className="bg-background/50 backdrop-blur-sm border-border/50 text-sm py-1.5">
                 <CalendarRange className="w-4 h-4 mr-2 inline-block text-info" />
-                {events.length} Managed initiative(s)
+                {pagination.totalItems} Managed initiative(s)
               </Badge>
             </div>
           </div>
@@ -183,6 +189,13 @@ export default async function DashboardEventsPage({
                   </TableBody>
                 </Table>
               )}
+              <div className="flex items-center justify-between gap-3 border-t border-border p-4">
+                <span className="text-sm text-muted-foreground">Page {page} of {Math.max(1, pagination.totalPages)}</span>
+                <div className="flex gap-2">
+                  {Number(page) > 1 ? <Button asChild size="sm" variant="outline"><Link href={buildRelativeHref("/dashboard/events", params, { page: String(Number(page) - 1), eventId: undefined })}>Previous</Link></Button> : null}
+                  {Number(page) < pagination.totalPages ? <Button asChild size="sm" variant="outline"><Link href={buildRelativeHref("/dashboard/events", params, { page: String(Number(page) + 1), eventId: undefined })}>Next</Link></Button> : null}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -257,13 +270,14 @@ export default async function DashboardEventsPage({
 
             {canCreateEvents && selectedEvent?.status === "DRAFT" ? (
               <EventStatusControl
+                key={selectedEvent.id + selectedEvent.status}
                 event={selectedEvent}
                 allowedStatuses={["PUBLISHED", "ARCHIVED"]}
               />
             ) : null}
 
             {canCreateEvents && selectedEvent ? (
-              <EventTeamManagement event={selectedEvent} />
+              <EventTeamManagement key={selectedEvent.id} event={selectedEvent} />
             ) : null}
 
             {canCreateEvents ? (
@@ -290,7 +304,7 @@ export default async function DashboardEventsPage({
     return (
       <div className="flex flex-col gap-8 pt-4">
         <section className="relative overflow-hidden rounded-3xl border border-border/20 bg-background/50 shadow-xl px-8 py-10">
-          <h1 className="text-3xl font-black tracking-tight text-foreground">Event Operations</h1>
+          <h1 className="text-3xl font-black tracking-tight text-foreground">Event Setup and Teams</h1>
         </section>
         <StatePanel
           icon={ShieldAlert}

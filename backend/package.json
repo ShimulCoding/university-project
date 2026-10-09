@@ -10,6 +10,7 @@
     "verify:finance": "tsx scripts/verify-finance-workflow-slice.ts",
     "verify:governance": "tsx scripts/verify-governance-closure-slice.ts",
     "verify:event-scope": "tsx scripts/verify-event-scope.ts",
+    "verify:event-workspaces": "tsx scripts/verify-event-workspaces.ts",
     "verify:demo:runtime": "tsx scripts/verify-demo-runtime.ts",
     "seed:demo:flows": "tsx scripts/seed-events-payments-demo.ts",
     "seed:demo:runtime": "tsx scripts/seed-demo-runtime-data.ts",

@@ -7,6 +7,8 @@
 - Student flows for registration, payment proof submission, registration tracking, and complaints
 - Internal finance and governance flows for verification, requests, approvals, complaints, reconciliation, publication, and audit
 - Demo seed helpers and runtime verification support
+- Separate event/global login layouts, System Admin account administration, active team readiness, and concurrency-safe governance changes
+- Event funding request forms and owner edit/resubmit recovery for returned funding/expense requests
 
 ## How To Run
 1. `npm install`
@@ -37,12 +39,15 @@
 
 ### Internal
 - `/dashboard`
+- `/dashboard/events`
+- `/dashboard/users`
 - `/dashboard/my-events`
 - `/dashboard/events/[slug]`
 - `/dashboard/events/[slug]/payments`
 - `/dashboard/events/[slug]/income-records`
 - `/dashboard/events/[slug]/budgets`
 - `/dashboard/events/[slug]/budget-requests`
+- `/dashboard/events/[slug]/funding-requests`
 - `/dashboard/events/[slug]/expense-requests`
 - `/dashboard/events/[slug]/expense-records`
 - `/dashboard/events/[slug]/approvals`
@@ -86,4 +91,8 @@
 - Runtime verification checks the live backend and confirms key demo scenarios
 
 ## Final Status
+The 2026-10-10 architecture review passed Prisma validation/generation, both builds, frontend lint, the existing regression and live demo scripts, and 95 event-workspace HTTP/boundary checks including rendered pages. See [the audit](event-role-architecture-audit.md) for the permission matrix and exact verification scope.
+
+Four older local events need actual personnel assigned through System Admin → Events and teams. Their records remain intact; no assignments were inferred from legacy global roles.
+
 The project is demo-ready, teacher-review-ready, and documented for local execution.

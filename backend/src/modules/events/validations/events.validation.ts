@@ -1,3 +1,4 @@
+import { passwordField } from "../../../utils/password-validation";
 import { EventStatus, RoleCode } from "@prisma/client";
 import { z } from "zod";
 
@@ -56,7 +57,7 @@ const eventTeamRoleSchema = z
 const eventTeamMemberBodySchema = z.object({
   email: z.string().trim().email().max(255),
   roleCode: eventTeamRoleSchema,
-  password: z.string().min(8).max(72).optional(),
+  password: passwordField.optional(),
   fullName: z.string().trim().min(2).max(100).optional(),
 });
 

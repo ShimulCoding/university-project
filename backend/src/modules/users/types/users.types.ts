@@ -8,6 +8,9 @@ export type CreateUserInput = {
   fullName: string;
   email: string;
   password: string;
+  studentId?: string;
   status?: AccountStatus;
   roleCodes?: RoleCode[];
 };
+
+export type UpdateUserProfileInput = { fullName?: string; studentId?: string };

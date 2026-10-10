@@ -1,6 +1,7 @@
 import { AlertTriangle, FileWarning } from "lucide-react";
 
-import { listPublicEvents } from "@/lib/api/public";
+import { apiOptions } from "@/lib/api/list";
+import type { PublicEvent } from "@/types";
 import { getCurrentUser, listMyComplaints } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/shared";
 import { ComplaintForm } from "@/components/student/complaint-form";
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ComplaintSubmissionPage() {
   try {
-    const [user, events] = await Promise.all([getCurrentUser(), listPublicEvents()]);
+    const [user, events] = await Promise.all([getCurrentUser(), apiOptions<PublicEvent>("/events", "events")]);
     const complaints = user ? await listMyComplaints() : [];
 
     return (

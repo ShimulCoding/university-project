@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, FileWarning, Gavel, FileText, UserMinus, ShieldCheck } from "lucide-react";
 
@@ -47,7 +49,7 @@ export default async function ComplaintsPage({
 
   try {
     const [complaints, events] = await Promise.all([
-      listComplaintReviewQueue({ eventId, state, search }),
+      listComplaintReviewQueue({ page: queryPage(params.page), eventId, state, search }),
       listInternalEventOptions(),
     ]);
     const selectedComplaintId =
@@ -278,7 +280,7 @@ export default async function ComplaintsPage({
                       emptyMessage="No evidence files were attached during submission."
                     />
                     <ComplaintRoutingCard routingHistory={selectedComplaint.routingHistory} />
-                    <ComplaintWorkflowPanel
+                    <ComplaintWorkflowPanel key={selectedComplaint.id}
                       complaintId={selectedComplaint.id}
                       canManage={selectedComplaint.event === null}
                     />
@@ -301,7 +303,8 @@ export default async function ComplaintsPage({
             )}
           </div>
         </div>
-      </div>
+      <ListPagination pagination={complaints.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

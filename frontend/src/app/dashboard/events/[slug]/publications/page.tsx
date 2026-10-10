@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import { ShieldAlert, Globe, CheckCircle2, AlertTriangle, ArrowRight, XCircle, Database, Lock, Eye } from "lucide-react";
 
@@ -87,7 +89,7 @@ export default async function EventDashboardPublicationsPage({
   const canPublish = eventRoles.includes("ORGANIZATIONAL_APPROVER");
 
   const [reports, allPublishedSummaries] = await Promise.all([
-    listReconciliationReports({ eventId: event.id, status: "FINALIZED" }),
+    listReconciliationReports({ page: queryPage(sParams.page), eventId: event.id, status: "FINALIZED" }),
     listPublicFinancialSummaries(),
   ]);
   const publishedSummaries = allPublishedSummaries.filter(s => s.event.id === event.id);
@@ -439,6 +441,7 @@ export default async function EventDashboardPublicationsPage({
           </Card>
         </div>
       </div>
-    </div>
+    <ListPagination pagination={reports.pagination} />
+        </div>
   );
 }

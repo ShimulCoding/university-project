@@ -1,25 +1,9 @@
+import { moneyField } from "../../../utils/money-validation";
 import { ExpenseRecordState, RequestState } from "@prisma/client";
 import { z } from "zod";
 
 import { paginationQuerySchema } from "../../../utils/pagination-validation";
 
-const moneyField = z.preprocess(
-  (value) => {
-    if (typeof value === "number") {
-      return value.toString();
-    }
-
-    if (typeof value === "string") {
-      return value.trim();
-    }
-
-    return value;
-  },
-  z
-    .string()
-    .regex(/^\d+(\.\d{1,2})?$/, "Amount must be a valid monetary value.")
-    .refine((value) => Number(value) > 0, "Amount must be greater than zero."),
-);
 
 const optionalDateField = z.preprocess(
   (value) => (value === "" || value === null || value === undefined ? undefined : value),

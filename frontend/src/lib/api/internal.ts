@@ -1,3 +1,4 @@
+import { apiList, apiOptions } from "@/lib/api/list";
 import type {
   ApprovalQueueItem,
   AuditLogRecord,
@@ -17,19 +18,15 @@ import { apiFetchServer } from "@/lib/api/server";
 
 type QueryValue = string | undefined;
 
-export async function listManagedEvents(query?: {
+export async function listManagedEvents(query?: { page?: string;
   status?: QueryValue;
   search?: QueryValue;
 }) {
-  const response = await apiFetchServer<{ events: ManagedEvent[] }>("/events/manage/list", {
-    query,
-  });
-
-  return response.events;
+  return apiList<ManagedEvent>("/events/manage/list", "events", query);
 }
 
 export async function listInternalEventOptions() {
-  const events = await listManagedEvents();
+  const events = await apiOptions<ManagedEvent>("/events/manage/list", "events");
 
   return events.map((event) => ({
     id: event.id,
@@ -39,32 +36,18 @@ export async function listInternalEventOptions() {
   }));
 }
 
-export async function listPaymentVerificationQueue(query?: {
+export async function listPaymentVerificationQueue(query?: { page?: string;
   eventId?: QueryValue;
   search?: QueryValue;
 }) {
-  const response = await apiFetchServer<{ queue: PaymentVerificationQueueItem[] }>(
-    "/payments/verification-queue",
-    {
-      query,
-    },
-  );
-
-  return response.queue;
+  return apiList<PaymentVerificationQueueItem>("/payments/verification-queue", "queue", query);
 }
 
-export async function listIncomeRecords(query?: {
+export async function listIncomeRecords(query?: { page?: string;
   eventId?: QueryValue;
   search?: QueryValue;
 }) {
-  const response = await apiFetchServer<{ incomeRecords: IncomeRecord[] }>(
-    "/payments/income-records",
-    {
-      query,
-    },
-  );
-
-  return response.incomeRecords;
+  return apiList<IncomeRecord>("/payments/income-records", "incomeRecords", query);
 }
 
 export async function getIncomeRecord(incomeRecordId: string) {
@@ -75,16 +58,12 @@ export async function getIncomeRecord(incomeRecordId: string) {
   return response.incomeRecord;
 }
 
-export async function listBudgets(query?: {
+export async function listBudgets(query?: { page?: string;
   eventId?: QueryValue;
   state?: QueryValue;
   isActive?: QueryValue;
 }) {
-  const response = await apiFetchServer<{ budgets: BudgetRecord[] }>("/budgets", {
-    query,
-  });
-
-  return response.budgets;
+  return apiList<BudgetRecord>("/budgets", "budgets", query);
 }
 
 export async function getBudget(budgetId: string) {
@@ -92,26 +71,15 @@ export async function getBudget(budgetId: string) {
   return response.budget;
 }
 
-export async function listBudgetRequests(query?: {
+export async function listBudgetRequests(query?: { page?: string;
   eventId?: QueryValue;
   state?: QueryValue;
 }) {
-  const response = await apiFetchServer<{ budgetRequests: BudgetRequestRecord[] }>(
-    "/requests/budget-requests",
-    {
-      query,
-    },
-  );
-
-  return response.budgetRequests;
+  return apiList<BudgetRequestRecord>("/requests/budget-requests", "budgetRequests", query);
 }
 
-export async function listMyBudgetRequests() {
-  const response = await apiFetchServer<{ budgetRequests: BudgetRequestRecord[] }>(
-    "/requests/budget-requests/mine",
-  );
-
-  return response.budgetRequests;
+export async function listMyBudgetRequests(page?: string) {
+  return apiList<BudgetRequestRecord>("/requests/budget-requests/mine", "budgetRequests", { page });
 }
 
 export async function getBudgetRequest(budgetRequestId: string) {
@@ -122,26 +90,15 @@ export async function getBudgetRequest(budgetRequestId: string) {
   return response.budgetRequest;
 }
 
-export async function listExpenseRequests(query?: {
+export async function listExpenseRequests(query?: { page?: string;
   eventId?: QueryValue;
   state?: QueryValue;
 }) {
-  const response = await apiFetchServer<{ expenseRequests: ExpenseRequestRecord[] }>(
-    "/requests/expense-requests",
-    {
-      query,
-    },
-  );
-
-  return response.expenseRequests;
+  return apiList<ExpenseRequestRecord>("/requests/expense-requests", "expenseRequests", query);
 }
 
-export async function listMyExpenseRequests() {
-  const response = await apiFetchServer<{ expenseRequests: ExpenseRequestRecord[] }>(
-    "/requests/expense-requests/mine",
-  );
-
-  return response.expenseRequests;
+export async function listMyExpenseRequests(page?: string) {
+  return apiList<ExpenseRequestRecord>("/requests/expense-requests/mine", "expenseRequests", { page });
 }
 
 export async function getExpenseRequest(expenseRequestId: string) {
@@ -152,19 +109,12 @@ export async function getExpenseRequest(expenseRequestId: string) {
   return response.expenseRequest;
 }
 
-export async function listExpenseRecords(query?: {
+export async function listExpenseRecords(query?: { page?: string;
   eventId?: QueryValue;
   state?: QueryValue;
   expenseRequestId?: QueryValue;
 }) {
-  const response = await apiFetchServer<{ expenseRecords: ExpenseRecord[] }>(
-    "/requests/expense-records",
-    {
-      query,
-    },
-  );
-
-  return response.expenseRecords;
+  return apiList<ExpenseRecord>("/requests/expense-records", "expenseRecords", query);
 }
 
 export async function getExpenseRecord(expenseRecordId: string) {
@@ -175,30 +125,19 @@ export async function getExpenseRecord(expenseRecordId: string) {
   return response.expenseRecord;
 }
 
-export async function listApprovalQueue(query?: {
+export async function listApprovalQueue(query?: { page?: string;
   entityType?: QueryValue;
   eventId?: QueryValue;
 }) {
-  const response = await apiFetchServer<{ queue: ApprovalQueueItem[] }>("/approvals/queue", {
-    query,
-  });
-
-  return response.queue;
+  return apiList<ApprovalQueueItem>("/approvals/queue", "queue", query);
 }
 
-export async function listComplaintReviewQueue(query?: {
+export async function listComplaintReviewQueue(query?: { page?: string;
   eventId?: QueryValue;
   state?: QueryValue;
   search?: QueryValue;
 }) {
-  const response = await apiFetchServer<{ complaints: ComplaintQueueItem[] }>(
-    "/complaints/review-queue",
-    {
-      query,
-    },
-  );
-
-  return response.complaints;
+  return apiList<ComplaintQueueItem>("/complaints/review-queue", "complaints", query);
 }
 
 export async function getComplaint(complaintId: string) {
@@ -209,15 +148,11 @@ export async function getComplaint(complaintId: string) {
   return response.complaint;
 }
 
-export async function listReconciliationReports(query?: {
+export async function listReconciliationReports(query?: { page?: string;
   eventId?: QueryValue;
   status?: QueryValue;
 }) {
-  const response = await apiFetchServer<{ reports: ReconciliationReport[] }>("/reconciliation", {
-    query,
-  });
-
-  return response.reports;
+  return apiList<ReconciliationReport>("/reconciliation", "reports", query);
 }
 
 export async function getReconciliationReport(reportId: string) {
@@ -228,17 +163,13 @@ export async function getReconciliationReport(reportId: string) {
   return response.report;
 }
 
-export async function listAuditLogs(query?: {
+export async function listAuditLogs(query?: { page?: string;
   actorId?: QueryValue;
   entityType?: QueryValue;
   entityId?: QueryValue;
   limit?: QueryValue;
 }) {
-  const response = await apiFetchServer<{ logs: AuditLogRecord[] }>("/audit", {
-    query,
-  });
-
-  return response.logs;
+  return apiList<AuditLogRecord>("/audit", "logs", query);
 }
 
 export async function getAuditLog(auditLogId: string) {

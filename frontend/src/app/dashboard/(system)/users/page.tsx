@@ -3,6 +3,7 @@ import { ShieldAlert } from "lucide-react";
 import { getCurrentUser } from "@/lib/api/student";
 import { isSystemAdmin } from "@/lib/access";
 import { apiFetchServer } from "@/lib/api/server";
+import { queryPage } from "@/lib/api/list";
 import type { UserProfile } from "@/types";
 import { formatEnumLabel } from "@/lib/format";
 import { AccountActions, AccountCreateForm, type GlobalRoleAssignment } from "@/components/internal/account-actions";
@@ -15,7 +16,7 @@ export default async function AccountsPage({ searchParams }: { searchParams: Pro
   const viewer = await getCurrentUser();
   if (!isSystemAdmin(viewer)) return null;
   const params = await searchParams;
-  const page = typeof params.page === "string" && /^[1-9]\d*$/.test(params.page) ? params.page : "1";
+  const page = queryPage(params.page);
   const requestedId = typeof params.userId === "string" ? params.userId : undefined;
   try {
     const { users, pagination } = await apiFetchServer<{ users: UserProfile[]; pagination: { totalPages: number; page: number } }>("/users", { query: { page, pageSize: "20" } });

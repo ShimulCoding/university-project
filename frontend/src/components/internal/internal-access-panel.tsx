@@ -18,8 +18,8 @@ export function InternalAccessPanel() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [, startTransition] = useTransition();
-  const isBusy = isSubmitting;
+  const [routingPending, startTransition] = useTransition();
+  const isBusy = isSubmitting || routingPending;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

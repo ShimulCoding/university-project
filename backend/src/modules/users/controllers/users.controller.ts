@@ -47,4 +47,10 @@ export const usersController = {
 
     response.status(200).json({ user });
   },
+  async updateProfile(request: Request, response: Response) {
+    const user = await usersService.updateProfile(request.auth!.userId, String(request.params.userId), request.body, {
+      ipAddress: request.ip || undefined, userAgent: request.get("user-agent") || undefined, route: request.originalUrl, method: request.method,
+    });
+    response.status(200).json({ user });
+  },
 };

@@ -70,7 +70,7 @@ function getRegistrationWindowState(event: EventWithManagementContext): Registra
     return "UPCOMING";
   }
 
-  if (event.registrationClosesAt && now > event.registrationClosesAt) {
+  if (event.registrationClosesAt && now >= event.registrationClosesAt) {
     return "CLOSED";
   }
 

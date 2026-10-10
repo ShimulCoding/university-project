@@ -178,7 +178,7 @@ export const eventsRepository = {
     return db.event.findMany({
       where: buildListWhere(filters, false),
       include: eventManageInclude,
-      orderBy: [{ startsAt: "asc" }, { createdAt: "desc" }],
+      orderBy: [{ startsAt: "asc" }, { createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
@@ -193,7 +193,7 @@ export const eventsRepository = {
     return db.event.findMany({
       where: buildListWhere(filters, true),
       include: eventManageInclude,
-      orderBy: [{ createdAt: "desc" }],
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },

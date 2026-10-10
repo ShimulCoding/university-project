@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, FileSpreadsheet, CheckCircle2, ArrowRight, ClipboardList, Tag } from "lucide-react";
 
@@ -42,7 +44,7 @@ export default async function BudgetRequestsPage({
     const canCreateOrReviseBudgets = false;
     const canApproveBudgets = false;
     const [budgets, events] = await Promise.all([
-      listBudgets({ eventId, state }),
+      listBudgets({ page: queryPage(params.page), eventId, state }),
       listInternalEventOptions(),
     ]);
     const selectedBudgetId = budgets.find((budget) => budget.id === budgetId)?.id ?? budgets[0]?.id;
@@ -292,7 +294,7 @@ export default async function BudgetRequestsPage({
                 />
 
                 {canCreateOrReviseBudgets && selectedBudget.state === "REVISED" ? (
-                  <BudgetComposerForm events={events} budget={selectedBudget} />
+                  <BudgetComposerForm key={selectedBudget.id} events={events} budget={selectedBudget} />
                 ) : null}
               </div>
             ) : null}
@@ -300,7 +302,8 @@ export default async function BudgetRequestsPage({
             {canCreateOrReviseBudgets ? <BudgetComposerForm events={events} /> : null}
           </div>
         </div>
-      </div>
+      <ListPagination pagination={budgets.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

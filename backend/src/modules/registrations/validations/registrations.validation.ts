@@ -5,13 +5,14 @@ import { paginationQuerySchema } from "../../../utils/pagination-validation";
 export const listRegistrationsSchema = z.object({
   query: z.object({
     ...paginationQuerySchema,
+    eventId: z.string().cuid().optional(),
   }),
 });
 
 export const createRegistrationSchema = z.object({
   body: z.object({
     eventId: z.string().cuid(),
-    studentId: z.string().trim().min(3).max(40),
+    studentId: z.string().trim().min(3).max(30),
     phone: z.string().trim().min(6).max(30).optional(),
   }),
 });

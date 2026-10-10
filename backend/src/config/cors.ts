@@ -1,6 +1,7 @@
 import type { CorsOptions } from "cors";
 
 import { env } from "./env";
+import { AppError } from "../utils/app-error";
 
 // Allow known development ports (frontend: 3000–3009, backend: 4000) instead
 // of any localhost port, to prevent cookie theft via port-sharing attacks.
@@ -19,7 +20,7 @@ export const corsOptions: CorsOptions = {
       return;
     }
 
-    callback(new Error("Origin is not allowed by CORS."));
+    callback(new AppError(403, "Origin is not allowed by CORS."));
   },
   credentials: true,
 };

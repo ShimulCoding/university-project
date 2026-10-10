@@ -2,6 +2,7 @@ import type { PaginationInput } from "../../../utils/pagination";
 
 export type PublicSummaryFilters = PaginationInput & {
   search?: string | undefined;
+  latestOnly?: boolean | undefined;
 };
 
 export type PublicFinancialSummaryBreakdownLine = {

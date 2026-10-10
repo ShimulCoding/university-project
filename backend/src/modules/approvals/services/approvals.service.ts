@@ -1,3 +1,4 @@
+import { governanceTransaction } from "../../../utils/governance-transaction";
 import {
   ApprovalDecisionType,
   ApprovalEntityType,
@@ -5,7 +6,6 @@ import {
   RoleCode,
 } from "@prisma/client";
 
-import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import {
@@ -19,6 +19,7 @@ import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { mapApprovalQueueItem } from "../approvals.mappers";
 import { approvalsRepository } from "../repositories/approvals.repository";
+import { reconciliationRepository } from "../../reconciliation/repositories/reconciliation.repository";
 import {
   mapBudgetRequest,
   mapExpenseRequest,
@@ -73,38 +74,27 @@ export const approvalsService = {
   async listApprovalQueue(actor: AuthenticatedUser, filters: ApprovalQueueFilters) {
     assertHasAnyApproverAssignment(actor);
 
-    const queueItems: Array<ReturnType<typeof mapApprovalQueueItem>> = [];
     const scopedFilters = scopeEventFilters(actor, filters, approverEventRoles);
     const paginationOptions = getPaginationOptions(filters);
-
-    if (!scopedFilters.entityType || scopedFilters.entityType === ApprovalEntityType.BUDGET_REQUEST) {
-      const budgetRequests = await approvalsRepository.listPendingBudgetRequests(scopedFilters);
-      queueItems.push(
-        ...budgetRequests.map((request) =>
-          mapApprovalQueueItem(ApprovalEntityType.BUDGET_REQUEST, request),
-        ),
-      );
-    }
-
-    if (!scopedFilters.entityType || scopedFilters.entityType === ApprovalEntityType.EXPENSE_REQUEST) {
-      const expenseRequests = await approvalsRepository.listPendingExpenseRequests(scopedFilters);
-      queueItems.push(
-        ...expenseRequests.map((request) =>
-          mapApprovalQueueItem(ApprovalEntityType.EXPENSE_REQUEST, request),
-        ),
-      );
-    }
-
-    const sortedQueue = queueItems.sort(
-      (left, right) => left.createdAt.getTime() - right.createdAt.getTime(),
-    );
+    const [references, totalItems] = await Promise.all([
+      approvalsRepository.listQueueReferences(scopedFilters, paginationOptions),
+      approvalsRepository.countQueue(scopedFilters),
+    ]);
+    const [budgetRequests, expenseRequests] = await Promise.all([
+      approvalsRepository.findBudgetRequestsByIds(references.filter((row) => row.entityType === ApprovalEntityType.BUDGET_REQUEST).map((row) => row.id)),
+      approvalsRepository.findExpenseRequestsByIds(references.filter((row) => row.entityType === ApprovalEntityType.EXPENSE_REQUEST).map((row) => row.id)),
+    ]);
+    const requests = new Map([
+      ...budgetRequests.map((request) => [`BUDGET_REQUEST:${request.id}`, mapApprovalQueueItem(ApprovalEntityType.BUDGET_REQUEST, request)] as const),
+      ...expenseRequests.map((request) => [`EXPENSE_REQUEST:${request.id}`, mapApprovalQueueItem(ApprovalEntityType.EXPENSE_REQUEST, request)] as const),
+    ]);
 
     return {
-      queue: sortedQueue.slice(
-        paginationOptions.skip,
-        paginationOptions.skip + paginationOptions.take,
-      ),
-      pagination: buildPaginationResult(paginationOptions, sortedQueue.length),
+      queue: references.flatMap((row) => {
+        const item = requests.get(`${row.entityType}:${row.id}`);
+        return item ? [item] : [];
+      }),
+      pagination: buildPaginationResult(paginationOptions, totalItems),
     };
   },
 
@@ -115,62 +105,100 @@ export const approvalsService = {
     input: ApprovalDecisionInput,
     auditMetadata?: AuditMetadata,
   ) {
-    // System Admin cannot make approval decisions — only event-scoped Approver
-    const comment = sanitizeOptionalText(input.comment);
-
-    if (entityType === ApprovalEntityType.BUDGET_REQUEST) {
-      const request = await approvalsRepository.findBudgetRequestById(entityId);
-
-      if (!request) {
-        throw new AppError(404, "Budget request not found.");
-      }
-
-      assertEventApproverPermissions(actor, request.eventId);
-
-      assertPendingApprovalState(request.state);
-
-      if (request.requestedById === actor.id) {
-        throw new AppError(409, "Self-approval is not allowed for budget requests.");
-      }
-
-      const updatedRequest = await prisma.$transaction(async (tx) => {
-        const transition = await approvalsRepository.transitionBudgetRequestFromPending(
-          entityId,
-          mapDecisionToRequestState(input.decision),
-          tx,
-        );
-
-        if (transition.count !== 1) {
-          throw new AppError(409, "This budget request has already received a decision.");
+    return governanceTransaction(async (tx) => {
+      // System Admin cannot make approval decisions — only event-scoped Approver
+      const comment = sanitizeOptionalText(input.comment);
+      if (entityType === ApprovalEntityType.BUDGET_REQUEST) {
+        const request = await approvalsRepository.findBudgetRequestById(entityId, tx);
+        if (!request) {
+          throw new AppError(404, "Budget request not found.");
         }
-
-        await approvalsRepository.createApprovalDecision(
-          {
+        assertEventApproverPermissions(actor, request.eventId);
+        assertPendingApprovalState(request.state);
+        if (request.requestedById === actor.id) {
+          throw new AppError(409, "Self-approval is not allowed for budget requests.");
+        }
+        const updatedRequest = await (async () => {
+          const transition = await approvalsRepository.transitionBudgetRequestFromPending(entityId, mapDecisionToRequestState(input.decision), tx);
+          if (transition.count !== 1) {
+            throw new AppError(409, "This budget request has already received a decision.");
+          }
+          await approvalsRepository.createApprovalDecision({
             entityType,
             decision: input.decision,
             comment,
             actorId: actor.id,
             budgetRequestId: entityId,
+          }, tx);
+          const reloadedRequest = await approvalsRepository.findBudgetRequestById(entityId, tx);
+          if (!reloadedRequest) {
+            throw new AppError(500, "Failed to reload the decided budget request.");
+          }
+          return reloadedRequest;
+        })();
+        await auditService.record({
+          actorId: actor.id,
+          action: "approvals.decide",
+          entityType: "BudgetRequest",
+          entityId: updatedRequest.id,
+          summary: `${input.decision} budget request for ${updatedRequest.event.title}`,
+          context: {
+            eventId: updatedRequest.eventId,
+            approvalEntityType: entityType,
+            decision: input.decision,
+            previousState: request.state,
+            nextState: updatedRequest.state,
+            comment: comment ?? null,
           },
-          tx,
-        );
-
-        const reloadedRequest = await approvalsRepository.findBudgetRequestById(entityId, tx);
-
-        if (!reloadedRequest) {
-          throw new AppError(500, "Failed to reload the decided budget request.");
+          ...auditMetadata,
+        }, tx);
+        return {
+          entityType,
+          request: mapBudgetRequest(updatedRequest),
+        };
+      }
+      const request = await approvalsRepository.findExpenseRequestById(entityId, tx);
+      if (!request) {
+        throw new AppError(404, "Expense request not found.");
+      }
+      assertEventApproverPermissions(actor, request.eventId);
+      assertPendingApprovalState(request.state);
+      if (request.requestedById === actor.id) {
+        throw new AppError(409, "Self-approval is not allowed for expense requests.");
+      }
+      const updatedRequest = await (async () => {
+        const transition = await approvalsRepository.transitionExpenseRequestFromPending(entityId, mapDecisionToRequestState(input.decision), tx);
+        if (transition.count !== 1) {
+          throw new AppError(409, "This expense request has already received a decision.");
         }
-
+        await approvalsRepository.createApprovalDecision({
+          entityType,
+          decision: input.decision,
+          comment,
+          actorId: actor.id,
+          expenseRequestId: entityId,
+        }, tx);
+        const reloadedRequest = await approvalsRepository.findExpenseRequestById(entityId, tx);
+        if (!reloadedRequest) {
+          throw new AppError(500, "Failed to reload the decided expense request.");
+        }
         return reloadedRequest;
-      });
-
+      })();
+      if (input.decision === ApprovalDecisionType.APPROVED) {
+        await reconciliationRepository.markReportsStaleForEvent({
+          eventId: updatedRequest.eventId,
+          reason: "Approved expense requests changed; reconciliation must be regenerated.",
+          staledAt: new Date(),
+        }, tx);
+      }
       await auditService.record({
         actorId: actor.id,
         action: "approvals.decide",
-        entityType: "BudgetRequest",
+        entityType: "ExpenseRequest",
         entityId: updatedRequest.id,
-        summary: `${input.decision} budget request for ${updatedRequest.event.title}`,
+        summary: `${input.decision} expense request for ${updatedRequest.event.title}`,
         context: {
+          eventId: updatedRequest.eventId,
           approvalEntityType: entityType,
           decision: input.decision,
           previousState: request.state,
@@ -178,78 +206,11 @@ export const approvalsService = {
           comment: comment ?? null,
         },
         ...auditMetadata,
-      });
-
+      }, tx);
       return {
         entityType,
-        request: mapBudgetRequest(updatedRequest),
+        request: mapExpenseRequest(updatedRequest),
       };
-    }
-
-    const request = await approvalsRepository.findExpenseRequestById(entityId);
-
-    if (!request) {
-      throw new AppError(404, "Expense request not found.");
-    }
-
-    assertEventApproverPermissions(actor, request.eventId);
-
-    assertPendingApprovalState(request.state);
-
-    if (request.requestedById === actor.id) {
-      throw new AppError(409, "Self-approval is not allowed for expense requests.");
-    }
-
-    const updatedRequest = await prisma.$transaction(async (tx) => {
-      const transition = await approvalsRepository.transitionExpenseRequestFromPending(
-        entityId,
-        mapDecisionToRequestState(input.decision),
-        tx,
-      );
-
-      if (transition.count !== 1) {
-        throw new AppError(409, "This expense request has already received a decision.");
-      }
-
-      await approvalsRepository.createApprovalDecision(
-        {
-          entityType,
-          decision: input.decision,
-          comment,
-          actorId: actor.id,
-          expenseRequestId: entityId,
-        },
-        tx,
-      );
-
-      const reloadedRequest = await approvalsRepository.findExpenseRequestById(entityId, tx);
-
-      if (!reloadedRequest) {
-        throw new AppError(500, "Failed to reload the decided expense request.");
-      }
-
-      return reloadedRequest;
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "approvals.decide",
-      entityType: "ExpenseRequest",
-      entityId: updatedRequest.id,
-      summary: `${input.decision} expense request for ${updatedRequest.event.title}`,
-      context: {
-        approvalEntityType: entityType,
-        decision: input.decision,
-        previousState: request.state,
-        nextState: updatedRequest.state,
-        comment: comment ?? null,
-      },
-      ...auditMetadata,
-    });
-
-    return {
-      entityType,
-      request: mapExpenseRequest(updatedRequest),
-    };
+    }, actor);
   },
 };

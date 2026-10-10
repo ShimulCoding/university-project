@@ -1,9 +1,8 @@
 import { promises as fs } from "fs";
-import path from "path";
 
 import { DocumentCategory, RoleCode } from "@prisma/client";
 
-import { uploadsRoot } from "../../../config/uploads";
+import { resolveUploadPath } from "../../../config/uploads";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { hasEventScopedRole, isSystemAdmin } from "../../../utils/event-scope";
@@ -95,14 +94,11 @@ function assertDocumentAccess(
 }
 
 function resolveDocumentPath(relativePath: string) {
-  const absolutePath = path.resolve(uploadsRoot, relativePath);
-  const relativeFromRoot = path.relative(uploadsRoot, absolutePath);
-
-  if (relativeFromRoot.startsWith("..") || path.isAbsolute(relativeFromRoot)) {
+  try {
+    return resolveUploadPath(relativePath);
+  } catch {
     throw new AppError(500, "The stored document path is invalid.");
   }
-
-  return absolutePath;
 }
 
 export const documentsService = {
@@ -118,7 +114,10 @@ export const documentsService = {
     const absolutePath = resolveDocumentPath(document.relativePath);
 
     try {
-      await fs.access(absolutePath);
+      const file = await fs.stat(absolutePath);
+      if (!file.isFile() || file.size === 0 || BigInt(file.size) !== document.sizeBytes) {
+        throw new Error("The stored evidence is incomplete.");
+      }
     } catch {
       throw new AppError(404, "Protected document file is unavailable.");
     }

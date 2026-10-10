@@ -25,7 +25,6 @@ export const usersRepository = {
   ) {
     return db.user.create({
       data,
-      include: userWithActiveRolesInclude,
     });
   },
 
@@ -53,9 +52,7 @@ export const usersRepository = {
   listUsers(pagination?: PaginationOptions, db: DbClient = prisma) {
     return db.user.findMany({
       include: userWithActiveRolesInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
@@ -63,9 +60,13 @@ export const usersRepository = {
   updateStatus(userId: string, status: AccountStatus, db: DbClient = prisma) {
     return db.user.update({
       where: { id: userId },
-      data: { status },
+      data: { status, ...(status !== "ACTIVE" ? { sessionVersion: { increment: 1 } } : {}) },
       include: userWithActiveRolesInclude,
     });
+  },
+
+  updateProfile(userId: string, data: { fullName?: string; studentId?: string }, db: DbClient = prisma) {
+    return db.user.update({ where: { id: userId }, data, include: userWithActiveRolesInclude });
   },
 
   updateLastLogin(userId: string, db: DbClient = prisma) {
@@ -87,7 +88,7 @@ export const usersRepository = {
   updatePassword(userId: string, passwordHash: string, db: DbClient = prisma) {
     return db.user.update({
       where: { id: userId },
-      data: { passwordHash },
+      data: { passwordHash, sessionVersion: { increment: 1 } },
       include: userWithActiveRolesInclude,
     });
   },

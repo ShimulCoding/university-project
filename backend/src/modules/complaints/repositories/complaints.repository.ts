@@ -170,9 +170,7 @@ export const complaintsRepository = {
     return db.complaint.findMany({
       where: buildSubmitterWhere(submittedById, filters),
       include: complaintDetailInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
@@ -195,7 +193,7 @@ export const complaintsRepository = {
     return db.complaint.findMany({
       where: buildQueueWhere(filters),
       include: complaintDetailInclude,
-      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },

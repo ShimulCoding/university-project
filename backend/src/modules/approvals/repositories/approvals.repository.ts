@@ -12,6 +12,7 @@ import {
   expenseRequestDetailInclude,
 } from "../../requests/requests.mappers";
 import type { ApprovalQueueFilters } from "../types/approvals.types";
+import type { PaginationOptions } from "../../../utils/pagination";
 
 function buildPendingStatesWhere() {
   return {
@@ -19,56 +20,46 @@ function buildPendingStatesWhere() {
   };
 }
 
-function buildBudgetQueueWhere(filters: ApprovalQueueFilters): Prisma.BudgetRequestWhereInput {
-  const where: Prisma.BudgetRequestWhereInput = {
-    state: buildPendingStatesWhere(),
-  };
-
-  if (filters.eventId) {
-    where.eventId = filters.eventId;
-  } else if (filters.eventIds) {
-    where.eventId = {
-      in: filters.eventIds,
-    };
-  }
-
-  return where;
-}
-
-function buildExpenseQueueWhere(filters: ApprovalQueueFilters): Prisma.ExpenseRequestWhereInput {
-  const where: Prisma.ExpenseRequestWhereInput = {
-    state: buildPendingStatesWhere(),
-  };
-
-  if (filters.eventId) {
-    where.eventId = filters.eventId;
-  } else if (filters.eventIds) {
-    where.eventId = {
-      in: filters.eventIds,
-    };
-  }
-
-  return where;
+function queueSql(filters: ApprovalQueueFilters) {
+  const scope = filters.eventId
+    ? Prisma.sql`"eventId" = ${filters.eventId}`
+    : filters.eventIds
+      ? filters.eventIds.length ? Prisma.sql`"eventId" IN (${Prisma.join(filters.eventIds)})` : Prisma.sql`FALSE`
+      : Prisma.sql`TRUE`;
+  return Prisma.sql`
+    SELECT "id", "createdAt", 'BUDGET_REQUEST' AS "entityType" FROM "BudgetRequest"
+    WHERE "state" IN ('SUBMITTED', 'PENDING_REVIEW') AND ${scope}
+      AND ${!filters.entityType || filters.entityType === "BUDGET_REQUEST"}
+    UNION ALL
+    SELECT "id", "createdAt", 'EXPENSE_REQUEST' AS "entityType" FROM "ExpenseRequest"
+    WHERE "state" IN ('SUBMITTED', 'PENDING_REVIEW') AND ${scope}
+      AND ${!filters.entityType || filters.entityType === "EXPENSE_REQUEST"}`;
 }
 
 export const approvalsRepository = {
-  listPendingBudgetRequests(filters: ApprovalQueueFilters, db: DbClient = prisma) {
+  listQueueReferences(filters: ApprovalQueueFilters, pagination: PaginationOptions, db: DbClient = prisma) {
+    return db.$queryRaw<Array<{ id: string; entityType: ApprovalEntityType }>>(Prisma.sql`
+      SELECT * FROM (${queueSql(filters)}) queue
+      ORDER BY "createdAt" ASC, "id" ASC, "entityType" ASC
+      OFFSET ${pagination.skip} LIMIT ${pagination.take}`);
+  },
+
+  async countQueue(filters: ApprovalQueueFilters, db: DbClient = prisma) {
+    const [row] = await db.$queryRaw<Array<{ total: bigint }>>(Prisma.sql`SELECT COUNT(*) AS total FROM (${queueSql(filters)}) queue`);
+    return Number(row?.total ?? 0);
+  },
+
+  findBudgetRequestsByIds(ids: string[], db: DbClient = prisma) {
     return db.budgetRequest.findMany({
-      where: buildBudgetQueueWhere(filters),
+      where: { id: { in: ids } },
       include: budgetRequestDetailInclude,
-      orderBy: {
-        createdAt: "asc",
-      },
     });
   },
 
-  listPendingExpenseRequests(filters: ApprovalQueueFilters, db: DbClient = prisma) {
+  findExpenseRequestsByIds(ids: string[], db: DbClient = prisma) {
     return db.expenseRequest.findMany({
-      where: buildExpenseQueueWhere(filters),
+      where: { id: { in: ids } },
       include: expenseRequestDetailInclude,
-      orderBy: {
-        createdAt: "asc",
-      },
     });
   },
 

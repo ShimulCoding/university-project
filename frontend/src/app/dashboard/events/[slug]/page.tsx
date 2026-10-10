@@ -21,6 +21,7 @@ import {
 import { formatEnumLabel, getEventStatusTone } from "@/lib/format";
 import { eventDashboardNavigation } from "@/lib/navigation";
 import type { AppRole, ManagedEvent } from "@/types";
+import type { PaginatedList } from "@/lib/api/list";
 import { Badge } from "@/components/ui/badge";
 import { EventStatusControl } from "@/components/internal/events-actions";
 import {
@@ -67,30 +68,34 @@ export default async function EventWorkspaceOverviewPage({
     isSystemAdmin(user) || eventRoles.includes("FINANCIAL_CONTROLLER");
   const canSeeApprovals =
     isSystemAdmin(user) || eventRoles.includes("ORGANIZATIONAL_APPROVER");
+  const canReadFinance = isSystemAdmin(user) || eventRoles.some((role) =>
+    ["EVENT_ADMIN", "EVENT_MANAGEMENT_USER", "FINANCIAL_CONTROLLER", "ORGANIZATIONAL_APPROVER"].includes(role),
+  );
   const canManageLifecycle =
     event.status !== "DRAFT" &&
     (eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("EVENT_MANAGEMENT_USER"));
 
-  const safeFetch = <T,>(promise: Promise<T>, fallback: T): Promise<T> =>
-    promise.catch(() => fallback);
+  const count = async <T,>(request: Promise<PaginatedList<T>> | null): Promise<number | null> => {
+    if (!request) return null;
+    try { return (await request).pagination.totalItems; }
+    catch { return null; }
+  };
 
   const [verificationQueue, approvalQueue, budgetRequests, expenseRequests, reconciliationReports] =
     await Promise.all([
-      safeFetch(
+      count(
         canSeeFinance
           ? listPaymentVerificationQueue({ eventId: event.id })
-          : Promise.resolve([]),
-        [],
+          : null,
       ),
-      safeFetch(
+      count(
         canSeeApprovals
           ? listApprovalQueue({ eventId: event.id })
-          : Promise.resolve([]),
-        [],
+          : null,
       ),
-      safeFetch(listBudgetRequests({ eventId: event.id }), []),
-      safeFetch(listExpenseRequests({ eventId: event.id }), []),
-      safeFetch(listReconciliationReports({ eventId: event.id }), []),
+      count(canReadFinance ? listBudgetRequests({ eventId: event.id }) : null),
+      count(canReadFinance ? listExpenseRequests({ eventId: event.id }) : null),
+      count(canReadFinance ? listReconciliationReports({ eventId: event.id }) : null),
     ]);
 
   const basePath = `/dashboard/events/${slug}`;
@@ -104,35 +109,31 @@ export default async function EventWorkspaceOverviewPage({
   const metrics = [
     {
       label: "Pending Verification",
-      value: verificationQueue.length,
+      value: verificationQueue ?? "Unavailable",
       detail: "Payment proofs awaiting review.",
       icon: FileText,
       visible: canSeeFinance,
     },
     {
       label: "Decision Queue",
-      value: approvalQueue.length,
+      value: approvalQueue ?? "Unavailable",
       detail: "Workflows awaiting approval.",
       icon: CheckSquare,
       visible: canSeeApprovals,
     },
     {
       label: "Budget Requests",
-      value: budgetRequests.filter(
-        (r) => r.state !== "APPROVED" && r.state !== "REJECTED",
-      ).length,
-      detail: "Active funding proposals.",
+      value: budgetRequests ?? "Unavailable",
+      detail: "All funding proposals for this event.",
       icon: Activity,
-      visible: true,
+      visible: canReadFinance,
     },
     {
       label: "Expense Requests",
-      value: expenseRequests.filter(
-        (r) => r.state !== "APPROVED" && r.state !== "REJECTED",
-      ).length,
-      detail: "Pending spending requests.",
+      value: expenseRequests ?? "Unavailable",
+      detail: "All spending requests for this event.",
       icon: Activity,
-      visible: true,
+      visible: canReadFinance,
     },
   ].filter((m) => m.visible);
 
@@ -184,7 +185,7 @@ export default async function EventWorkspaceOverviewPage({
                 variant="neutral"
                 className="bg-background/50 backdrop-blur-sm border-border/50 text-xs"
               >
-                {reconciliationReports.length} Reports
+                {canReadFinance ? `${reconciliationReports ?? "Unavailable"} Reports` : "Complaint review workspace"}
               </Badge>
             </div>
           </div>

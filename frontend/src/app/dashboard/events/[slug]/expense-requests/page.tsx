@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, Receipt, CheckCircle2, CalendarDays, FileText, Tag, TrendingDown } from "lucide-react";
 
@@ -74,7 +76,7 @@ export default async function EventExpenseRequestsPage({
   const canSubmitRequests = eventRoles.includes("EVENT_ADMIN") || eventRoles.includes("EVENT_MANAGEMENT_USER");
 
   try {
-    const expenseRequests = await listExpenseRequests({ eventId: event.id, state });
+    const expenseRequests = await listExpenseRequests({ page: queryPage(sParams.page), eventId: event.id, state });
     const eventsArray = [event]; // Lock composer to this event
     
     const selectedExpenseRequestId =
@@ -344,7 +346,8 @@ export default async function EventExpenseRequestsPage({
         </div>
 
         {canSubmitRequests ? <ExpenseRequestForm events={eventsArray} /> : null}
-      </div>
+      <ListPagination pagination={expenseRequests.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

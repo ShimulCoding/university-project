@@ -48,6 +48,24 @@ function buildPublishedSummaryWhere(
 }
 
 export const publicRepository = {
+  async listLatestPublishedSummaries(filters: PublicSummaryFilters, pagination: PaginationOptions, db: DbClient = prisma) {
+    const ids = await db.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+      SELECT s."id" FROM "PublicSummarySnapshot" s JOIN "Event" e ON e."id" = s."eventId"
+      WHERE ${latestPublishedWhere(filters)}
+      ORDER BY s."publishedAt" DESC NULLS LAST, s."id" DESC OFFSET ${pagination.skip} LIMIT ${pagination.take}
+    `);
+    const records = await db.publicSummarySnapshot.findMany({ where: { id: { in: ids.map((row) => row.id) } }, include: publicSummaryDetailInclude });
+    const byId = new Map(records.map((record) => [record.id, record]));
+    return ids.map((row) => byId.get(row.id)!);
+  },
+
+  async countLatestPublishedSummaries(filters: PublicSummaryFilters, db: DbClient = prisma) {
+    const [row] = await db.$queryRaw<Array<{ total: bigint }>>(Prisma.sql`
+      SELECT COUNT(*) AS total FROM "PublicSummarySnapshot" s JOIN "Event" e ON e."id" = s."eventId"
+      WHERE ${latestPublishedWhere(filters)}
+    `);
+    return Number(row?.total ?? 0);
+  },
   listPublishedSummaries(
     filters: PublicSummaryFilters,
     pagination?: PaginationOptions,
@@ -56,9 +74,7 @@ export const publicRepository = {
     return db.publicSummarySnapshot.findMany({
       where: buildPublishedSummaryWhere(filters),
       include: publicSummaryDetailInclude,
-      orderBy: {
-        publishedAt: "desc",
-      },
+      orderBy: [{ publishedAt: { sort: "desc", nulls: "last" } }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
@@ -85,9 +101,7 @@ export const publicRepository = {
         },
       },
       include: publicSummaryDetailInclude,
-      orderBy: {
-        publishedAt: "desc",
-      },
+      orderBy: [{ publishedAt: { sort: "desc", nulls: "last" } }, { id: "desc" }],
     });
   },
 
@@ -98,9 +112,7 @@ export const publicRepository = {
         status: PublicSummaryStatus.PUBLISHED,
       },
       include: publicSummaryDetailInclude,
-      orderBy: {
-        publishedAt: "desc",
-      },
+      orderBy: [{ publishedAt: { sort: "desc", nulls: "last" } }, { id: "desc" }],
     });
   },
 
@@ -131,3 +143,15 @@ export const publicRepository = {
     });
   },
 };
+
+function latestPublishedWhere(filters: PublicSummaryFilters) {
+  const search = filters.search?.trim();
+  const pattern = `%${(search ?? "").replace(/[\\%_]/g, "\\$&")}%`;
+  return Prisma.sql`s."status" = 'PUBLISHED'
+    AND NOT EXISTS (
+      SELECT 1 FROM "PublicSummarySnapshot" newer
+      WHERE newer."eventId" = s."eventId" AND newer."status" = 'PUBLISHED'
+        AND (COALESCE(newer."publishedAt", '-infinity'::timestamp), newer."id") > (COALESCE(s."publishedAt", '-infinity'::timestamp), s."id")
+    )
+    AND (${!search} OR e."title" ILIKE ${pattern} OR e."slug" ILIKE ${pattern})`;
+}

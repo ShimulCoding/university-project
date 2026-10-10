@@ -21,6 +21,10 @@ const router = Router();
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
+    fields: 30,
+    parts: 45,
+    fieldSize: 16 * 1024,
+    files: 15,
     fileSize: uploadRules.SUPPORTING_DOCUMENT.maxFileSizeBytes,
   },
 });

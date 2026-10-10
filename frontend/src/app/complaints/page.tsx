@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -152,7 +154,7 @@ export default async function MyComplaintsPage({
       );
     }
 
-    const complaints = await listMyComplaints();
+    const complaints = await listMyComplaints(queryPage(params.page));
     const acknowledgedComplaint = submittedComplaintId
       ? complaints.find((complaint) => complaint.id === submittedComplaintId) ?? null
       : null;
@@ -330,6 +332,7 @@ export default async function MyComplaintsPage({
               </Card>
             </div>
           </div>
+        <ListPagination pagination={complaints.pagination} />
         </main>
       </PublicPageShell>
     );

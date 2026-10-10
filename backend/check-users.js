@@ -1,11 +1,16 @@
 const { PrismaClient } = require('@prisma/client');
+require('dotenv').config({ path: require('path').join(__dirname, '.env'), override: false });
 const prisma = new PrismaClient();
 
 async function main() {
   const users = await prisma.user.findMany({
-    include: {
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      status: true,
       roles: {
-        include: { role: true }
+        select: { role: { select: { code: true } }, revokedAt: true }
       }
     }
   });

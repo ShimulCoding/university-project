@@ -298,6 +298,13 @@ function createPublicSummaryContext(overrides: Record<string, unknown> = {}) {
 }
 
 async function withPatches<T>(entries: PatchEntry[], runner: () => Promise<T>) {
+  const { prisma } = await import("../src/config/prisma");
+  // Unit fixtures supply a current actor; database authority races are tested separately.
+  if (!entries.some((entry) => entry.target === prisma && entry.key === "$transaction")) {
+    entries = [{ target: prisma as unknown as Record<string, unknown>, key: "$transaction",
+      value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
+    }, ...entries];
+  }
   const originals = entries.map((entry) => ({
     target: entry.target,
     key: entry.key,
@@ -637,7 +644,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -707,7 +714,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -986,6 +993,7 @@ async function main() {
 
       const published = await withPatches(
         [
+          { target: reconciliationRepository as unknown as Record<string, unknown>, key: "findLatestReportForEvent", value: async () => createReportContext({ status: ReconciliationState.FINALIZED }) },
           {
             target: reconciliationRepository as unknown as Record<string, unknown>,
             key: "findReportById",

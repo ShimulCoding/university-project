@@ -1,8 +1,9 @@
+import { passwordField } from "../../../utils/password-validation";
 import { z } from "zod";
 
 const credentialsSchema = z.object({
-  email: z.string().trim().email(),
-  password: z.string().min(8).max(72),
+  email: z.string().trim().email().max(255),
+  password: passwordField,
 });
 
 export const bootstrapAdminSchema = z.object({
@@ -25,37 +26,37 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   body: z.object({
-    studentId: z.string().trim().min(1, "Student ID is required."),
-    password: z.string().min(8).max(72),
+    studentId: z.string().trim().min(1, "Student ID is required.").max(30),
+    password: passwordField,
   }),
 });
 
 export const internalLoginSchema = z.object({
   body: z.object({
-    email: z.string().trim().email(),
-    password: z.string().min(8).max(72),
+    email: z.string().trim().email().max(255),
+    password: passwordField,
   }),
 });
 
 export const eventTeamLoginSchema = z.object({
   body: z.object({
-    email: z.string().trim().email(),
-    password: z.string().min(8).max(72),
+    email: z.string().trim().email().max(255),
+    password: passwordField,
     eventLookupKey: z.string().trim().min(1).max(160),
   }),
 });
 
 export const forgotPasswordSchema = z.object({
   body: z.object({
-    studentId: z.string().trim().min(1, "Student ID is required."),
-    email: z.string().trim().email("Please enter a valid email."),
+    studentId: z.string().trim().min(1, "Student ID is required.").max(30),
+    email: z.string().trim().email("Please enter a valid email.").max(255),
   }),
 });
 
 export const resetPasswordSchema = z.object({
   body: z.object({
-    token: z.string().min(1, "Reset token is required."),
-    newPassword: z.string().min(8, "New password must be at least 8 characters.").max(72),
+    token: z.string().min(1, "Reset token is required.").max(128),
+    newPassword: passwordField,
   }),
 });
 

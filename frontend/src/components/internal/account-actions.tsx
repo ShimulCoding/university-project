@@ -17,6 +17,17 @@ export function AccountActions({ user, assignments }: { user: UserProfile; assig
   const { feedback, isPending, runAction } = useActionState();
   return (
     <div className="space-y-5">
+      <form className="grid gap-3" onSubmit={(event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        void runAction(() => patchJson(`/users/${user.id}/profile`, { fullName: data.get("fullName"), studentId: data.get("studentId")?.toString().trim() || undefined }), "Account profile updated.");
+      }}>
+        <Field label="Full name"><Input name="fullName" defaultValue={user.fullName} minLength={2} maxLength={100} required /></Field>
+        <Field label="Student ID" description="Required for student sign-in and event registration. Leave blank for an event team or System Admin account.">
+          <Input name="studentId" defaultValue={user.studentId ?? ""} minLength={3} maxLength={30} />
+        </Field>
+        <Button type="submit" disabled={isPending}>Save account profile</Button>
+      </form>
       <Field label="Account status" description="Assign an active replacement in every affected event before deactivating a required team member.">
         <Select value={status} onChange={(event) => setStatus(event.target.value as AccountStatus)} options={["ACTIVE", "INACTIVE", "SUSPENDED"].map((value) => ({ value, label: value }))} />
       </Field>
@@ -37,6 +48,7 @@ export function AccountActions({ user, assignments }: { user: UserProfile; assig
 }
 
 export function AccountCreateForm() {
+  const [roleCode, setRoleCode] = useState("NONE");
   const { feedback, isPending, runAction } = useActionState();
   return (
     <form className="space-y-4" onSubmit={(event) => {
@@ -44,14 +56,15 @@ export function AccountCreateForm() {
       const form = event.currentTarget;
       const data = new FormData(form);
       void runAction(async () => {
-        await postJson("/users", { fullName: data.get("fullName"), email: data.get("email"), password: data.get("password"), roleCodes: [data.get("roleCode")] });
+        await postJson("/users", { fullName: data.get("fullName"), email: data.get("email"), password: data.get("password"), studentId: data.get("studentId")?.toString().trim() || undefined, roleCodes: roleCode === "NONE" ? [] : [roleCode] });
         form.reset();
       }, "Account created. Assign event roles from Events and teams.");
     }}>
       <Field label="Full name"><Input name="fullName" minLength={2} maxLength={100} required /></Field>
       <Field label="Email"><Input name="email" type="email" required /></Field>
       <Field label="Initial password"><Input name="password" type="password" minLength={8} maxLength={72} autoComplete="new-password" required /></Field>
-      <Field label="Global role"><Select name="roleCode" options={[{ value: "GENERAL_STUDENT", label: "Student" }, { value: "SYSTEM_ADMIN", label: "System Admin" }]} /></Field>
+      <Field label="Account access"><Select name="roleCode" value={roleCode} onChange={(event) => setRoleCode(event.target.value)} options={[{ value: "NONE", label: "Event team account (assign through Events and teams)" }, { value: "GENERAL_STUDENT", label: "Student" }, { value: "SYSTEM_ADMIN", label: "System Admin" }]} /></Field>
+      {roleCode === "GENERAL_STUDENT" ? <Field label="Student ID"><Input name="studentId" minLength={3} maxLength={30} required /></Field> : null}
       <FeedbackMessage feedback={feedback} />
       <Button type="submit" disabled={isPending}>{isPending ? "Creating account..." : "Create account"}</Button>
     </form>

@@ -11,6 +11,7 @@ import {
   createUserSchema,
   listUsersSchema,
   updateUserStatusSchema,
+  updateUserProfileSchema,
   userIdParamSchema,
 } from "../validations/users.validation";
 
@@ -36,6 +37,12 @@ router.post(
   authorize(RoleCode.SYSTEM_ADMIN),
   validateRequest(createUserSchema),
   asyncHandler(usersController.createUser),
+);
+router.patch(
+  "/:userId/profile",
+  authorize(RoleCode.SYSTEM_ADMIN),
+  validateRequest(updateUserProfileSchema),
+  asyncHandler(usersController.updateProfile),
 );
 router.patch(
   "/:userId/status",

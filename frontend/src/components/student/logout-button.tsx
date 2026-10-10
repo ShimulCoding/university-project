@@ -21,8 +21,8 @@ export function LogoutButton({
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [, startTransition] = useTransition();
-  const isBusy = isSubmitting;
+  const [routingPending, startTransition] = useTransition();
+  const isBusy = isSubmitting || routingPending;
 
   const handleLogout = async () => {
     try {

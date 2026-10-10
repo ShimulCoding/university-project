@@ -15,12 +15,14 @@ import type {
 } from "@/types";
 
 const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Dhaka",
   day: "2-digit",
   month: "short",
   year: "numeric",
 });
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Dhaka",
   day: "2-digit",
   month: "short",
   year: "numeric",
@@ -45,6 +47,12 @@ export function formatDateTime(value: string | null | undefined) {
 }
 
 export function formatMoney(value: string | number) {
+  if (typeof value === "string" && /^-?\d+(\.\d{1,2})?$/.test(value)) {
+    const negative = value.startsWith("-");
+    const [whole = "0", fraction = ""] = value.replace(/^-/, "").split(".");
+    const grouped = new Intl.NumberFormat("en-US").format(BigInt(whole));
+    return `৳ ${negative ? "-" : ""}${grouped}.${fraction.padEnd(2, "0")}`;
+  }
   const amount = Number(value);
 
   const formatted = new Intl.NumberFormat("en-US", {
@@ -200,7 +208,7 @@ export function getPublicSummaryStateTone(state: PublicSummaryStatus): BadgeTone
 }
 
 export function isRegistrationOpen(event: PublicEvent) {
-  return event.status === "PUBLISHED" && event.registrationWindow.state === "OPEN";
+  return event.status === "PUBLISHED" && event.registrationWindow.state === "OPEN" && event.seatsRemaining !== 0;
 }
 
 export function sumMoney(values: Array<string | number | null | undefined>) {

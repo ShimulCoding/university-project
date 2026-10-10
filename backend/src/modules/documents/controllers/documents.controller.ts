@@ -9,6 +9,7 @@ export const documentsController = {
       String(request.params.documentId),
     );
 
+    response.setHeader("Cache-Control", "private, no-store");
     response.type(document.mimeType);
     response.setHeader(
       "Content-Disposition",

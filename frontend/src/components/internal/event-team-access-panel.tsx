@@ -19,7 +19,7 @@ export function EventTeamAccessPanel({ eventLookupKey }: { eventLookupKey: strin
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [, startTransition] = useTransition();
+  const [routingPending, startTransition] = useTransition();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -123,8 +123,8 @@ export function EventTeamAccessPanel({ eventLookupKey }: { eventLookupKey: strin
             </div>
           ) : null}
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={isSubmitting || email.trim().length === 0 || password.length < 8}>
-              {isSubmitting ? "Checking assignment..." : "Open event workspace"}
+            <Button type="submit" disabled={isSubmitting || routingPending || email.trim().length === 0 || password.length < 8}>
+              {isSubmitting || routingPending ? "Checking assignment..." : "Open event workspace"}
             </Button>
             <span className="text-sm text-muted-foreground">
               Event context: <span className="font-mono text-foreground">{eventLookupKey}</span>

@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import { AlertTriangle, CheckCircle2, Landmark, LineChart, Archive } from "lucide-react";
 
 import { listPublicFinancialSummaries } from "@/lib/api/public";
@@ -15,11 +17,12 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default async function FinancialSummariesPage() {
+export default async function FinancialSummariesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   try {
-    const summaries = await listPublicFinancialSummaries();
+    const params = await searchParams;
+    const summaries = await listPublicFinancialSummaries({ page: queryPage(params.page) });
     const latestSummaries = getLatestPublishedSummariesPerEvent(summaries);
-    const historicalSnapshotCount = getHistoricalPublishedSnapshotCount(summaries);
+    const historicalSnapshotCount = summaries.pagination.historicalSnapshotCount ?? getHistoricalPublishedSnapshotCount(summaries);
     const totalCollected = latestSummaries.reduce(
       (sum, summary) => sum + Number(summary.totals.collected),
       0,
@@ -59,7 +62,7 @@ export default async function FinancialSummariesPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-4xl font-black text-foreground tracking-tight">{latestSummaries.length}</div>
+                  <div className="text-4xl font-black text-foreground tracking-tight">{summaries.pagination.totalItems}</div>
                   <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
                     Verified event snapshots available publicly.
                   </p>
@@ -68,7 +71,7 @@ export default async function FinancialSummariesPage() {
 
               <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Total Disclosed Collection</CardDescription>
+                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Collections on this page</CardDescription>
                   <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center text-success border border-success/20">
                     <Landmark className="h-5 w-5" />
                   </div>
@@ -76,7 +79,7 @@ export default async function FinancialSummariesPage() {
                 <CardContent>
                   <div className="text-4xl font-black text-success tracking-tight">{formatMoney(totalCollected)}</div>
                   <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
-                    Aggregated funds across all published events.
+                    Disclosed funds across the events shown on this page.
                   </p>
                 </CardContent>
               </Card>
@@ -116,6 +119,7 @@ export default async function FinancialSummariesPage() {
               </div>
             )}
           </section>
+        <ListPagination pagination={summaries.pagination} />
         </main>
       </PublicPageShell>
     );

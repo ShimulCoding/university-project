@@ -13,16 +13,16 @@ import { Input } from "@/components/ui/input";
 
 type RegistrationFieldErrors = Partial<Record<"studentId" | "phone", string>>;
 
-export function RegistrationForm({ event }: { event: PublicEvent }) {
+export function RegistrationForm({ event, accountStudentId }: { event: PublicEvent; accountStudentId: string }) {
   const router = useRouter();
-  const [studentId, setStudentId] = useState("");
+  const [studentId, setStudentId] = useState(accountStudentId);
   const [phone, setPhone] = useState("");
   const [fieldErrors, setFieldErrors] = useState<RegistrationFieldErrors>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [, startTransition] = useTransition();
-  const isBusy = isSubmitting;
+  const [isRoutingPending, startTransition] = useTransition();
+  const isBusy = isSubmitting || isRoutingPending;
 
   const clearFieldError = (field: keyof RegistrationFieldErrors) => {
     setErrorMessage(null);
@@ -90,7 +90,7 @@ export function RegistrationForm({ event }: { event: PublicEvent }) {
         <form className="grid gap-5" onSubmit={handleSubmit}>
           <Field
             label="Student ID"
-            description="This must be unique within the selected event."
+            description="Use the Student ID registered to your account."
             error={fieldErrors.studentId}
           >
             <Input
@@ -101,7 +101,7 @@ export function RegistrationForm({ event }: { event: PublicEvent }) {
               }}
               placeholder="e.g. 221-15-0001"
               minLength={3}
-              maxLength={40}
+              maxLength={30}
               aria-invalid={Boolean(fieldErrors.studentId)}
               required
             />

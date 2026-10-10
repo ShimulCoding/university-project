@@ -1,7 +1,7 @@
+import { governanceTransaction } from "../../../utils/governance-transaction";
 import { DocumentCategory, IncomeState, PaymentProofState, RegistrationPaymentState, RoleCode } from "@prisma/client";
 
 import { documentDirectories, uploadRules } from "../../../config/uploads";
-import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import {
@@ -12,7 +12,7 @@ import {
 } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { sanitizeOptionalText } from "../../../utils/text-utils";
-import { cleanupStoredUpload, cleanupStoredUploads, storeValidatedUpload } from "../../../utils/upload-utils";
+import { cleanupStoredUploads, storeValidatedUploads } from "../../../utils/upload-utils";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { eventsRepository } from "../../events/repositories/events.repository";
@@ -40,17 +40,6 @@ const financeReadEventRoles = [
   RoleCode.FINANCIAL_CONTROLLER,
 ] as RoleCode[];
 
-async function storeUpload(
-  file: Express.Multer.File,
-  category: "PAYMENT_PROOF" | "SUPPORTING_DOCUMENT",
-) {
-  return storeValidatedUpload(file, {
-    category: DocumentCategory[category],
-    destinationDir: documentDirectories[category],
-    rule: uploadRules[category],
-    documentName: "this document category",
-  });
-}
 
 /**
  * Assert the user has Finance Controller access for the given event.
@@ -98,102 +87,73 @@ export const paymentsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
-    const registration = await registrationsRepository.findById(registrationId);
-
-    if (!registration) {
-      throw new AppError(404, "Registration not found.");
-    }
-
-    const isOwner = registration.participantId === actor.id;
-
-    if (!isOwner) {
-      // Non-owner needs event-scoped finance access
-      assertEventFinancePermissions(actor, registration.eventId);
-    }
-
-    if (registration.paymentState === RegistrationPaymentState.VERIFIED) {
-      throw new AppError(409, "This registration has already been verified.");
-    }
-
-    const pendingProof = await paymentsRepository.findPendingPaymentProofForRegistration(registrationId);
-
-    if (pendingProof) {
-      throw new AppError(409, "A payment proof is already pending verification for this registration.");
-    }
-
-    const transactionReference = sanitizeOptionalText(input.transactionReference);
-    const referenceText = sanitizeOptionalText(input.referenceText);
-
-    if (!transactionReference && !referenceText && (!files || files.length === 0)) {
-      throw new AppError(400, "Provide a transaction reference, reference text, or a proof file.");
-    }
-
-    const storedUploads = files && files.length > 0 ? await Promise.all(files.map(f => storeUpload(f, "PAYMENT_PROOF"))) : [];
-
+    const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.PAYMENT_PROOF, destinationDir: documentDirectories.PAYMENT_PROOF, rule: uploadRules.PAYMENT_PROOF });
     try {
-      const paymentProof = await prisma.$transaction(async (tx) => {
-        const createdProof = await paymentsRepository.createPaymentProof(
-          registrationId,
-          {
+      return await governanceTransaction(async (tx) => {
+        const registration = await registrationsRepository.findById(registrationId, tx);
+        if (!registration) {
+          throw new AppError(404, "Registration not found.");
+        }
+        const isOwner = registration.participantId === actor.id;
+        if (!isOwner) {
+          // Non-owner needs event-scoped finance access
+          assertEventFinancePermissions(actor, registration.eventId);
+        }
+        if (registration.paymentState === RegistrationPaymentState.VERIFIED) {
+          throw new AppError(409, "This registration has already been verified.");
+        }
+        const pendingProof = await paymentsRepository.findPendingPaymentProofForRegistration(registrationId, tx);
+        if (pendingProof) {
+          throw new AppError(409, "A payment proof is already pending verification for this registration.");
+        }
+        const transactionReference = sanitizeOptionalText(input.transactionReference);
+        const referenceText = sanitizeOptionalText(input.referenceText);
+        if (!transactionReference && !referenceText && (!files || files.length === 0)) {
+          throw new AppError(400, "Provide a transaction reference, reference text, or a proof file.");
+        }
+        const paymentProof = await (async () => {
+          const createdProof = await paymentsRepository.createPaymentProof(registrationId, {
             externalChannel: input.externalChannel.trim(),
             transactionReference,
             referenceText,
             amount: input.amount,
+          }, tx);
+          if (storedUploads && storedUploads.length > 0) {
+            await Promise.all(storedUploads.map((upload) => paymentsRepository.createSupportingDocument({
+              category: upload.category,
+              originalName: upload.originalName,
+              mimeType: upload.mimeType,
+              storedName: upload.storedName,
+              relativePath: upload.relativePath,
+              sizeBytes: BigInt(upload.sizeBytes),
+              uploadedById: actor.id,
+              paymentProofId: createdProof.id,
+            }, tx)));
+          }
+          await registrationsRepository.updatePaymentState(registrationId, RegistrationPaymentState.PENDING_VERIFICATION, tx);
+          const proofWithContext = await paymentsRepository.findPaymentProofById(createdProof.id, tx);
+          if (!proofWithContext) {
+            throw new AppError(500, "Failed to reload the submitted payment proof.");
+          }
+          return proofWithContext;
+        })();
+        await auditService.record({
+          actorId: actor.id,
+          action: "payments.proof.submit",
+          entityType: "PaymentProof",
+          entityId: paymentProof.id,
+          summary: `Submitted payment proof for registration ${paymentProof.registration.registrationCode}`,
+          context: {
+            registrationId: paymentProof.registration.id,
+            eventId: paymentProof.registration.event.id,
+            state: paymentProof.state,
           },
-          tx,
-        );
-
-        if (storedUploads && storedUploads.length > 0) {
-          await Promise.all(
-            storedUploads.map((upload) =>
-              paymentsRepository.createSupportingDocument(
-                {
-                  category: upload.category,
-                  originalName: upload.originalName,
-                  mimeType: upload.mimeType,
-                  storedName: upload.storedName,
-                  relativePath: upload.relativePath,
-                  sizeBytes: BigInt(upload.sizeBytes),
-                  uploadedById: actor.id,
-                  paymentProofId: createdProof.id,
-                },
-                tx,
-              )
-            )
-          );
-        }
-
-        await registrationsRepository.updatePaymentState(
-          registrationId,
-          RegistrationPaymentState.PENDING_VERIFICATION,
-          tx,
-        );
-
-        const proofWithContext = await paymentsRepository.findPaymentProofById(createdProof.id, tx);
-
-        if (!proofWithContext) {
-          throw new AppError(500, "Failed to reload the submitted payment proof.");
-        }
-
-        return proofWithContext;
-      });
-
-      await auditService.record({
-        actorId: actor.id,
-        action: "payments.proof.submit",
-        entityType: "PaymentProof",
-        entityId: paymentProof.id,
-        summary: `Submitted payment proof for registration ${paymentProof.registration.registrationCode}`,
-        context: {
-          registrationId: paymentProof.registration.id,
-          eventId: paymentProof.registration.event.id,
-          state: paymentProof.state,
-        },
-        ...auditMetadata,
-      });
-
-      return mapSubmittedPaymentProof(paymentProof);
-    } catch (error) {
+          ...auditMetadata,
+        }, tx);
+        return mapSubmittedPaymentProof(paymentProof);
+      }, actor);
+    }
+    catch (error) {
       if (storedUploads && storedUploads.length > 0) {
         await cleanupStoredUploads(storedUploads.map((u) => ({ relativePath: u.relativePath })));
       }
@@ -223,90 +183,67 @@ export const paymentsService = {
     input: PaymentProofDecisionInput,
     auditMetadata?: AuditMetadata,
   ) {
-    const paymentProof = await paymentsRepository.findPaymentProofById(paymentProofId);
-
-    if (!paymentProof) {
-      throw new AppError(404, "Payment proof not found.");
-    }
-
-    // System Admin cannot verify payments — only event-scoped Finance Controller
-    assertEventFinancePermissions(actor, paymentProof.registration.eventId);
-
-    if (paymentProof.state !== PaymentProofState.PENDING_VERIFICATION) {
-      throw new AppError(409, "Only pending payment proofs can be reviewed.");
-    }
-
-    const reviewerRemark = sanitizeOptionalText(input.remark);
-    const proofState =
-      input.decision === "APPROVE"
+    return governanceTransaction(async (tx) => {
+      const paymentProof = await paymentsRepository.findPaymentProofById(paymentProofId, tx);
+      if (!paymentProof) {
+        throw new AppError(404, "Payment proof not found.");
+      }
+      // System Admin cannot verify payments — only event-scoped Finance Controller
+      assertEventFinancePermissions(actor, paymentProof.registration.eventId);
+      if (paymentProof.state !== PaymentProofState.PENDING_VERIFICATION) {
+        throw new AppError(409, "Only pending payment proofs can be reviewed.");
+      }
+      const reviewerRemark = sanitizeOptionalText(input.remark);
+      const proofState = input.decision === "APPROVE"
         ? PaymentProofState.VERIFIED
         : PaymentProofState.REJECTED;
-    const registrationState =
-      input.decision === "APPROVE"
+      const registrationState = input.decision === "APPROVE"
         ? RegistrationPaymentState.VERIFIED
         : RegistrationPaymentState.REJECTED;
-    const shouldInvalidateReconciliation = proofState === PaymentProofState.VERIFIED;
-    const staledAt = new Date();
-    const staleReason = `Payment proof ${paymentProof.id} was verified; reconciliation must be regenerated.`;
-
-    const { reviewedPaymentProof, staleReportCount } = await prisma.$transaction(async (tx) => {
-      await paymentsRepository.updatePaymentProofReview(
-        paymentProofId,
-        {
+      const shouldInvalidateReconciliation = proofState === PaymentProofState.VERIFIED;
+      const staledAt = new Date();
+      const staleReason = `Payment proof ${paymentProof.id} was verified; reconciliation must be regenerated.`;
+      const { reviewedPaymentProof, staleReportCount } = await (async () => {
+        await paymentsRepository.updatePaymentProofReview(paymentProofId, {
           state: proofState,
           reviewedAt: staledAt,
           reviewerRemark,
           reviewedById: actor.id,
+        }, tx);
+        await registrationsRepository.updatePaymentState(paymentProof.registrationId, registrationState, tx);
+        const reloadedPaymentProof = await paymentsRepository.findPaymentProofById(paymentProofId, tx);
+        if (!reloadedPaymentProof) {
+          throw new AppError(500, "Failed to reload the reviewed payment proof.");
+        }
+        const staleResult = shouldInvalidateReconciliation
+          ? await reconciliationRepository.markReportsStaleForEvent({
+            eventId: paymentProof.registration.eventId,
+            reason: staleReason,
+            staledAt,
+          }, tx)
+          : { count: 0 };
+        return {
+          reviewedPaymentProof: reloadedPaymentProof,
+          staleReportCount: staleResult.count,
+        };
+      })();
+      await auditService.record({
+        actorId: actor.id,
+        action: "payments.proof.review",
+        entityType: "PaymentProof",
+        entityId: reviewedPaymentProof.id,
+        summary: `${input.decision} payment proof for registration ${reviewedPaymentProof.registration.registrationCode}`,
+        context: {
+          registrationId: reviewedPaymentProof.registration.id,
+          eventId: reviewedPaymentProof.registration.event.id,
+          decision: input.decision,
+          reviewerRemark: reviewerRemark ?? null,
+          staleReconciliationReports: staleReportCount,
         },
-        tx,
-      );
-
-      await registrationsRepository.updatePaymentState(
-        paymentProof.registrationId,
-        registrationState,
-        tx,
-      );
-
-      const reloadedPaymentProof = await paymentsRepository.findPaymentProofById(paymentProofId, tx);
-
-      if (!reloadedPaymentProof) {
-        throw new AppError(500, "Failed to reload the reviewed payment proof.");
-      }
-
-      const staleResult = shouldInvalidateReconciliation
-        ? await reconciliationRepository.markReportsStaleForEvent(
-            {
-              eventId: paymentProof.registration.eventId,
-              reason: staleReason,
-              staledAt,
-            },
-            tx,
-          )
-        : { count: 0 };
-
-      return {
-        reviewedPaymentProof: reloadedPaymentProof,
-        staleReportCount: staleResult.count,
-      };
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "payments.proof.review",
-      entityType: "PaymentProof",
-      entityId: reviewedPaymentProof.id,
-      summary: `${input.decision} payment proof for registration ${reviewedPaymentProof.registration.registrationCode}`,
-      context: {
-        registrationId: reviewedPaymentProof.registration.id,
-        eventId: reviewedPaymentProof.registration.event.id,
-        decision: input.decision,
-        reviewerRemark: reviewerRemark ?? null,
-        staleReconciliationReports: staleReportCount,
-      },
-      ...auditMetadata,
-    });
-
-    return mapReviewedPaymentProof(reviewedPaymentProof);
+        ...auditMetadata,
+      }, tx);
+      return mapReviewedPaymentProof(reviewedPaymentProof);
+    }, actor);
   },
 
   async createIncomeRecord(
@@ -315,78 +252,64 @@ export const paymentsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
-    const event = await eventsRepository.findById(input.eventId);
-
-    if (!event) {
-      throw new AppError(404, "Event not found.");
-    }
-
-    // Only event-scoped Finance Controller can create income records
-    assertEventFinancePermissions(actor, event.id);
-
-    const referenceText = sanitizeOptionalText(input.referenceText);
-
-    if (!referenceText && (!files || files.length === 0)) {
-      throw new AppError(400, "Provide a reference note or an evidence file for the income record.");
-    }
-
-    const storedUploads = files && files.length > 0 ? await Promise.all(files.map(f => storeUpload(f, "SUPPORTING_DOCUMENT"))) : [];
-
+    const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.SUPPORTING_DOCUMENT, destinationDir: documentDirectories.SUPPORTING_DOCUMENT, rule: uploadRules.SUPPORTING_DOCUMENT });
     try {
-      const incomeRecord = await prisma.$transaction(async (tx) => {
-        const createdIncomeRecord = await paymentsRepository.createIncomeRecord(actor.id, {
-          ...input,
-          referenceText,
+      return await governanceTransaction(async (tx) => {
+        const event = await eventsRepository.findById(input.eventId, tx);
+        if (!event) {
+          throw new AppError(404, "Event not found.");
+        }
+        // Only event-scoped Finance Controller can create income records
+        assertEventFinancePermissions(actor, event.id);
+        const referenceText = sanitizeOptionalText(input.referenceText);
+        if (!referenceText && (!files || files.length === 0)) {
+          throw new AppError(400, "Provide a reference note or an evidence file for the income record.");
+        }
+        const incomeRecord = await (async () => {
+          const createdIncomeRecord = await paymentsRepository.createIncomeRecord(actor.id, {
+            ...input,
+            referenceText,
+          }, tx);
+          if (storedUploads && storedUploads.length > 0) {
+            await Promise.all(storedUploads.map((upload) => paymentsRepository.createSupportingDocument({
+              category: upload.category,
+              originalName: upload.originalName,
+              mimeType: upload.mimeType,
+              storedName: upload.storedName,
+              relativePath: upload.relativePath,
+              sizeBytes: BigInt(upload.sizeBytes),
+              uploadedById: actor.id,
+              incomeRecordId: createdIncomeRecord.id,
+            }, tx)));
+          }
+          const incomeRecordWithContext = await paymentsRepository.findIncomeRecordById(createdIncomeRecord.id, tx);
+          if (!incomeRecordWithContext) {
+            throw new AppError(500, "Failed to reload the new income record.");
+          }
+          return incomeRecordWithContext;
+        })();
+        await reconciliationRepository.markReportsStaleForEvent({
+          eventId: incomeRecord.eventId,
+          reason: "Manual income records changed; reconciliation must be regenerated.",
+          staledAt: new Date(),
         }, tx);
-
-        if (storedUploads && storedUploads.length > 0) {
-          await Promise.all(
-            storedUploads.map((upload) =>
-              paymentsRepository.createSupportingDocument(
-                {
-                  category: upload.category,
-                  originalName: upload.originalName,
-                  mimeType: upload.mimeType,
-                  storedName: upload.storedName,
-                  relativePath: upload.relativePath,
-                  sizeBytes: BigInt(upload.sizeBytes),
-                  uploadedById: actor.id,
-                  incomeRecordId: createdIncomeRecord.id,
-                },
-                tx,
-              )
-            )
-          );
-        }
-
-        const incomeRecordWithContext = await paymentsRepository.findIncomeRecordById(
-          createdIncomeRecord.id,
-          tx,
-        );
-
-        if (!incomeRecordWithContext) {
-          throw new AppError(500, "Failed to reload the new income record.");
-        }
-
-        return incomeRecordWithContext;
-      });
-
-      await auditService.record({
-        actorId: actor.id,
-        action: "income.create",
-        entityType: "IncomeRecord",
-        entityId: incomeRecord.id,
-        summary: `Recorded ${incomeRecord.sourceType} income for ${incomeRecord.event.title}`,
-        context: {
-          eventId: incomeRecord.event.id,
-          sourceType: incomeRecord.sourceType,
-          amount: incomeRecord.amount,
-        },
-        ...auditMetadata,
-      });
-
-      return mapIncomeRecord(incomeRecord);
-    } catch (error) {
+        await auditService.record({
+          actorId: actor.id,
+          action: "income.create",
+          entityType: "IncomeRecord",
+          entityId: incomeRecord.id,
+          summary: `Recorded ${incomeRecord.sourceType} income for ${incomeRecord.event.title}`,
+          context: {
+            eventId: incomeRecord.event.id,
+            sourceType: incomeRecord.sourceType,
+            amount: incomeRecord.amount,
+          },
+          ...auditMetadata,
+        }, tx);
+        return mapIncomeRecord(incomeRecord);
+      }, actor);
+    }
+    catch (error) {
       if (storedUploads && storedUploads.length > 0) {
         await cleanupStoredUploads(storedUploads.map((u) => ({ relativePath: u.relativePath })));
       }
@@ -400,66 +323,49 @@ export const paymentsService = {
     input: VoidIncomeRecordInput,
     auditMetadata?: AuditMetadata,
   ) {
-    const existingRecord = await paymentsRepository.findIncomeRecordById(incomeRecordId);
-
-    if (!existingRecord) {
-      throw new AppError(404, "Income record not found.");
-    }
-
-    assertEventFinancePermissions(actor, existingRecord.eventId);
-
-    if (existingRecord.state === IncomeState.REJECTED) {
-      throw new AppError(409, "Income record is already voided or rejected.");
-    }
-
-    const wasVerified = existingRecord.state === IncomeState.VERIFIED;
-    const staleReason = `Manual income record ${existingRecord.id} was voided; reconciliation must be regenerated.`;
-    const staledAt = new Date();
-
-    const { incomeRecord, staleReportCount } = await prisma.$transaction(async (tx) => {
-      const voidedRecord = await paymentsRepository.updateIncomeRecordState(
-        incomeRecordId,
-        {
+    return governanceTransaction(async (tx) => {
+      const existingRecord = await paymentsRepository.findIncomeRecordById(incomeRecordId, tx);
+      if (!existingRecord) {
+        throw new AppError(404, "Income record not found.");
+      }
+      assertEventFinancePermissions(actor, existingRecord.eventId);
+      if (existingRecord.state === IncomeState.REJECTED) {
+        throw new AppError(409, "Income record is already voided or rejected.");
+      }
+      const staleReason = `Manual income record ${existingRecord.id} was voided; reconciliation must be regenerated.`;
+      const staledAt = new Date();
+      const { incomeRecord, staleReportCount } = await (async () => {
+        const voidedRecord = await paymentsRepository.updateIncomeRecordState(incomeRecordId, {
           state: IncomeState.REJECTED,
           verifiedById: null,
+        }, tx);
+        const staleResult = await reconciliationRepository.markReportsStaleForEvent({
+            eventId: existingRecord.eventId,
+            reason: staleReason,
+            staledAt,
+          }, tx);
+        return {
+          incomeRecord: voidedRecord,
+          staleReportCount: staleResult.count,
+        };
+      })();
+      await auditService.record({
+        actorId: actor.id,
+        action: "income.void",
+        entityType: "IncomeRecord",
+        entityId: incomeRecord.id,
+        summary: `Voided income record for ${incomeRecord.event.title}`,
+        context: {
+          eventId: incomeRecord.event.id,
+          previousState: existingRecord.state,
+          nextState: incomeRecord.state,
+          reason: input.reason,
+          staleReconciliationReports: staleReportCount,
         },
-        tx,
-      );
-
-      const staleResult = wasVerified
-        ? await reconciliationRepository.markReportsStaleForEvent(
-            {
-              eventId: existingRecord.eventId,
-              reason: staleReason,
-              staledAt,
-            },
-            tx,
-          )
-        : { count: 0 };
-
-      return {
-        incomeRecord: voidedRecord,
-        staleReportCount: staleResult.count,
-      };
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "income.void",
-      entityType: "IncomeRecord",
-      entityId: incomeRecord.id,
-      summary: `Voided income record for ${incomeRecord.event.title}`,
-      context: {
-        eventId: incomeRecord.event.id,
-        previousState: existingRecord.state,
-        nextState: incomeRecord.state,
-        reason: input.reason,
-        staleReconciliationReports: staleReportCount,
-      },
-      ...auditMetadata,
-    });
-
-    return mapIncomeRecord(incomeRecord);
+        ...auditMetadata,
+      }, tx);
+      return mapIncomeRecord(incomeRecord);
+    }, actor);
   },
 
   async verifyIncomeRecord(
@@ -467,66 +373,51 @@ export const paymentsService = {
     incomeRecordId: string,
     auditMetadata?: AuditMetadata,
   ) {
-    const existingRecord = await paymentsRepository.findIncomeRecordById(incomeRecordId);
-
-    if (!existingRecord) {
-      throw new AppError(404, "Income record not found.");
-    }
-
-    assertEventFinancePermissions(actor, existingRecord.eventId);
-
-    if (existingRecord.state === IncomeState.VERIFIED) {
-      throw new AppError(409, "Income record is already verified.");
-    }
-
-    if (existingRecord.state === IncomeState.REJECTED) {
-      throw new AppError(409, "Voided or rejected income records cannot be verified.");
-    }
-
-    const staleReason = `Manual income record ${existingRecord.id} was verified; reconciliation must be regenerated.`;
-    const staledAt = new Date();
-
-    const { incomeRecord, staleReportCount } = await prisma.$transaction(async (tx) => {
-      const verifiedRecord = await paymentsRepository.updateIncomeRecordState(
-        incomeRecordId,
-        {
+    return governanceTransaction(async (tx) => {
+      const existingRecord = await paymentsRepository.findIncomeRecordById(incomeRecordId, tx);
+      if (!existingRecord) {
+        throw new AppError(404, "Income record not found.");
+      }
+      assertEventFinancePermissions(actor, existingRecord.eventId);
+      if (existingRecord.state === IncomeState.VERIFIED) {
+        throw new AppError(409, "Income record is already verified.");
+      }
+      if (existingRecord.state === IncomeState.REJECTED) {
+        throw new AppError(409, "Voided or rejected income records cannot be verified.");
+      }
+      const staleReason = `Manual income record ${existingRecord.id} was verified; reconciliation must be regenerated.`;
+      const staledAt = new Date();
+      const { incomeRecord, staleReportCount } = await (async () => {
+        const verifiedRecord = await paymentsRepository.updateIncomeRecordState(incomeRecordId, {
           state: IncomeState.VERIFIED,
           verifiedById: actor.id,
-        },
-        tx,
-      );
-
-      const staleResult = await reconciliationRepository.markReportsStaleForEvent(
-        {
+        }, tx);
+        const staleResult = await reconciliationRepository.markReportsStaleForEvent({
           eventId: existingRecord.eventId,
           reason: staleReason,
           staledAt,
+        }, tx);
+        return {
+          incomeRecord: verifiedRecord,
+          staleReportCount: staleResult.count,
+        };
+      })();
+      await auditService.record({
+        actorId: actor.id,
+        action: "income.verify",
+        entityType: "IncomeRecord",
+        entityId: incomeRecord.id,
+        summary: `Verified income record for ${incomeRecord.event.title}`,
+        context: {
+          eventId: incomeRecord.event.id,
+          previousState: existingRecord.state,
+          nextState: incomeRecord.state,
+          staleReconciliationReports: staleReportCount,
         },
-        tx,
-      );
-
-      return {
-        incomeRecord: verifiedRecord,
-        staleReportCount: staleResult.count,
-      };
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "income.verify",
-      entityType: "IncomeRecord",
-      entityId: incomeRecord.id,
-      summary: `Verified income record for ${incomeRecord.event.title}`,
-      context: {
-        eventId: incomeRecord.event.id,
-        previousState: existingRecord.state,
-        nextState: incomeRecord.state,
-        staleReconciliationReports: staleReportCount,
-      },
-      ...auditMetadata,
-    });
-
-    return mapIncomeRecord(incomeRecord);
+        ...auditMetadata,
+      }, tx);
+      return mapIncomeRecord(incomeRecord);
+    }, actor);
   },
 
   async listIncomeRecords(viewer: AuthenticatedUser, filters: IncomeRecordFilters) {

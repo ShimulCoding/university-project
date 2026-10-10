@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, Fingerprint, Activity, TerminalSquare, UserCheck, Globe, Database, HardDrive } from "lucide-react";
 
@@ -35,7 +37,7 @@ export default async function AuditPage({
   const limit = typeof params.limit === "string" ? params.limit : "20";
 
   try {
-    const logs = await listAuditLogs({ actorId, entityType, entityId, limit });
+    const logs = await listAuditLogs({ page: queryPage(params.page), actorId, entityType, entityId, limit });
     const selectedAuditLogId = logs.find((log) => log.id === auditLogId)?.id ?? logs[0]?.id;
     const selectedLog = selectedAuditLogId ? await getAuditLog(selectedAuditLogId) : null;
 
@@ -269,7 +271,8 @@ export default async function AuditPage({
             ) : null}
           </div>
         </div>
-      </div>
+      <ListPagination pagination={logs.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

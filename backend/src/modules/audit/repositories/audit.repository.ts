@@ -28,12 +28,13 @@ export const auditRepository = {
     const eventId = input.eventId ??
       (typeof input.context?.eventId === "string" ? input.context.eventId : undefined) ??
       (input.entityType === "Event" ? input.entityId : undefined);
-    const createData: Prisma.AuditLogCreateInput = {
+    const createData: Prisma.AuditLogUncheckedCreateInput = {
       action: input.action,
       entityType: input.entityType,
       entityId: input.entityId,
-      ...(eventId ? { event: { connect: { id: eventId } } } : {}),
-      ...(input.actorId ? { actor: { connect: { id: input.actorId } } } : {}),
+      // Foreign keys enforce these references; nested connect adds avoidable reads.
+      ...(eventId ? { eventId } : {}),
+      ...(input.actorId ? { actorId: input.actorId } : {}),
       ...(input.summary ? { summary: input.summary } : {}),
       ...(input.context ? { context: input.context as Prisma.InputJsonValue } : {}),
       ...(input.ipAddress ? { ipAddress: input.ipAddress } : {}),
@@ -59,9 +60,7 @@ export const auditRepository = {
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       skip: pagination.skip,
       take: pagination.take,
     });

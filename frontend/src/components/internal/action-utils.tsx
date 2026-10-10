@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { getApiErrorMessage } from "@/lib/api/shared";
@@ -18,11 +18,14 @@ export function useActionState() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRoutingPending, startTransition] = useTransition();
   const router = useRouter();
-  const isPending = isSubmitting;
+  const isPending = isSubmitting || isRoutingPending;
+  const submitting = useRef(false);
 
   const clearFeedback = () => setFeedback({ message: null, tone: null });
 
   const runAction = async (action: () => Promise<void>, successMessage: string) => {
+    if (submitting.current || isRoutingPending) return;
+    submitting.current = true;
     try {
       setIsSubmitting(true);
       clearFeedback();
@@ -37,6 +40,7 @@ export function useActionState() {
         tone: "error",
       });
     } finally {
+      submitting.current = false;
       setIsSubmitting(false);
     }
   };

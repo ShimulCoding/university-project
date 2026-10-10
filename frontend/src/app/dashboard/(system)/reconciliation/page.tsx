@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -63,7 +65,7 @@ export default async function ReconciliationPage({
     const canFinalize = false;
 
     const [reports, events] = await Promise.all([
-      listReconciliationReports({ eventId, status }),
+      listReconciliationReports({ page: queryPage(params.page), eventId, status }),
       listInternalEventOptions(),
     ]);
     const reconcilableEvents = events.filter(
@@ -416,7 +418,7 @@ export default async function ReconciliationPage({
 
                 {/* ACTION PANEL */}
                 {(canManage || canFinalize) && !selectedReport.isStale ? (
-                  <ReconciliationActionPanel
+                  <ReconciliationActionPanel key={selectedReport.id}
                     reportId={selectedReport.id}
                     canReview={canManage}
                     canFinalize={canFinalize}
@@ -446,7 +448,8 @@ export default async function ReconciliationPage({
         </div>
 
         {canManage ? <ReconciliationGenerateForm events={reconcilableEvents} /> : null}
-      </div>
+      <ListPagination pagination={reports.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

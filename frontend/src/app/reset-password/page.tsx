@@ -35,7 +35,7 @@ function ResetPasswordContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push("/dashboard")} className="w-full">
+            <Button onClick={() => router.push("/complaints")} className="w-full">
               Return to sign in
             </Button>
           </CardContent>
@@ -56,7 +56,7 @@ function ResetPasswordContent() {
             <CardDescription>{successMessage}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push("/dashboard")} className="w-full">
+            <Button onClick={() => router.push("/complaints")} className="w-full">
               Go to sign in
             </Button>
           </CardContent>
@@ -126,7 +126,7 @@ function ResetPasswordContent() {
               <Button type="submit" disabled={isSubmitting} className="w-full">
                 {isSubmitting ? "Saving..." : "Save new password"}
               </Button>
-              <Button type="button" variant="outline" onClick={() => router.push("/dashboard")} className="w-full" disabled={isSubmitting}>
+              <Button type="button" variant="outline" onClick={() => router.push("/complaints")} className="w-full" disabled={isSubmitting}>
                 Cancel
               </Button>
             </div>

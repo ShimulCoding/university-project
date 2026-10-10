@@ -62,9 +62,7 @@ export const reconciliationRepository = {
     return db.reconciliationReport.findMany({
       where: buildReportWhere(filters),
       include: reconciliationReportDetailInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
@@ -86,9 +84,7 @@ export const reconciliationRepository = {
     return db.reconciliationReport.findFirst({
       where: { eventId },
       include: reconciliationReportDetailInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     });
   },
 

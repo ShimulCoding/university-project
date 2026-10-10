@@ -3,6 +3,7 @@ import { ShieldAlert } from "lucide-react";
 import { getCurrentUser } from "@/lib/api/student";
 import { getEventRolesForEvent, isSystemAdmin } from "@/lib/access";
 import { apiFetchServer } from "@/lib/api/server";
+import { queryPage } from "@/lib/api/list";
 import { getBudgetRequest } from "@/lib/api/internal";
 import { formatEnumLabel, formatMoney, getRequestStateTone } from "@/lib/format";
 import type { BudgetRequestRecord, ManagedEvent } from "@/types";
@@ -20,7 +21,7 @@ export default async function FundingRequestsPage({ params, searchParams }: {
 }) {
   const { slug } = await params;
   const query = await searchParams;
-  const page = typeof query.page === "string" && /^[1-9]\d*$/.test(query.page) ? query.page : "1";
+  const page = queryPage(query.page);
   const user = await getCurrentUser();
   if (!user) return null;
   try {

@@ -15,14 +15,21 @@ function extractAccessToken(request: Request) {
 }
 
 export async function authenticate(request: Request, response: Response, next: NextFunction) {
+  response.setHeader("Cache-Control", "private, no-store");
   const token = extractAccessToken(request);
   if (!token) {
     response.status(401).json({ message: "Authentication required." });
     return;
   }
 
+  let payload;
   try {
-    const payload = verifyAccessToken(token);
+    payload = verifyAccessToken(token);
+  } catch {
+    response.status(401).json({ message: "Invalid or expired access token." });
+    return;
+  }
+  try {
 
     if (payload.type !== "access") {
       response.status(401).json({ message: "Invalid access token." });
@@ -34,7 +41,9 @@ export async function authenticate(request: Request, response: Response, next: N
       include: userWithActiveRolesInclude,
     });
 
-    if (!user || user.status !== AccountStatus.ACTIVE) {
+    const session = payload.sessionId ? await prisma.refreshToken.findUnique({ where: { id: payload.sessionId } }) : null;
+    const invalidSession = payload.sessionId && (!session || session.userId !== payload.sub || session.revokedAt || session.expiresAt <= new Date());
+    if (!user || user.status !== AccountStatus.ACTIVE || (payload.version ?? 0) !== user.sessionVersion || invalidSession) {
       response.status(401).json({ message: "Your account is not allowed to access this resource." });
       return;
     }
@@ -58,7 +67,7 @@ export async function authenticate(request: Request, response: Response, next: N
     };
 
     next();
-  } catch {
-    response.status(401).json({ message: "Invalid or expired access token." });
+  } catch (error) {
+    next(error);
   }
 }

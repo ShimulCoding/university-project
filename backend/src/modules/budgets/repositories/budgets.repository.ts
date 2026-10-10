@@ -94,9 +94,7 @@ export const budgetsRepository = {
     return db.budget.findFirst({
       where: { eventId },
       include: budgetDetailInclude,
-      orderBy: {
-        version: "desc",
-      },
+      orderBy: [{ version: "desc" }, { id: "desc" }],
     });
   },
 

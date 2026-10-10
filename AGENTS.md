@@ -22,6 +22,7 @@
 - Follow the commands and setup requirements in `docs/PROJECT_STATE.md` and `docs/setup-notes.md` for implementation verification.
 - Stop the backend before regenerating Prisma on Windows.
 - Use the isolated `verify:event-workspaces` fixtures for event access and concurrency verification. Do not reseed an existing database merely to run this check.
+- For project-wide changes, run `verify:project-audit` in the backend and `verify:client`, `verify:pdf`, and `verify:ui` in the frontend. Include browser workspaces for affected UI flows using the setup notes.
 - Record actual verification results and material limitations; do not claim browser interaction or deployment based only on builds or API checks.
 - Keep local environment secrets, credentials, uploads, and generated build output out of commits.
 

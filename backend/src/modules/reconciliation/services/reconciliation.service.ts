@@ -1,3 +1,4 @@
+import { governanceTransaction } from "../../../utils/governance-transaction";
 import {
   EventStatus,
   ExpenseRecordState,
@@ -8,6 +9,7 @@ import {
 } from "@prisma/client";
 
 import type { AuthenticatedUser } from "../../../types/auth";
+import type { DbClient } from "../../../types/database";
 import { AppError } from "../../../utils/app-error";
 import {
   assertAnyEventScopedAccess,
@@ -135,8 +137,8 @@ function addBreakdownAmount(
   });
 }
 
-async function assertLatestReport(report: ReconciliationReportWithContext) {
-  const latestReport = await reconciliationRepository.findLatestReportForEvent(report.eventId);
+async function assertLatestReport(report: ReconciliationReportWithContext, db: DbClient) {
+  const latestReport = await reconciliationRepository.findLatestReportForEvent(report.eventId, db);
 
   if (!latestReport || latestReport.id !== report.id) {
     throw new AppError(409, "Only the latest reconciliation report for an event can be advanced.");
@@ -176,6 +178,7 @@ function assertReportEventSnapshotIsCurrent(report: ReconciliationReportWithCont
 
 async function buildReconciliationPayload(
   event: NonNullable<Awaited<ReturnType<typeof eventsRepository.findById>>>,
+  db: DbClient,
 ): Promise<{
   totalIncome: Prisma.Decimal;
   totalExpense: Prisma.Decimal;
@@ -190,12 +193,12 @@ async function buildReconciliationPayload(
     approvedExpenseRequests,
     activeBudgetItems,
   ] = await Promise.all([
-    reconciliationRepository.listVerifiedPaymentProofs(event.id),
-    reconciliationRepository.countVerifiedRegistrations(event.id),
-    reconciliationRepository.listManualIncomeRecords(event.id),
-    reconciliationRepository.listExpenseRecords(event.id),
-    reconciliationRepository.listApprovedExpenseRequests(event.id),
-    reconciliationRepository.listActiveBudgetItems(event.id),
+    reconciliationRepository.listVerifiedPaymentProofs(event.id, db),
+    reconciliationRepository.countVerifiedRegistrations(event.id, db),
+    reconciliationRepository.listManualIncomeRecords(event.id, db),
+    reconciliationRepository.listExpenseRecords(event.id, db),
+    reconciliationRepository.listApprovedExpenseRequests(event.id, db),
+    reconciliationRepository.listActiveBudgetItems(event.id, db),
   ]);
 
   const verifiedRegistrationIncome = sumDecimals(
@@ -389,120 +392,106 @@ export const reconciliationService = {
     input: GenerateReconciliationInput,
     auditMetadata?: AuditMetadata,
   ) {
-    const event = await eventsRepository.findById(input.eventId);
-
-    if (!event) {
-      throw new AppError(404, "Event not found.");
-    }
-
-    assertReconciliationManagementPermissions(actor, event.id);
-
-    assertEventCanBeReconciled(event.status);
-
-    const summary = await buildReconciliationPayload(event);
-    const report = await reconciliationRepository.createReport({
-      eventId: input.eventId,
-      generatedById: actor.id,
-      totalIncome: decimalToMoney(summary.totalIncome),
-      totalExpense: decimalToMoney(summary.totalExpense),
-      closingBalance: decimalToMoney(summary.closingBalance),
-      payload: summary.payload,
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "reconciliation.generate",
-      entityType: "ReconciliationReport",
-      entityId: report.id,
-      summary: `Generated reconciliation draft for ${report.event.title}`,
-      context: {
-        eventId: report.event.id,
-        status: report.status,
-        warningCount: summary.payload.warnings.length,
-      },
-      ...auditMetadata,
-    });
-
-    return mapReconciliationReport(report);
+    return governanceTransaction(async (tx) => {
+      const event = await eventsRepository.findById(input.eventId, tx);
+      if (!event) {
+        throw new AppError(404, "Event not found.");
+      }
+      assertReconciliationManagementPermissions(actor, event.id);
+      assertEventCanBeReconciled(event.status);
+      const summary = await buildReconciliationPayload(event, tx);
+      const report = await reconciliationRepository.createReport({
+        eventId: input.eventId,
+        generatedById: actor.id,
+        totalIncome: decimalToMoney(summary.totalIncome),
+        totalExpense: decimalToMoney(summary.totalExpense),
+        closingBalance: decimalToMoney(summary.closingBalance),
+        payload: summary.payload,
+      }, tx);
+      await auditService.record({
+        actorId: actor.id,
+        action: "reconciliation.generate",
+        entityType: "ReconciliationReport",
+        entityId: report.id,
+        summary: `Generated reconciliation draft for ${report.event.title}`,
+        context: {
+          eventId: report.event.id,
+          status: report.status,
+          warningCount: summary.payload.warnings.length,
+        },
+        ...auditMetadata,
+      }, tx);
+      return mapReconciliationReport(report);
+    }, actor);
   },
 
   async reviewReport(actor: AuthenticatedUser, reportId: string, auditMetadata?: AuditMetadata) {
-    const report = await reconciliationRepository.findReportById(reportId);
-
-    if (!report) {
-      throw new AppError(404, "Reconciliation report not found.");
-    }
-
-    assertReconciliationManagementPermissions(actor, report.eventId);
-
-    if (report.status !== ReconciliationState.DRAFT) {
-      throw new AppError(409, "Only draft reconciliation reports can be marked as reviewed.");
-    }
-
-    assertReportIsFresh(report);
-    assertReportEventSnapshotIsCurrent(report);
-    await assertLatestReport(report);
-
-    const reviewedReport = await reconciliationRepository.updateReportStatus(reportId, {
-      status: ReconciliationState.REVIEWED,
-      reviewedById: actor.id,
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "reconciliation.review",
-      entityType: "ReconciliationReport",
-      entityId: reviewedReport.id,
-      summary: `Reviewed reconciliation report for ${reviewedReport.event.title}`,
-      context: {
-        eventId: reviewedReport.event.id,
-        previousStatus: report.status,
-        nextStatus: reviewedReport.status,
-      },
-      ...auditMetadata,
-    });
-
-    return mapReconciliationReport(reviewedReport);
+    return governanceTransaction(async (tx) => {
+      const report = await reconciliationRepository.findReportById(reportId, tx);
+      if (!report) {
+        throw new AppError(404, "Reconciliation report not found.");
+      }
+      assertReconciliationManagementPermissions(actor, report.eventId);
+      if (report.status !== ReconciliationState.DRAFT) {
+        throw new AppError(409, "Only draft reconciliation reports can be marked as reviewed.");
+      }
+      assertReportIsFresh(report);
+      assertReportEventSnapshotIsCurrent(report);
+      await assertLatestReport(report, tx);
+      const reviewedReport = await reconciliationRepository.updateReportStatus(reportId, {
+        status: ReconciliationState.REVIEWED,
+        reviewedById: actor.id,
+      }, tx);
+      await auditService.record({
+        actorId: actor.id,
+        action: "reconciliation.review",
+        entityType: "ReconciliationReport",
+        entityId: reviewedReport.id,
+        summary: `Reviewed reconciliation report for ${reviewedReport.event.title}`,
+        context: {
+          eventId: reviewedReport.event.id,
+          previousStatus: report.status,
+          nextStatus: reviewedReport.status,
+        },
+        ...auditMetadata,
+      }, tx);
+      return mapReconciliationReport(reviewedReport);
+    }, actor);
   },
 
   async finalizeReport(actor: AuthenticatedUser, reportId: string, auditMetadata?: AuditMetadata) {
-    const report = await reconciliationRepository.findReportById(reportId);
-
-    if (!report) {
-      throw new AppError(404, "Reconciliation report not found.");
-    }
-
-    assertReconciliationFinalizePermissions(actor, report.eventId);
-
-    if (report.status !== ReconciliationState.REVIEWED) {
-      throw new AppError(409, "Only reviewed reconciliation reports can be finalized.");
-    }
-
-    assertReportIsFresh(report);
-    assertReportEventSnapshotIsCurrent(report);
-    await assertLatestReport(report);
-
-    const finalizedReport = await reconciliationRepository.updateReportStatus(reportId, {
-      status: ReconciliationState.FINALIZED,
-      reviewedById: report.reviewedBy ? undefined : actor.id,
-      finalizedAt: new Date(),
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "reconciliation.finalize",
-      entityType: "ReconciliationReport",
-      entityId: finalizedReport.id,
-      summary: `Finalized reconciliation report for ${finalizedReport.event.title}`,
-      context: {
-        eventId: finalizedReport.event.id,
-        previousStatus: report.status,
-        nextStatus: finalizedReport.status,
-        warningCount: getReconciliationPayload(finalizedReport).warnings.length,
-      },
-      ...auditMetadata,
-    });
-
-    return mapReconciliationReport(finalizedReport);
+    return governanceTransaction(async (tx) => {
+      const report = await reconciliationRepository.findReportById(reportId, tx);
+      if (!report) {
+        throw new AppError(404, "Reconciliation report not found.");
+      }
+      assertReconciliationFinalizePermissions(actor, report.eventId);
+      if (report.status !== ReconciliationState.REVIEWED) {
+        throw new AppError(409, "Only reviewed reconciliation reports can be finalized.");
+      }
+      assertReportIsFresh(report);
+      assertReportEventSnapshotIsCurrent(report);
+      await assertLatestReport(report, tx);
+      const finalizedReport = await reconciliationRepository.updateReportStatus(reportId, {
+        status: ReconciliationState.FINALIZED,
+        reviewedById: report.reviewedBy ? undefined : actor.id,
+        finalizedAt: new Date(),
+      }, tx);
+      await auditService.record({
+        actorId: actor.id,
+        action: "reconciliation.finalize",
+        entityType: "ReconciliationReport",
+        entityId: finalizedReport.id,
+        summary: `Finalized reconciliation report for ${finalizedReport.event.title}`,
+        context: {
+          eventId: finalizedReport.event.id,
+          previousStatus: report.status,
+          nextStatus: finalizedReport.status,
+          warningCount: getReconciliationPayload(finalizedReport).warnings.length,
+        },
+        ...auditMetadata,
+      }, tx);
+      return mapReconciliationReport(finalizedReport);
+    }, actor);
   },
 };

@@ -1,13 +1,21 @@
 import { z } from "zod";
 
 import { loadProjectEnv } from "./load-env";
+import { durationToMs } from "../utils/duration";
 
 loadProjectEnv();
 
 const rawEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
-  FRONTEND_URL: z.string().url().default("http://localhost:3000"),
+  FRONTEND_URL: z.string().default("http://localhost:3000").refine(
+    (value) => value.split(",").every((origin) => {
+      try { return ["http:", "https:"].includes(new URL(origin.trim()).protocol); }
+      catch { return false; }
+    }),
+    "FRONTEND_URL must contain HTTP(S) URLs separated by commas.",
+  ),
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(10).default(0),
   DATABASE_URL: z.string().min(1),
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
@@ -20,10 +28,12 @@ const rawEnvSchema = z.object({
 });
 
 const parsedEnv = rawEnvSchema.parse(process.env);
+durationToMs(parsedEnv.ACCESS_TOKEN_TTL);
+durationToMs(parsedEnv.REFRESH_TOKEN_TTL);
 
 export const env = {
   ...parsedEnv,
   corsOrigins: parsedEnv.FRONTEND_URL.split(",")
-    .map((origin) => origin.trim())
+    .map((origin) => new URL(origin.trim()).origin)
     .filter(Boolean),
 } as const;

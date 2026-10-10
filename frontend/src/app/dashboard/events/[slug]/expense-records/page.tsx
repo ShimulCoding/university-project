@@ -1,3 +1,6 @@
+import type { BudgetRecord, ExpenseRequestRecord } from "@/types";
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage, apiOptions } from "@/lib/api/list";
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, CreditCard, CalendarDays, FileText, TrendingDown, CheckCircle2, LinkIcon } from "lucide-react";
 
@@ -5,9 +8,7 @@ import { getCurrentUser } from "@/lib/api/student";
 import { getEventRolesForEvent, isSystemAdmin } from "@/lib/access";
 import {
   getExpenseRecord,
-  listBudgets,
   listExpenseRecords,
-  listExpenseRequests,
 } from "@/lib/api/internal";
 import { apiFetchServer } from "@/lib/api/server";
 import { buildRelativeHref } from "@/lib/detail-query";
@@ -76,9 +77,9 @@ export default async function EventExpenseRecordsPage({
 
   try {
     const [expenseRecords, expenseRequests, activeBudgets] = await Promise.all([
-      listExpenseRecords({ eventId: event.id, state }),
-      listExpenseRequests({ eventId: event.id, state: "APPROVED" }),
-      listBudgets({ eventId: event.id, state: "APPROVED" }),
+      listExpenseRecords({ page: queryPage(sParams.page), eventId: event.id, state }),
+      apiOptions<ExpenseRequestRecord>("/requests/expense-requests", "expenseRequests", { eventId: event.id, state: "APPROVED" }),
+      apiOptions<BudgetRecord>("/budgets", "budgets", { eventId: event.id, state: "APPROVED", isActive: "true" }),
     ]);
     const eventsArray = [event]; // Lock composer to this event
     
@@ -304,7 +305,7 @@ export default async function EventExpenseRecordsPage({
 
                 <SupportingDocumentList documents={selectedRecord.documents} />
                 {canManageExpenseRecords ? (
-                  <ExpenseRecordStatePanel
+                  <ExpenseRecordStatePanel key={selectedRecord.id}
                     expenseRecordId={selectedRecord.id}
                     allowSettle={selectedRecord.state === "RECORDED"}
                     allowVoid={selectedRecord.state !== "VOIDED"}
@@ -331,7 +332,8 @@ export default async function EventExpenseRecordsPage({
         {canManageExpenseRecords ? (
           <ExpenseRecordForm events={eventsArray} expenseRequests={expenseRequests} budgets={activeBudgets} />
         ) : null}
-      </div>
+      <ListPagination pagination={expenseRecords.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

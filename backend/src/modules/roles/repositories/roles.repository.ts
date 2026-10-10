@@ -7,7 +7,14 @@ import { roleCatalog } from "../role-catalog";
 
 export const rolesRepository = {
   async syncCatalog(db: DbClient = prisma) {
+    const existing = await db.role.findMany({
+      where: { code: { in: roleCatalog.map((role) => role.code) } },
+      select: { code: true, name: true, description: true, isSystem: true },
+    });
+    const byCode = new Map(existing.map((role) => [role.code, role]));
     for (const role of roleCatalog) {
+      const current = byCode.get(role.code);
+      if (current?.name === role.name && current.description === role.description && current.isSystem) continue;
       await db.role.upsert({
         where: { code: role.code },
         update: {
@@ -27,9 +34,7 @@ export const rolesRepository = {
 
   listRoles(pagination?: PaginationOptions, db: DbClient = prisma) {
     return db.role.findMany({
-      orderBy: {
-        name: "asc",
-      },
+      orderBy: [{ name: "asc" }, { id: "asc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
@@ -86,9 +91,7 @@ export const rolesRepository = {
         role: true,
         assignedBy: true,
       },
-      orderBy: {
-        assignedAt: "asc",
-      },
+      orderBy: [{ assignedAt: "asc" }, { id: "asc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },

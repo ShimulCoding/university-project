@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import { AlertTriangle, FileCheck, SearchSlash, ShieldAlert, BadgeDollarSign, User, CalendarDays, FileText } from "lucide-react";
 
@@ -37,7 +39,7 @@ export default async function PaymentVerificationQueuePage({
 
   try {
     const [queue, events] = await Promise.all([
-      listPaymentVerificationQueue({ eventId, search }),
+      listPaymentVerificationQueue({ page: queryPage(params.page), eventId, search }),
       listInternalEventOptions(),
     ]);
     const selectedProof = queue.find((item) => item.id === proofId) ?? queue[0] ?? null;
@@ -250,12 +252,13 @@ export default async function PaymentVerificationQueuePage({
                 />
                 
                 {/* DECISION MATRIX */}
-                <PaymentDecisionForm paymentProofId={selectedProof.id} canDecide={false} />
+                <PaymentDecisionForm key={selectedProof.id} paymentProofId={selectedProof.id} canDecide={false} />
               </div>
             )}
           </div>
         </div>
-      </div>
+      <ListPagination pagination={queue.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

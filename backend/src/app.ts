@@ -5,6 +5,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 
 import { corsOptions } from "./config/cors";
+import { env } from "./config/env";
 import { notFoundHandler } from "./middlewares/not-found";
 import { errorHandler } from "./middlewares/error-handler";
 import { apiRouter } from "./routes";
@@ -13,7 +14,7 @@ export function createApp() {
   const app = express();
 
   app.disable("x-powered-by");
-  app.set("trust proxy", 1);
+  app.set("trust proxy", env.TRUST_PROXY_HOPS || false);
 
   app.use(helmet());
   app.use(cors(corsOptions));

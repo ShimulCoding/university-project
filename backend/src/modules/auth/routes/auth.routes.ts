@@ -1,9 +1,8 @@
 import { Router } from "express";
 
 import { authenticate } from "../../../middlewares/authenticate";
-import { authenticateRefreshSession } from "../../../middlewares/authenticate-refresh-session";
 import { validateRequest } from "../../../middlewares/validate-request";
-import { authRateLimiter, sessionRateLimiter } from "../../../config/rate-limit";
+import { authRateLimiter, loginRateLimiter, sessionRateLimiter } from "../../../config/rate-limit";
 import { asyncHandler } from "../../../utils/async-handler";
 import { authController } from "../controllers/auth.controller";
 import {
@@ -33,19 +32,19 @@ router.post(
 );
 router.post(
   "/login",
-  authRateLimiter,
+  loginRateLimiter,
   validateRequest(loginSchema),
   asyncHandler(authController.login),
 );
 router.post(
   "/internal-login",
-  authRateLimiter,
+  loginRateLimiter,
   validateRequest(internalLoginSchema),
   asyncHandler(authController.internalLogin),
 );
 router.post(
   "/event-team-login",
-  authRateLimiter,
+  loginRateLimiter,
   validateRequest(eventTeamLoginSchema),
   asyncHandler(authController.eventTeamLogin),
 );
@@ -65,7 +64,6 @@ router.post("/refresh", sessionRateLimiter, asyncHandler(authController.refresh)
 router.post(
   "/logout",
   sessionRateLimiter,
-  authenticateRefreshSession,
   asyncHandler(authController.logout),
 );
 router.get("/me", authenticate, asyncHandler(authController.getCurrentUser));

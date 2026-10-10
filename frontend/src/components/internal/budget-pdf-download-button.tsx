@@ -1,42 +1,29 @@
 "use client";
 
+import { useState } from "react";
+import { createPdf, downloadPdf, pdfText as unicodeText, type PdfCommand } from "@/lib/pdf";
+import { getApiErrorMessage } from "@/lib/api/shared";
+
 import { Download } from "lucide-react";
 
 import type { BudgetRecord } from "@/types";
-import { formatDateTime, formatEnumLabel } from "@/lib/format";
+import { formatDateTime, formatEnumLabel, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 
 const pageWidth = 595.28;
 const pageHeight = 841.89;
 const margin = 48;
-const textEncoder = new TextEncoder();
+
 
 type PdfPage = {
-  commands: string[];
+  commands: PdfCommand[];
 };
 
-function sanitizePdfText(value: string) {
-  return value
-    .replace(/[^\x20-\x7E]/g, "")
-    .replace(/\\/g, "\\\\")
-    .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)");
-}
-
 function money(v: string | number) {
-  const n = Number(v);
-  const formatted = new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n);
-  return `Tk ${formatted}`;
+  return formatMoney(v).replace("৳", "Tk");
 }
 
-function pdfText(value: string, x: number, y: number, size = 10, font = "F1") {
-  return `BT /${font} ${size} Tf ${x.toFixed(2)} ${y.toFixed(2)} Td (${sanitizePdfText(
-    value,
-  )}) Tj ET`;
-}
+const pdfText = unicodeText;
 
 function pdfLine(x1: number, y1: number, x2: number, y2: number) {
   return `${x1.toFixed(2)} ${y1.toFixed(2)} m ${x2.toFixed(2)} ${y2.toFixed(2)} l S`;
@@ -67,51 +54,8 @@ function wrapText(value: string, maxWidth: number, fontSize: number) {
   return lines.length > 0 ? lines : [""];
 }
 
-function createPdf(pages: PdfPage[]) {
-  const objects: string[] = [
-    "",
-    "",
-    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
-  ];
-  const pageObjectIds: number[] = [];
 
-  pages.forEach((page) => {
-    const content = page.commands.join("\n");
-    const pageObjectId = objects.length + 1;
-    const contentObjectId = pageObjectId + 1;
-
-    pageObjectIds.push(pageObjectId);
-    objects.push(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentObjectId} 0 R >>`,
-    );
-    objects.push(`<< /Length ${textEncoder.encode(content).length} >>\nstream\n${content}\nendstream`);
-  });
-
-  objects[0] = "<< /Type /Catalog /Pages 2 0 R >>";
-  objects[1] = `<< /Type /Pages /Kids [${pageObjectIds
-    .map((id) => `${id} 0 R`)
-    .join(" ")}] /Count ${pageObjectIds.length} >>`;
-
-  let pdf = "%PDF-1.4\n";
-  const offsets = [0];
-
-  objects.forEach((object, index) => {
-    offsets.push(textEncoder.encode(pdf).length);
-    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
-  });
-
-  const xrefOffset = textEncoder.encode(pdf).length;
-  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
-  offsets.slice(1).forEach((offset) => {
-    pdf += `${offset.toString().padStart(10, "0")} 00000 n \n`;
-  });
-  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
-
-  return new Blob([pdf], { type: "application/pdf" });
-}
-
-function createBudgetPdfBlob(budget: BudgetRecord) {
+export function createBudgetPdfBlob(budget: BudgetRecord, fontBytes?: Uint8Array[]) {
   const pages: PdfPage[] = [];
   let currentPage!: PdfPage;
   let y = pageHeight - margin;
@@ -210,7 +154,7 @@ function createBudgetPdfBlob(budget: BudgetRecord) {
   addText("Final budget total", 380, 10, "F2");
   addText(budget.totalAmount ? money(budget.totalAmount) : "Not recorded", 482, 10, "F2");
 
-  return createPdf(pages);
+  return createPdf(pages.map((page) => page.commands), pageWidth, pageHeight, fontBytes);
 }
 
 function buildFileName(budget: BudgetRecord) {
@@ -223,24 +167,21 @@ function buildFileName(budget: BudgetRecord) {
 }
 
 export function BudgetPdfDownloadButton({ budget }: { budget: BudgetRecord }) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   return (
-    <Button
-      type="button"
-      onClick={() => {
-        const blob = createBudgetPdfBlob(budget);
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-
-        link.href = url;
-        link.download = buildFileName(budget);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
-      }}
-    >
-      <Download size={16} aria-hidden="true" />
-      Download PDF
-    </Button>
+    <div>
+      <Button type="button" disabled={pending} onClick={async () => {
+        setPending(true);
+        setError(null);
+        try { downloadPdf(await createBudgetPdfBlob(budget), buildFileName(budget)); }
+        catch (error) { setError(getApiErrorMessage(error, "Unable to generate the PDF. Please retry.")); }
+        finally { setPending(false); }
+      }}>
+        <Download size={16} aria-hidden="true" />
+        {pending ? "Preparing PDF..." : "Download PDF"}
+      </Button>
+      {error ? <p role="alert" className="mt-2 text-sm text-destructive">{error}</p> : null}
+    </div>
   );
 }

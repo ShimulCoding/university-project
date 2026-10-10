@@ -1,3 +1,4 @@
+import { governanceTransaction } from "../../../utils/governance-transaction";
 import { BudgetState, Prisma, RoleCode } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
@@ -97,6 +98,9 @@ function calculateBudgetTotal(items: BudgetItemInput[]) {
     (sum, item) => sum.plus(new Prisma.Decimal(item.amount)),
     new Prisma.Decimal(0),
   );
+  if (total.greaterThan("9999999999.99")) {
+    throw new AppError(400, "Budget total exceeds the supported monetary limit.");
+  }
   return total.toFixed(2);
 }
 
@@ -230,41 +234,38 @@ export const budgetsService = {
     input: CreateBudgetInput,
     auditMetadata?: AuditMetadata,
   ) {
-    const event = await eventsRepository.findById(input.eventId);
-
-    if (!event) {
-      throw new AppError(404, "Event not found.");
-    }
-
-    assertBudgetManagementPermissions(actor, event.id);
-
-    const latestBudget = await budgetsRepository.findLatestBudgetVersion(input.eventId);
-    const version = latestBudget ? latestBudget.version + 1 : 1;
-    const budget = await budgetsRepository.createBudget({
-      eventId: input.eventId,
-      version,
-      title: sanitizeNullableTitle(input.title),
-      state: getDraftOrSubmittedState(input.submit),
-      totalAmount: calculateBudgetTotal(input.items),
-      createdById: actor.id,
-      items: input.items,
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "budgets.create",
-      entityType: "Budget",
-      entityId: budget.id,
-      summary: `Created budget version ${budget.version} for ${budget.event.title}`,
-      context: {
-        eventId: budget.event.id,
-        version: budget.version,
-        state: budget.state,
-      },
-      ...auditMetadata,
-    });
-
-    return mapBudget(budget);
+    return governanceTransaction(async (tx) => {
+      const event = await eventsRepository.findById(input.eventId, tx);
+      if (!event) {
+        throw new AppError(404, "Event not found.");
+      }
+      assertBudgetManagementPermissions(actor, event.id);
+      const latestBudget = await budgetsRepository.findLatestBudgetVersion(input.eventId, tx);
+      const version = latestBudget ? latestBudget.version + 1 : 1;
+      const budget = await budgetsRepository.createBudget({
+        eventId: input.eventId,
+        version,
+        title: sanitizeNullableTitle(input.title),
+        state: getDraftOrSubmittedState(input.submit),
+        totalAmount: calculateBudgetTotal(input.items),
+        createdById: actor.id,
+        items: input.items,
+      }, tx);
+      await auditService.record({
+        actorId: actor.id,
+        action: "budgets.create",
+        entityType: "Budget",
+        entityId: budget.id,
+        summary: `Created budget version ${budget.version} for ${budget.event.title}`,
+        context: {
+          eventId: budget.event.id,
+          version: budget.version,
+          state: budget.state,
+        },
+        ...auditMetadata,
+      }, tx);
+      return mapBudget(budget);
+    }, actor);
   },
 
   async createBudgetRevision(
@@ -273,28 +274,21 @@ export const budgetsService = {
     input: ReviseBudgetInput,
     auditMetadata?: AuditMetadata,
   ) {
-    const budget = await budgetsRepository.findById(budgetId);
-
-    if (!budget) {
-      throw new AppError(404, "Budget not found.");
-    }
-
-    assertBudgetManagementPermissions(actor, budget.eventId);
-
-    const latestBudget = await budgetsRepository.findLatestBudgetVersion(budget.eventId);
-
-    if (!latestBudget || latestBudget.id !== budget.id) {
-      throw new AppError(409, "Only the latest budget version can be revised.");
-    }
-
-    const staledAt = new Date();
-    const staleReason = `Active budget version ${budget.id} was revised; reconciliation must be regenerated.`;
-
-    const { newBudget, staleReportCount } = await prisma.$transaction(async (tx) => {
-      await budgetsRepository.markBudgetRevised(budget.id, tx);
-
-      const revisedBudget = await budgetsRepository.createBudget(
-        {
+    return governanceTransaction(async (tx) => {
+      const budget = await budgetsRepository.findById(budgetId, tx);
+      if (!budget) {
+        throw new AppError(404, "Budget not found.");
+      }
+      assertBudgetManagementPermissions(actor, budget.eventId);
+      const latestBudget = await budgetsRepository.findLatestBudgetVersion(budget.eventId, tx);
+      if (!latestBudget || latestBudget.id !== budget.id) {
+        throw new AppError(409, "Only the latest budget version can be revised.");
+      }
+      const staledAt = new Date();
+      const staleReason = `Active budget version ${budget.id} was revised; reconciliation must be regenerated.`;
+      const { newBudget, staleReportCount } = await (async () => {
+        await budgetsRepository.markBudgetRevised(budget.id, tx);
+        const revisedBudget = await budgetsRepository.createBudget({
           eventId: budget.eventId,
           version: budget.version + 1,
           title: sanitizeNullableTitle(input.title) ?? budget.title ?? undefined,
@@ -302,44 +296,36 @@ export const budgetsService = {
           totalAmount: calculateBudgetTotal(input.items),
           createdById: actor.id,
           items: input.items,
+        }, tx);
+        const staleResult = budget.isActive
+          ? await reconciliationRepository.markReportsStaleForEvent({
+            eventId: budget.eventId,
+            reason: staleReason,
+            staledAt,
+          }, tx)
+          : { count: 0 };
+        return {
+          newBudget: revisedBudget,
+          staleReportCount: staleResult.count,
+        };
+      })();
+      await auditService.record({
+        actorId: actor.id,
+        action: "budgets.revise",
+        entityType: "Budget",
+        entityId: newBudget.id,
+        summary: `Created budget revision ${newBudget.version} for ${newBudget.event.title}`,
+        context: {
+          eventId: newBudget.event.id,
+          previousBudgetId: budget.id,
+          previousVersion: budget.version,
+          nextVersion: newBudget.version,
+          staleReconciliationReports: staleReportCount,
         },
-        tx,
-      );
-
-      const staleResult = budget.isActive
-        ? await reconciliationRepository.markReportsStaleForEvent(
-            {
-              eventId: budget.eventId,
-              reason: staleReason,
-              staledAt,
-            },
-            tx,
-          )
-        : { count: 0 };
-
-      return {
-        newBudget: revisedBudget,
-        staleReportCount: staleResult.count,
-      };
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "budgets.revise",
-      entityType: "Budget",
-      entityId: newBudget.id,
-      summary: `Created budget revision ${newBudget.version} for ${newBudget.event.title}`,
-      context: {
-        eventId: newBudget.event.id,
-        previousBudgetId: budget.id,
-        previousVersion: budget.version,
-        nextVersion: newBudget.version,
-        staleReconciliationReports: staleReportCount,
-      },
-      ...auditMetadata,
-    });
-
-    return mapBudget(newBudget);
+        ...auditMetadata,
+      }, tx);
+      return mapBudget(newBudget);
+    }, actor);
   },
 
   async updateBudgetState(
@@ -348,83 +334,67 @@ export const budgetsService = {
     input: UpdateBudgetStateInput,
     auditMetadata?: AuditMetadata,
   ) {
-    const budget = await budgetsRepository.findById(budgetId);
-
-    if (!budget) {
-      throw new AppError(404, "Budget not found.");
-    }
-
-    if (input.state === BudgetState.APPROVED || input.state === BudgetState.REVISED) {
-      assertBudgetApprovalPermissions(actor, budget.eventId);
-    } else {
-      assertBudgetManagementPermissions(actor, budget.eventId);
-    }
-
-    // Event-scoped access already checked above via assertBudgetApprovalPermissions
-    // or assertBudgetManagementPermissions — no redundant check needed
-    assertBudgetStateTransition(budget.state, input.state);
-
-    if (
-      (input.state === BudgetState.APPROVED || input.state === BudgetState.REVISED) &&
-      budget.createdById === actor.id
-    ) {
-      throw new AppError(409, "Self-approval is not allowed for budget versions.");
-    }
-
-    const staledAt = new Date();
-    const staleReason = `Active budget changed to version ${budget.version}; reconciliation must be regenerated.`;
-
-    const { updatedBudget, staleReportCount } =
-      input.state === BudgetState.APPROVED
-        ? await prisma.$transaction(async (tx) => {
-            const approvedBudget = await budgetsRepository.updateBudgetState(
-              budgetId,
-              input.state,
-              tx,
-            );
-            await budgetsRepository.deactivateEventBudgets(approvedBudget.eventId, tx);
-            const activatedBudget = await budgetsRepository.activateBudget(budgetId, tx);
-            const staleResult = await reconciliationRepository.markReportsStaleForEvent(
-              {
-                eventId: activatedBudget.eventId,
-                reason: staleReason,
-                staledAt,
-              },
-              tx,
-            );
-
-            return {
-              updatedBudget: activatedBudget,
-              staleReportCount: staleResult.count,
-            };
-          })
+    return governanceTransaction(async (tx) => {
+      const budget = await budgetsRepository.findById(budgetId, tx);
+      if (!budget) {
+        throw new AppError(404, "Budget not found.");
+      }
+      if (input.state === BudgetState.APPROVED || input.state === BudgetState.REVISED) {
+        assertBudgetApprovalPermissions(actor, budget.eventId);
+      }
+      else {
+        assertBudgetManagementPermissions(actor, budget.eventId);
+      }
+      // Event-scoped access already checked above via assertBudgetApprovalPermissions
+      // or assertBudgetManagementPermissions — no redundant check needed
+      assertBudgetStateTransition(budget.state, input.state);
+      if ((input.state === BudgetState.APPROVED || input.state === BudgetState.REVISED) &&
+        budget.createdById === actor.id) {
+        throw new AppError(409, "Self-approval is not allowed for budget versions.");
+      }
+      const staledAt = new Date();
+      const staleReason = `Active budget changed to version ${budget.version}; reconciliation must be regenerated.`;
+      const { updatedBudget, staleReportCount } = input.state === BudgetState.APPROVED
+        ? await (async () => {
+          const approvedBudget = await budgetsRepository.updateBudgetState(budgetId, input.state, tx);
+          await budgetsRepository.deactivateEventBudgets(approvedBudget.eventId, tx);
+          const activatedBudget = await budgetsRepository.activateBudget(budgetId, tx);
+          const staleResult = await reconciliationRepository.markReportsStaleForEvent({
+            eventId: activatedBudget.eventId,
+            reason: staleReason,
+            staledAt,
+          }, tx);
+          return {
+            updatedBudget: activatedBudget,
+            staleReportCount: staleResult.count,
+          };
+        })()
         : input.state === BudgetState.REVISED
           ? {
-              updatedBudget: await budgetsRepository.markBudgetRevised(budgetId),
-              staleReportCount: 0,
-            }
+            updatedBudget: await budgetsRepository.markBudgetRevised(budgetId, tx),
+            staleReportCount: 0,
+          }
           : {
-              updatedBudget: await budgetsRepository.updateBudgetState(budgetId, input.state),
-              staleReportCount: 0,
-            };
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "budgets.update_state",
-      entityType: "Budget",
-      entityId: updatedBudget.id,
-      summary: `Changed budget version ${updatedBudget.version} state to ${updatedBudget.state}`,
-      context: {
-        eventId: updatedBudget.event.id,
-        previousState: budget.state,
-        nextState: updatedBudget.state,
-        autoActivated: input.state === BudgetState.APPROVED,
-        staleReconciliationReports: staleReportCount,
-      },
-      ...auditMetadata,
-    });
-
-    return mapBudget(updatedBudget);
+            updatedBudget: await budgetsRepository.updateBudgetState(budgetId, input.state, tx),
+            staleReportCount: 0,
+          };
+      await auditService.record({
+        actorId: actor.id,
+        action: "budgets.update_state",
+        entityType: "Budget",
+        entityId: updatedBudget.id,
+        summary: `Changed budget version ${updatedBudget.version} state to ${updatedBudget.state}`,
+        context: {
+          eventId: updatedBudget.event.id,
+          previousState: budget.state,
+          nextState: updatedBudget.state,
+          autoActivated: input.state === BudgetState.APPROVED,
+          staleReconciliationReports: staleReportCount,
+        },
+        ...auditMetadata,
+      }, tx);
+      return mapBudget(updatedBudget);
+    }, actor);
   },
 
   async activateBudget(
@@ -432,57 +402,47 @@ export const budgetsService = {
     budgetId: string,
     auditMetadata?: AuditMetadata,
   ) {
-    const budget = await budgetsRepository.findById(budgetId);
-
-    if (!budget) {
-      throw new AppError(404, "Budget not found.");
-    }
-
-    assertBudgetManagementPermissions(actor, budget.eventId);
-
-    if (budget.state !== BudgetState.APPROVED) {
-      throw new AppError(409, "Only approved budget versions can be activated.");
-    }
-
-    if (budget.isActive) {
-      return mapBudget(budget);
-    }
-
-    const staledAt = new Date();
-    const staleReason = `Active budget changed to version ${budget.version}; reconciliation must be regenerated.`;
-
-    const { activatedBudget, staleReportCount } = await prisma.$transaction(async (tx) => {
-      await budgetsRepository.deactivateEventBudgets(budget.eventId, tx);
-      const nextActiveBudget = await budgetsRepository.activateBudget(budgetId, tx);
-      const staleResult = await reconciliationRepository.markReportsStaleForEvent(
-        {
+    return governanceTransaction(async (tx) => {
+      const budget = await budgetsRepository.findById(budgetId, tx);
+      if (!budget) {
+        throw new AppError(404, "Budget not found.");
+      }
+      assertBudgetManagementPermissions(actor, budget.eventId);
+      if (budget.state !== BudgetState.APPROVED) {
+        throw new AppError(409, "Only approved budget versions can be activated.");
+      }
+      if (budget.isActive) {
+        return mapBudget(budget);
+      }
+      const staledAt = new Date();
+      const staleReason = `Active budget changed to version ${budget.version}; reconciliation must be regenerated.`;
+      const { activatedBudget, staleReportCount } = await (async () => {
+        await budgetsRepository.deactivateEventBudgets(budget.eventId, tx);
+        const nextActiveBudget = await budgetsRepository.activateBudget(budgetId, tx);
+        const staleResult = await reconciliationRepository.markReportsStaleForEvent({
           eventId: nextActiveBudget.eventId,
           reason: staleReason,
           staledAt,
+        }, tx);
+        return {
+          activatedBudget: nextActiveBudget,
+          staleReportCount: staleResult.count,
+        };
+      })();
+      await auditService.record({
+        actorId: actor.id,
+        action: "budgets.activate",
+        entityType: "Budget",
+        entityId: activatedBudget.id,
+        summary: `Activated budget version ${activatedBudget.version} for ${activatedBudget.event.title}`,
+        context: {
+          eventId: activatedBudget.event.id,
+          version: activatedBudget.version,
+          staleReconciliationReports: staleReportCount,
         },
-        tx,
-      );
-
-      return {
-        activatedBudget: nextActiveBudget,
-        staleReportCount: staleResult.count,
-      };
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "budgets.activate",
-      entityType: "Budget",
-      entityId: activatedBudget.id,
-      summary: `Activated budget version ${activatedBudget.version} for ${activatedBudget.event.title}`,
-      context: {
-        eventId: activatedBudget.event.id,
-        version: activatedBudget.version,
-        staleReconciliationReports: staleReportCount,
-      },
-      ...auditMetadata,
-    });
-
-    return mapBudget(activatedBudget);
+        ...auditMetadata,
+      }, tx);
+      return mapBudget(activatedBudget);
+    }, actor);
   },
 };

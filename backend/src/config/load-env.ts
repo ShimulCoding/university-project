@@ -16,7 +16,7 @@ export function loadProjectEnv() {
   ].find((candidate) => existsSync(candidate));
 
   if (envPath) {
-    dotenv.config({ path: envPath, override: true });
+    dotenv.config({ path: envPath, override: false });
   } else {
     dotenv.config();
   }

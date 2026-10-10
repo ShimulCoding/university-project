@@ -1,7 +1,10 @@
+import type { RegistrationRecord } from "@/types";
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage, apiOptions } from "@/lib/api/list";
 import { AlertTriangle, CalendarRange, Users, Sparkles, History } from "lucide-react";
 
 import { listPublicEvents } from "@/lib/api/public";
-import { getCurrentUser, listMyRegistrations } from "@/lib/api/student";
+import { getCurrentUser } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/shared";
 import { PublicEventCard } from "@/components/public/public-event-card";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
@@ -11,10 +14,11 @@ import { StatePanel } from "@/components/ui/state-panel";
 
 export const dynamic = "force-dynamic";
 
-export default async function PublicEventsPage() {
+export default async function PublicEventsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
   try {
-    const [events, user] = await Promise.all([listPublicEvents(), getCurrentUser()]);
-    const myRegistrations = user ? await listMyRegistrations() : [];
+    const [events, user] = await Promise.all([listPublicEvents({ page: queryPage(params.page) }), getCurrentUser()]);
+    const myRegistrations = user ? await apiOptions<RegistrationRecord>("/registrations/me", "registrations") : [];
 
     // Build a lookup map: event ID → registration ID
     const registrationByEventId: Record<string, string> = {};
@@ -60,7 +64,7 @@ export default async function PublicEventsPage() {
             <div className="grid gap-6 md:grid-cols-3 mb-16">
               <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Active Enrollments</CardDescription>
+                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Open registrations on this page</CardDescription>
                   <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                     <Sparkles className="h-5 w-5" />
                   </div>
@@ -68,14 +72,14 @@ export default async function PublicEventsPage() {
                 <CardContent>
                   <div className="text-4xl font-black text-foreground tracking-tight">{openEvents}</div>
                   <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
-                    Initiatives currently accepting registrations.
+                    Listed events currently accepting registrations.
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Past Events</CardDescription>
+                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Closed registrations on this page</CardDescription>
                   <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                     <History className="h-5 w-5" />
                   </div>
@@ -83,14 +87,14 @@ export default async function PublicEventsPage() {
                 <CardContent>
                   <div className="text-4xl font-black text-foreground tracking-tight">{closedEvents}</div>
                   <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
-                    Successfully concluded programs.
+                    Listed events whose registration windows have closed.
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Total Participants</CardDescription>
+                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Registrations on this page</CardDescription>
                   <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                     <Users className="h-5 w-5" />
                   </div>
@@ -98,7 +102,7 @@ export default async function PublicEventsPage() {
                 <CardContent>
                   <div className="text-4xl font-black text-foreground tracking-tight">{totalRegistrations}</div>
                   <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
-                    Students engaged across all events.
+                    Registrations for the events shown on this page.
                   </p>
                 </CardContent>
               </Card>
@@ -123,6 +127,7 @@ export default async function PublicEventsPage() {
               </div>
             )}
           </section>
+        <ListPagination pagination={events.pagination} />
         </main>
       </PublicPageShell>
     );

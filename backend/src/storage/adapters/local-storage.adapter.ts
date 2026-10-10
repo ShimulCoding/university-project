@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
 
-import { uploadsRoot } from "../../config/uploads";
+import { resolveUploadPath, uploadsRoot } from "../../config/uploads";
 import type {
   StorageProvider,
   StoredFileInput,
@@ -11,6 +11,7 @@ import type {
 
 export class LocalStorageAdapter implements StorageProvider {
   async saveFile(input: StoredFileInput): Promise<StoredFileResult> {
+    resolveUploadPath(path.relative(uploadsRoot, path.join(input.destinationDir, "validation")));
     await fs.mkdir(input.destinationDir, { recursive: true });
 
     const extension = path.extname(input.originalName);
@@ -27,7 +28,7 @@ export class LocalStorageAdapter implements StorageProvider {
   }
 
   async removeFile(relativePath: string): Promise<void> {
-    const absolutePath = path.join(uploadsRoot, relativePath);
+    const absolutePath = resolveUploadPath(relativePath);
 
     await fs.rm(absolutePath, { force: true });
   }

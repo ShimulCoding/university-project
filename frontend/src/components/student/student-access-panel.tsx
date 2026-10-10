@@ -48,8 +48,8 @@ export function StudentAccessPanel({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [, startTransition] = useTransition();
-  const isBusy = isSubmitting;
+  const [isRoutingPending, startTransition] = useTransition();
+  const isBusy = isSubmitting || isRoutingPending;
 
   /* Only two top-level tabs — forgot is reached via inline link */
   const options = useMemo(

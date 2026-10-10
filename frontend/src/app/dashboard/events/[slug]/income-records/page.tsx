@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, Wallet, CalendarDays, Tag, FileText, TrendingUp } from "lucide-react";
 
@@ -73,7 +75,7 @@ export default async function EventIncomeRecordsPage({
   const canManageIncomeRecords = eventRoles.includes("FINANCIAL_CONTROLLER");
 
   try {
-    const incomeRecords = await listIncomeRecords({ eventId: event.id, search });
+    const incomeRecords = await listIncomeRecords({ page: queryPage(sParams.page), eventId: event.id, search });
     const eventsArray = [event]; // Lock composer to this event
 
     const selectedIncomeRecordId =
@@ -276,7 +278,7 @@ export default async function EventIncomeRecordsPage({
                   emptyMessage="This income record does not yet have an attached evidence file."
                 />
                 {canManageIncomeRecords ? (
-                  <IncomeRecordStatePanel
+                  <IncomeRecordStatePanel key={selectedIncome.id}
                     incomeRecordId={selectedIncome.id}
                     allowVerify={selectedIncome.state === "RECORDED"}
                     allowVoid={selectedIncome.state !== "REJECTED"}
@@ -300,7 +302,8 @@ export default async function EventIncomeRecordsPage({
             {canManageIncomeRecords ? <IncomeRecordForm events={eventsArray} /> : null}
           </div>
         </div>
-      </div>
+      <ListPagination pagination={incomeRecords.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

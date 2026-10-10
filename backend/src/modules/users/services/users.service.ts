@@ -1,6 +1,5 @@
 import { AccountStatus, RoleCode } from "@prisma/client";
 
-import { prisma } from "../../../config/prisma";
 import { governanceTransaction } from "../../../utils/governance-transaction";
 import { assertEventTeamReady, requiredEventTeamRoles } from "../../../utils/event-team";
 import { AppError } from "../../../utils/app-error";
@@ -13,7 +12,8 @@ import { auditService } from "../../audit/services/audit.service";
 import { rolesRepository } from "../../roles/repositories/roles.repository";
 import { mapUserProfile } from "../users.mappers";
 import { usersRepository } from "../repositories/users.repository";
-import type { CreateUserInput, UserListFilters } from "../types/users.types";
+import { authRepository } from "../../auth/repositories/auth.repository";
+import type { CreateUserInput, UpdateUserProfileInput, UserListFilters } from "../types/users.types";
 
 export const usersService = {
   async listUsers(filters: UserListFilters) {
@@ -59,8 +59,11 @@ export const usersService = {
     const roleCodes = [...new Set(input.roleCodes ?? [RoleCode.GENERAL_STUDENT])];
 
     roleCodes.forEach(assertGlobalAccountRole);
+    if (roleCodes.includes(RoleCode.GENERAL_STUDENT) && !input.studentId?.trim()) {
+      throw new AppError(400, "A Student ID is required for student sign-in.");
+    }
 
-    const createdUser = await prisma.$transaction(async (tx) => {
+    const createdUser = await governanceTransaction(async (tx) => {
       await rolesRepository.syncCatalog(tx);
 
       const user = await usersRepository.createUser(
@@ -68,6 +71,7 @@ export const usersService = {
           fullName: input.fullName.trim(),
           email,
           passwordHash,
+          ...(input.studentId ? { studentId: input.studentId.trim() } : {}),
           status: input.status ?? AccountStatus.ACTIVE,
         },
         tx,
@@ -106,9 +110,21 @@ export const usersService = {
         ...auditMetadata,
       }, tx);
       return freshUser;
-    });
+    }, { id: actorId, roles: [RoleCode.SYSTEM_ADMIN], eventRoles: [] });
 
     return mapUserProfile(createdUser);
+  },
+
+  async updateProfile(actorId: string, userId: string, input: UpdateUserProfileInput, auditMetadata?: AuditMetadata) {
+    return governanceTransaction(async (tx) => {
+      const existing = await usersRepository.findById(userId, tx);
+      if (!existing) throw new AppError(404, "User not found.");
+      const updated = await usersRepository.updateProfile(userId, input, tx);
+      if (input.studentId && input.studentId !== existing.studentId) await authRepository.invalidatePasswordResetTokensForUser(userId, tx);
+      await auditService.record({ actorId, action: "users.profile.update", entityType: "User", entityId: userId,
+        summary: "Updated account profile", context: { previousStudentId: existing.studentId, studentId: updated.studentId, fullName: updated.fullName }, ...auditMetadata }, tx);
+      return mapUserProfile(updated);
+    }, { id: actorId, roles: [RoleCode.SYSTEM_ADMIN], eventRoles: [] });
   },
 
   async updateStatus(
@@ -164,7 +180,7 @@ export const usersService = {
         ...auditMetadata,
       }, tx);
       return updatedUser;
-    });
+    }, { id: actorId, roles: [RoleCode.SYSTEM_ADMIN], eventRoles: [] });
 
     return mapUserProfile(updatedUser);
   },

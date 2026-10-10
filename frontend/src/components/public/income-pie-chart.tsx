@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { PublicFinancialSummaryBreakdownLine } from "@/types";
 import { formatMoney } from "@/lib/format";
+import { pieSlices } from "@/lib/charts";
 
 const PIE_COLORS = [
   "hsl(217, 91%, 60%)",   // vivid blue
@@ -76,18 +77,13 @@ export function IncomePieChart({
               viewBox="0 0 220 220"
               className="h-52 w-52 drop-shadow-sm md:h-56 md:w-56"
               role="img"
-              aria-label="Income source pie chart"
+              aria-label={`${title} pie chart`}
             >
               {(() => {
-                let currentAngle = 0;
-                return items.map((item, index) => {
-                  const percentage = (Number(item.amount) / numericTotal) * 360;
-                  const slice = percentage < 0.5 ? 0.5 : percentage;
-                  const startAngle = currentAngle;
-                  const endAngle = currentAngle + slice;
-                  currentAngle = endAngle;
-
-                  const isFullCircle = items.length === 1;
+                const slices = pieSlices(items.map((item) => item.amount));
+                return slices.map(({ index, startAngle, endAngle }) => {
+                  const item = items[index]!;
+                  const isFullCircle = slices.length === 1;
                   const isHovered = hoveredIndex === index;
                   const scale = isHovered ? "scale(1.04)" : "scale(1)";
 

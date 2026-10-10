@@ -8,6 +8,8 @@ export type TokenType = "access" | "refresh";
 export type AuthTokenPayload = {
   sub: string;
   type: TokenType;
+  version?: number;
+  sessionId?: string;
 };
 
 function signToken(
@@ -21,9 +23,9 @@ function signToken(
   });
 }
 
-export function signAccessToken(userId: string) {
+export function signAccessToken(userId: string, version = 0, sessionId?: string) {
   return signToken(
-    { sub: userId, type: "access" },
+    { sub: userId, type: "access", version, ...(sessionId ? { sessionId } : {}) },
     env.JWT_ACCESS_SECRET,
     env.ACCESS_TOKEN_TTL as NonNullable<SignOptions["expiresIn"]>,
   );
@@ -38,9 +40,20 @@ export function signRefreshToken(userId: string) {
 }
 
 export function verifyAccessToken(token: string) {
-  return jwt.verify(token, env.JWT_ACCESS_SECRET) as AuthTokenPayload;
+  return verifyToken(token, env.JWT_ACCESS_SECRET);
 }
 
 export function verifyRefreshToken(token: string) {
-  return jwt.verify(token, env.JWT_REFRESH_SECRET) as AuthTokenPayload;
+  return verifyToken(token, env.JWT_REFRESH_SECRET);
+}
+
+function verifyToken(token: string, secret: string): AuthTokenPayload {
+  const payload = jwt.verify(token, secret, { algorithms: ["HS256"] });
+  if (typeof payload === "string" || typeof payload.sub !== "string" || !payload.sub ||
+      !["access", "refresh"].includes(payload.type) ||
+      (payload.version !== undefined && (!Number.isSafeInteger(payload.version) || payload.version < 0)) ||
+      (payload.sessionId !== undefined && typeof payload.sessionId !== "string")) {
+    throw new Error("Invalid token payload.");
+  }
+  return payload as AuthTokenPayload;
 }

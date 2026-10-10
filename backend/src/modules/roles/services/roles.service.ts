@@ -42,7 +42,6 @@ export const rolesService = {
   },
 
   async listRoles(filters: RoleListFilters) {
-    await rolesRepository.syncCatalog();
     const paginationOptions = getPaginationOptions(filters);
     const [roles, totalItems] = await Promise.all([
       rolesRepository.listRoles(paginationOptions),
@@ -95,13 +94,15 @@ export const rolesService = {
     auditMetadata?: AuditMetadata,
   ) {
     assertGlobalAccountRole(roleCode);
-    await rolesRepository.syncCatalog();
-
     const assignment = await governanceTransaction(async (tx) => {
+      await rolesRepository.syncCatalog(tx);
       const user = await usersRepository.findById(userId, tx);
 
       if (!user) {
         throw new AppError(404, "User not found.");
+      }
+      if (roleCode === RoleCode.GENERAL_STUDENT && !user.studentId) {
+        throw new AppError(409, "Add a Student ID to this account profile before granting student access.");
       }
 
       if (roleCode === RoleCode.SYSTEM_ADMIN && user.eventTeamMemberships.length > 0) {
@@ -141,7 +142,7 @@ export const rolesService = {
         ...auditMetadata,
       }, tx);
       return assignment;
-    });
+    }, { id: actorId, roles: [RoleCode.SYSTEM_ADMIN], eventRoles: [] });
 
     return mapAssignment(assignment);
   },
@@ -191,7 +192,7 @@ export const rolesService = {
         ...auditMetadata,
       }, tx);
       return revokedAssignment;
-    });
+    }, { id: actorId, roles: [RoleCode.SYSTEM_ADMIN], eventRoles: [] });
 
     return mapAssignment(revokedAssignment);
   },

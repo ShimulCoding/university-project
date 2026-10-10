@@ -1,13 +1,18 @@
 "use client";
 
+import { useState } from "react";
+import { createPdf, downloadPdf, pdfText as unicodeText, type PdfCommand } from "@/lib/pdf";
+import { getApiErrorMessage } from "@/lib/api/shared";
+
 import { Download } from "lucide-react";
 
 import type { PublicFinancialSummary, PublicFinancialSummaryBreakdownLine } from "@/types";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { pieSlices } from "@/lib/charts";
 
 /* ------------------------------------------------------------------ */
-/*  Pure-JS PDF generator — no external dependencies                  */
+/*  Financial tables and vector charts for the shared PDF renderer     */
 /* ------------------------------------------------------------------ */
 
 const PW = 595.28;
@@ -15,7 +20,7 @@ const PH = 841.89;
 const M = 48;
 const RIGHT = PW - M;
 const COL_W = RIGHT - M;
-const textEncoder = new TextEncoder();
+
 
 /* ---- Colours for pie/bar charts ---- */
 const PIE_HEX = [
@@ -26,20 +31,10 @@ const PIE_HEX = [
 const BUDGET_HEX = "#7c8594";
 const ACTUAL_HEX = "#2dd4a8";
 
-type PdfPage = { cmds: string[] };
+type PdfPage = { cmds: PdfCommand[] };
 
 /* ---- Low-level PDF helpers ---- */
-function esc(v: string) {
-  return v
-    .replace(/[^\x20-\x7E]/g, "")
-    .replace(/\\/g, "\\\\")
-    .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)");
-}
-
-function txt(v: string, x: number, y: number, s = 10, f = "F1") {
-  return `BT /${f} ${s} Tf ${x.toFixed(2)} ${y.toFixed(2)} Td (${esc(v)}) Tj ET`;
-}
+const txt = unicodeText;
 
 function line(x1: number, y1: number, x2: number, y2: number, w = 0.6) {
   return `${w} w ${x1.toFixed(2)} ${y1.toFixed(2)} m ${x2.toFixed(2)} ${y2.toFixed(2)} l S`;
@@ -99,12 +94,7 @@ function pieSector(cx: number, cy: number, rad: number, startDeg: number, endDeg
 }
 
 function money(v: string | number) {
-  const n = Number(v);
-  const formatted = new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n);
-  return `Tk ${formatted}`;
+  return formatMoney(v).replace("৳", "Tk");
 }
 
 function wrapText(value: string, maxWidth: number, fontSize: number) {
@@ -126,47 +116,6 @@ function wrapText(value: string, maxWidth: number, fontSize: number) {
 }
 
 /* ---- Build the multi-page PDF ---- */
-function buildPdf(pages: PdfPage[]) {
-  const objects: string[] = [
-    "",
-    "",
-    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
-  ];
-  const pageIds: number[] = [];
-
-  pages.forEach((page) => {
-    const content = page.cmds.join("\n");
-    const pid = objects.length + 1;
-    const cid = pid + 1;
-    pageIds.push(pid);
-    objects.push(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${cid} 0 R >>`,
-    );
-    objects.push(
-      `<< /Length ${textEncoder.encode(content).length} >>\nstream\n${content}\nendstream`,
-    );
-  });
-
-  objects[0] = "<< /Type /Catalog /Pages 2 0 R >>";
-  objects[1] = `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageIds.length} >>`;
-
-  let pdf = "%PDF-1.4\n";
-  const offsets = [0];
-  objects.forEach((obj, i) => {
-    offsets.push(textEncoder.encode(pdf).length);
-    pdf += `${i + 1} 0 obj\n${obj}\nendobj\n`;
-  });
-
-  const xref = textEncoder.encode(pdf).length;
-  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
-  offsets.slice(1).forEach((o) => {
-    pdf += `${o.toString().padStart(10, "0")} 00000 n \n`;
-  });
-  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-
-  return new Blob([pdf], { type: "application/pdf" });
-}
 
 /* ------------------------------------------------------------------ */
 /*  Main PDF content builder                                          */
@@ -195,7 +144,7 @@ function buildCategoryPairs(
   );
 }
 
-function createSummaryPdf(summary: PublicFinancialSummary) {
+export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Uint8Array[]) {
   const pages: PdfPage[] = [];
   let page!: PdfPage;
   let y = PH - M;
@@ -304,15 +253,8 @@ function createSummaryPdf(summary: PublicFinancialSummary) {
     const radius = 75;
 
     // Draw pie slices
-    let currentAngle = -90; // start from top
-    incomeItems.forEach((item, index) => {
-      const pct = (Number(item.amount) / numericTotal) * 360;
-      const slice = pct < 0.5 ? 0.5 : pct;
-      // Convert from "degrees from top" to standard math degrees
-      const startDeg = currentAngle;
-      const endDeg = currentAngle + slice;
-      page.cmds.push(pieSector(cx, cy, radius, startDeg, endDeg, PIE_HEX[index % PIE_HEX.length]!));
-      currentAngle = endDeg;
+    pieSlices(incomeItems.map((item) => item.amount)).forEach(({ index, startAngle, endAngle }) => {
+      page.cmds.push(pieSector(cx, cy, radius, startAngle - 90, endAngle - 90, PIE_HEX[index % PIE_HEX.length]!));
     });
 
     // Centre hole (donut)
@@ -514,7 +456,7 @@ function createSummaryPdf(summary: PublicFinancialSummary) {
     p.cmds.push(`0 0 0 rg`);
   });
 
-  return buildPdf(pages);
+  return createPdf(pages.map((page) => page.cmds), PW, PH, fontBytes);
 }
 
 function buildFileName(summary: PublicFinancialSummary) {
@@ -526,23 +468,21 @@ function buildFileName(summary: PublicFinancialSummary) {
 }
 
 export function SummaryPdfDownloadButton({ summary }: { summary: PublicFinancialSummary }) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   return (
-    <Button
-      type="button"
-      onClick={() => {
-        const blob = createSummaryPdf(summary);
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = buildFileName(summary);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
-      }}
-    >
-      <Download size={16} aria-hidden="true" />
-      Download PDF
-    </Button>
+    <div>
+      <Button type="button" disabled={pending} onClick={async () => {
+        setPending(true);
+        setError(null);
+        try { downloadPdf(await createSummaryPdf(summary), buildFileName(summary)); }
+        catch (error) { setError(getApiErrorMessage(error, "Unable to generate the PDF. Please retry.")); }
+        finally { setPending(false); }
+      }}>
+        <Download size={16} aria-hidden="true" />
+        {pending ? "Preparing PDF..." : "Download PDF"}
+      </Button>
+      {error ? <p role="alert" className="mt-2 text-sm text-destructive">{error}</p> : null}
+    </div>
   );
 }

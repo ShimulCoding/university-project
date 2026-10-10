@@ -13,6 +13,7 @@ export const documentsRepository = {
         originalName: true,
         mimeType: true,
         relativePath: true,
+        sizeBytes: true,
         // Include parent entity references to resolve event ownership
         paymentProof: {
           select: {

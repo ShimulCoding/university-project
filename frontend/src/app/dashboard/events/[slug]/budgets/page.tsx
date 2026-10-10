@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, Briefcase, FileText, CheckCircle2, FileBarChart, PieChart, ShieldCheck } from "lucide-react";
 
@@ -62,7 +64,7 @@ export default async function EventBudgetsPage({
   }
 
   try {
-    const budgets = await listBudgets({ eventId: event.id, state: "APPROVED", isActive: "true" });
+    const budgets = await listBudgets({ page: queryPage(sParams.page), eventId: event.id, state: "APPROVED", isActive: "true" });
     const selectedBudgetId = budgets.find((budget) => budget.id === budgetId)?.id ?? budgets[0]?.id;
     const selectedBudget = selectedBudgetId ? await getBudget(selectedBudgetId) : null;
 
@@ -193,7 +195,7 @@ export default async function EventBudgetsPage({
                       </Badge>
                       {selectedBudget.isActive ? <Badge variant="success" className="text-xs uppercase tracking-widest px-2 py-1 shadow-sm">Active</Badge> : null}
                       <div className="ml-auto relative z-10">
-                        <BudgetPdfDownloadButton budget={selectedBudget} />
+                        <BudgetPdfDownloadButton key={selectedBudget.id} budget={selectedBudget} />
                       </div>
                     </div>
                     <CardTitle className="text-2xl tracking-tight">Allocation Ledger</CardTitle>
@@ -299,7 +301,8 @@ export default async function EventBudgetsPage({
             )}
           </div>
         </div>
-      </div>
+      <ListPagination pagination={budgets.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

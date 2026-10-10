@@ -9,7 +9,7 @@ const paginationNumberField = z.preprocess(
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : value;
   },
-  z.number().int().positive().optional(),
+  z.number().int().positive().max(1_000_000).optional(),
 );
 
 export const paginationQuerySchema = {

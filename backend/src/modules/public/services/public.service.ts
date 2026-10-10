@@ -1,3 +1,4 @@
+import { governanceTransaction } from "../../../utils/governance-transaction";
 import { EventStatus, ReconciliationState, RoleCode } from "@prisma/client";
 
 import type { AuthenticatedUser } from "../../../types/auth";
@@ -74,14 +75,15 @@ function buildPublicPayload(
 export const publicService = {
   async listPublishedFinancialSummaries(filters: PublicSummaryFilters) {
     const paginationOptions = getPaginationOptions(filters);
-    const [summaries, totalItems] = await Promise.all([
-      publicRepository.listPublishedSummaries(filters, paginationOptions),
-      publicRepository.countPublishedSummaries(filters),
+    const [summaries, totalItems, snapshotCount] = await Promise.all([
+      filters.latestOnly ? publicRepository.listLatestPublishedSummaries(filters, paginationOptions) : publicRepository.listPublishedSummaries(filters, paginationOptions),
+      filters.latestOnly ? publicRepository.countLatestPublishedSummaries(filters) : publicRepository.countPublishedSummaries(filters),
+      filters.latestOnly ? publicRepository.countPublishedSummaries(filters) : Promise.resolve(0),
     ]);
 
     return {
       summaries: summaries.map(mapPublicFinancialSummary),
-      pagination: buildPaginationResult(paginationOptions, totalItems),
+      pagination: { ...buildPaginationResult(paginationOptions, totalItems), ...(filters.latestOnly ? { historicalSnapshotCount: snapshotCount - totalItems } : {}) },
     };
   },
 
@@ -100,35 +102,31 @@ export const publicService = {
     publicSummaryId: string,
     auditMetadata?: AuditMetadata,
   ) {
-    const summary = await publicRepository.findSummaryById(publicSummaryId);
-
-    if (!summary) {
-      throw new AppError(404, "Public financial summary not found.");
-    }
-
-    if (summary.status !== "PUBLISHED") {
-      throw new AppError(409, "Only published summaries can be unpublished.");
-    }
-
-    assertPublishPermissions(actor, summary.eventId);
-
-    const unpublishedSummary = await publicRepository.unpublishSummary(publicSummaryId);
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "public_summary.unpublish",
-      entityType: "PublicSummarySnapshot",
-      entityId: unpublishedSummary.id,
-      summary: `Unpublished public financial summary for ${unpublishedSummary.event.title}`,
-      context: {
-        eventId: unpublishedSummary.event.id,
-        reconciliationReportId: unpublishedSummary.reconciliationReportId,
-        status: unpublishedSummary.status,
-      },
-      ...auditMetadata,
-    });
-
-    return mapPublicFinancialSummary(unpublishedSummary);
+    return governanceTransaction(async (tx) => {
+      const summary = await publicRepository.findSummaryById(publicSummaryId, tx);
+      if (!summary) {
+        throw new AppError(404, "Public financial summary not found.");
+      }
+      if (summary.status !== "PUBLISHED") {
+        throw new AppError(409, "Only published summaries can be unpublished.");
+      }
+      assertPublishPermissions(actor, summary.eventId);
+      const unpublishedSummary = await publicRepository.unpublishSummary(publicSummaryId, tx);
+      await auditService.record({
+        actorId: actor.id,
+        action: "public_summary.unpublish",
+        entityType: "PublicSummarySnapshot",
+        entityId: unpublishedSummary.id,
+        summary: `Unpublished public financial summary for ${unpublishedSummary.event.title}`,
+        context: {
+          eventId: unpublishedSummary.event.id,
+          reconciliationReportId: unpublishedSummary.reconciliationReportId,
+          status: unpublishedSummary.status,
+        },
+        ...auditMetadata,
+      }, tx);
+      return mapPublicFinancialSummary(unpublishedSummary);
+    }, actor);
   },
 
   async publishFinancialSummary(
@@ -136,64 +134,53 @@ export const publicService = {
     reconciliationReportId: string,
     auditMetadata?: AuditMetadata,
   ) {
-    const report = await reconciliationRepository.findReportById(reconciliationReportId);
-
-    if (!report) {
-      throw new AppError(404, "Reconciliation report not found.");
-    }
-
-    assertPublishPermissions(actor, report.eventId);
-
-    if (report.status !== ReconciliationState.FINALIZED) {
-      throw new AppError(409, "Only finalized reconciliation reports can be published publicly.");
-    }
-
-    if (report.isStale) {
-      throw new AppError(
-        409,
-        "This reconciliation report is stale because event financial records changed. Generate and finalize a fresh report before publishing.",
-      );
-    }
-
-    assertReportEventSnapshotIsCurrent(report);
-
-    if (!publishableEventStatuses.includes(report.event.status)) {
-      throw new AppError(
-        409,
-        "Public summaries can only be published after the event is completed or closed.",
-      );
-    }
-
-    const existingSummary = await publicRepository.findPublishedSummaryByReportId(report.id);
-
-    if (existingSummary) {
-      return mapPublicFinancialSummary(existingSummary);
-    }
-
-    const publicSummary = await publicRepository.createPublishedSummary({
-      eventId: report.event.id,
-      reconciliationReportId: report.id,
-      publishedById: actor.id,
-      totalCollected: report.totalIncome.toString(),
-      totalSpent: report.totalExpense.toString(),
-      closingBalance: report.closingBalance.toString(),
-      payload: buildPublicPayload(report),
-    });
-
-    await auditService.record({
-      actorId: actor.id,
-      action: "public_summary.publish",
-      entityType: "PublicSummarySnapshot",
-      entityId: publicSummary.id,
-      summary: `Published public financial summary for ${publicSummary.event.title}`,
-      context: {
-        eventId: publicSummary.event.id,
+    return governanceTransaction(async (tx) => {
+      const report = await reconciliationRepository.findReportById(reconciliationReportId, tx);
+      if (!report) {
+        throw new AppError(404, "Reconciliation report not found.");
+      }
+      assertPublishPermissions(actor, report.eventId);
+      if (report.status !== ReconciliationState.FINALIZED) {
+        throw new AppError(409, "Only finalized reconciliation reports can be published publicly.");
+      }
+      if (report.isStale) {
+        throw new AppError(409, "This reconciliation report is stale because event financial records changed. Generate and finalize a fresh report before publishing.");
+      }
+      assertReportEventSnapshotIsCurrent(report);
+      if (!publishableEventStatuses.includes(report.event.status)) {
+        throw new AppError(409, "Public summaries can only be published after the event is completed or closed.");
+      }
+      const latestReport = await reconciliationRepository.findLatestReportForEvent(report.eventId, tx);
+      if (!latestReport || latestReport.id !== report.id) {
+        throw new AppError(409, "Only the latest reconciliation report can be published.");
+      }
+      const existingSummary = await publicRepository.findPublishedSummaryByReportId(report.id, tx);
+      if (existingSummary) {
+        return mapPublicFinancialSummary(existingSummary);
+      }
+      const publicSummary = await publicRepository.createPublishedSummary({
+        eventId: report.event.id,
         reconciliationReportId: report.id,
-        status: publicSummary.status,
-      },
-      ...auditMetadata,
-    });
-
-    return mapPublicFinancialSummary(publicSummary);
+        publishedById: actor.id,
+        totalCollected: report.totalIncome.toString(),
+        totalSpent: report.totalExpense.toString(),
+        closingBalance: report.closingBalance.toString(),
+        payload: buildPublicPayload(report),
+      }, tx);
+      await auditService.record({
+        actorId: actor.id,
+        action: "public_summary.publish",
+        entityType: "PublicSummarySnapshot",
+        entityId: publicSummary.id,
+        summary: `Published public financial summary for ${publicSummary.event.title}`,
+        context: {
+          eventId: publicSummary.event.id,
+          reconciliationReportId: report.id,
+          status: publicSummary.status,
+        },
+        ...auditMetadata,
+      }, tx);
+      return mapPublicFinancialSummary(publicSummary);
+    }, actor);
   },
 };

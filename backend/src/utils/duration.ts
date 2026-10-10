@@ -8,7 +8,9 @@ const unitToMs: Record<string, number> = {
 
 export function durationToMs(value: string) {
   if (/^\d+$/.test(value)) {
-    return Number(value);
+    const duration = Number(value);
+    if (!Number.isSafeInteger(duration) || duration <= 0) throw new Error("Token lifetime must be positive.");
+    return duration;
   }
 
   const match = value.trim().match(/^(\d+)(ms|s|m|h|d)$/i);
@@ -24,5 +26,7 @@ export function durationToMs(value: string) {
     throw new Error(`Unsupported duration unit: ${value}`);
   }
 
-  return amount * unitToMs[unit]!;
+  const duration = amount * unitToMs[unit]!;
+  if (!Number.isSafeInteger(duration) || duration <= 0) throw new Error("Token lifetime must be positive.");
+  return duration;
 }

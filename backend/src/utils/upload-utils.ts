@@ -50,6 +50,20 @@ export function assertUploadMatchesRule(
     throw new AppError(400, `Uploaded file type is not allowed for ${documentName}.`);
   }
 
+  if (!Buffer.isBuffer(file.buffer) || file.size !== file.buffer.length || file.size === 0) {
+    throw new AppError(400, "Uploaded file is empty or incomplete.");
+  }
+
+  const signatures: Record<string, Buffer> = {
+    "application/pdf": Buffer.from("%PDF-"),
+    "image/png": Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    "image/jpeg": Buffer.from([255, 216, 255]),
+  };
+  const signature = signatures[file.mimetype];
+  if (!signature || !file.buffer.subarray(0, signature.length).equals(signature)) {
+    throw new AppError(400, "Uploaded content does not match the declared file type.");
+  }
+
   if (file.size > rule.maxFileSizeBytes) {
     throw new AppError(400, "Uploaded file exceeds the maximum allowed size.");
   }
@@ -69,7 +83,7 @@ export async function storeValidatedUpload(
   const storedFile = await storageProvider.saveFile({
     buffer: file.buffer,
     destinationDir: options.destinationDir,
-    originalName: file.originalname,
+    originalName: `document.${{ "application/pdf": "pdf", "image/png": "png", "image/jpeg": "jpg" }[file.mimetype]}`,
   });
 
   return {
@@ -80,4 +94,20 @@ export async function storeValidatedUpload(
     storedName: storedFile.storedName,
     relativePath: storedFile.relativePath,
   };
+}
+
+// Validate the entire batch before saving; clean up prior saves if storage fails.
+export async function storeValidatedUploads(
+  files: Express.Multer.File[] | undefined,
+  options: Parameters<typeof storeValidatedUpload>[1],
+) {
+  for (const file of files ?? []) assertUploadMatchesRule(file, options.rule, options.documentName);
+  const stored: StoredUpload[] = [];
+  try {
+    for (const file of files ?? []) stored.push(await storeValidatedUpload(file, options));
+    return stored;
+  } catch (error) {
+    await cleanupStoredUploads(stored);
+    throw error;
+  }
 }

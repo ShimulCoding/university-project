@@ -13,8 +13,6 @@ export const authRepository = {
     },
     db: DbClient = prisma,
   ) {
-    await authRepository.pruneStaleTokens(db);
-
     return db.refreshToken.create({
       data: {
         userId: data.userId,
@@ -66,19 +64,22 @@ export const authRepository = {
 
   /**
    * Remove refresh tokens that are expired or were revoked more than 24 hours ago.
-   * Best-effort cleanup runs deterministically before issuing a new refresh token.
+   * Run outside request transactions so maintenance failures cannot abort sign-in.
    */
-  async pruneStaleTokens(db: DbClient = prisma) {
+  async pruneStaleTokens() {
     try {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-      await db.refreshToken.deleteMany({
+      await prisma.refreshToken.deleteMany({
         where: {
           OR: [
             { expiresAt: { lt: new Date() } },
             { revokedAt: { lt: oneDayAgo } },
           ],
         },
+      });
+      await prisma.passwordResetToken.deleteMany({
+        where: { OR: [{ expiresAt: { lt: new Date() } }, { usedAt: { lt: oneDayAgo } }] },
       });
     } catch {
       // Best-effort cleanup only; never block auth flows.
@@ -116,6 +117,13 @@ export const authRepository = {
       data: {
         usedAt,
       },
+    });
+  },
+
+  invalidatePasswordResetTokensForUser(userId: string, db: DbClient = prisma) {
+    return db.passwordResetToken.updateMany({
+      where: { userId, usedAt: null },
+      data: { usedAt: new Date() },
     });
   },
 };

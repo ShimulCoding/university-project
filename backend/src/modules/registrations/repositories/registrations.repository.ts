@@ -49,20 +49,19 @@ export const registrationsRepository = {
     participantId: string,
     pagination?: PaginationOptions,
     db: DbClient = prisma,
+    eventId?: string,
   ) {
     return db.registration.findMany({
-      where: { participantId },
+      where: { participantId, ...(eventId ? { eventId } : {}) },
       include: registrationDetailInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
 
-  countByParticipant(participantId: string, db: DbClient = prisma) {
+  countByParticipant(participantId: string, db: DbClient = prisma, eventId?: string) {
     return db.registration.count({
-      where: { participantId },
+      where: { participantId, ...(eventId ? { eventId } : {}) },
     });
   },
 
@@ -70,9 +69,7 @@ export const registrationsRepository = {
     return db.registration.findMany({
       where: { eventId },
       include: registrationDetailInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },

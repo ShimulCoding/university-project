@@ -8,6 +8,7 @@ import { createApp } from "../src/app";
 import { prisma } from "../src/config/prisma";
 import { uploadsRoot } from "../src/config/uploads";
 import { hashPassword } from "../src/utils/password";
+import { storageProvider } from "../src/storage";
 
 // Uses uniquely named fixtures and deletes only IDs created by this run.
 // No seed account, existing event, or existing document is modified.
@@ -219,6 +220,14 @@ async function main() {
       const platformHtml = await (await fetch(`${frontend}/dashboard/complaints?search=Scope+platform+complaint&complaintId=${platformComplaint.id}`, { headers: { Cookie: adminCookie } })).text();
       assert(platformHtml.includes("Scope platform complaint") && platformHtml.includes("Start review") && !platformHtml.includes("Complaint workflow controls are disabled"), "System platform complaint workflow was unavailable");
       checks += 8;
+      if (process.env.VERIFY_BROWSER === "1") {
+        const browserStudentId = `B${runId.slice(0, 20)}`;
+        const { data: browserStudent } = await request("/users", adminCookie, "POST", { fullName: "Scope browser student", email: `verify-student-${runId}@example.com`, studentId: browserStudentId, password, roleCodes: ["GENERAL_STUDENT"] }, 201);
+        userIds.push(browserStudent.user.id);
+        const { verifyBrowserWorkspaces } = await import("./verify-browser-workspaces");
+        checks += await verifyBrowserWorkspaces({ frontend, eventSlug: eventA.slug, eventId: eventA.id, financeId: financeA.id, otherSlug: eventB.slug,
+          financeEmail: financeA.email, studentId: browserStudentId, studentUserId: browserStudent.user.id, password, adminCookie, managerCookie, approverCookie });
+      }
     }
 
     // Replace, then revoke. The existing cookie must lose event A immediately.
@@ -249,8 +258,13 @@ async function main() {
     checks += 2;
 
     // Account management exposes global roles only and persists its audit.
-    const { data: createdAccount } = await request("/users", adminCookie, "POST", { fullName: "Scope managed account", email: `verify-managed-${runId}@example.com`, password, roleCodes: ["GENERAL_STUDENT"] }, 201);
+    await request("/users", adminCookie, "POST", { fullName: "Scope incomplete student", email: `verify-missing-${runId}@example.com`, password, roleCodes: ["GENERAL_STUDENT"] }, 400);
+    const managedStudentId = `M${runId.slice(0, 20)}`;
+    const { data: createdAccount } = await request("/users", adminCookie, "POST", { fullName: "Scope managed account", email: `verify-managed-${runId}@example.com`, studentId: managedStudentId, password, roleCodes: ["GENERAL_STUDENT"] }, 201);
     userIds.push(createdAccount.user.id);
+    await request("/auth/login", "", "POST", { studentId: managedStudentId, password });
+    await request(`/users/${createdAccount.user.id}/profile`, financeCookie, "PATCH", { fullName: "Unauthorized change" }, 403);
+    await request(`/users/${createdAccount.user.id}/profile`, adminCookie, "PATCH", { fullName: "Scope corrected profile" });
     await request("/roles/assignments", adminCookie, "POST", { userId: createdAccount.user.id, roleCode: "FINANCIAL_CONTROLLER" }, 400);
     const { data: promoted } = await request("/roles/assignments", adminCookie, "POST", { userId: createdAccount.user.id, roleCode: "SYSTEM_ADMIN" }, 201);
     await request(`/roles/assignments/${promoted.assignment.id}`, adminCookie, "DELETE");
@@ -260,6 +274,8 @@ async function main() {
     console.log(`Event workspace verification passed (${checks} HTTP and boundary checks${frontend ? ", including rendered frontend routes" : ""}).`);
   } finally {
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+    const uploadedFixtures = await prisma.supportingDocument.findMany({ where: { uploadedById: { in: userIds } }, select: { relativePath: true } });
+    for (const document of uploadedFixtures) await storageProvider.removeFile(document.relativePath);
     await prisma.$transaction(async (tx) => {
       // Event deletion cascades event records; audit rows are removed first.
       await tx.auditLog.deleteMany({ where: { OR: [{ eventId: { in: eventIds } }, { actorId: { in: userIds } }] } });

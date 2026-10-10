@@ -1,8 +1,9 @@
+import { governanceTransaction } from "../../../utils/governance-transaction";
 import { ComplaintState, DocumentCategory, RoleCode } from "@prisma/client";
 
 import { documentDirectories, uploadRules } from "../../../config/uploads";
-import { prisma } from "../../../config/prisma";
 import type { AuthenticatedUser } from "../../../types/auth";
+import type { DbClient } from "../../../types/database";
 import { AppError } from "../../../utils/app-error";
 import {
   assertAnyEventScopedAccess,
@@ -14,7 +15,7 @@ import {
 } from "../../../utils/event-scope";
 import { buildPaginationResult, getPaginationOptions } from "../../../utils/pagination";
 import { sanitizeOptionalText } from "../../../utils/text-utils";
-import { cleanupStoredUpload, cleanupStoredUploads, storeValidatedUpload } from "../../../utils/upload-utils";
+import { cleanupStoredUploads, storeValidatedUploads } from "../../../utils/upload-utils";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
 import { eventsRepository } from "../../events/repositories/events.repository";
@@ -36,14 +37,6 @@ import type {
   RouteComplaintInput,
 } from "../types/complaints.types";
 
-async function storeComplaintEvidence(file: Express.Multer.File) {
-  return storeValidatedUpload(file, {
-    category: DocumentCategory.COMPLAINT_EVIDENCE,
-    destinationDir: documentDirectories.COMPLAINT_EVIDENCE,
-    rule: uploadRules.COMPLAINT_EVIDENCE,
-    documentName: "complaint evidence",
-  });
-}
 
 const allowedComplaintTransitions: Record<ComplaintState, ComplaintState[]> = {
   [ComplaintState.SUBMITTED]: [
@@ -162,13 +155,12 @@ function getActorComplaintRoleCode(
   return undefined;
 }
 
-async function getRoleIdByCode(roleCode: ComplaintRoutingRoleCode | undefined) {
+async function getRoleIdByCode(roleCode: ComplaintRoutingRoleCode | undefined, db: DbClient) {
   if (!roleCode) {
     return undefined;
   }
 
-  await rolesRepository.syncCatalog();
-  const role = await rolesRepository.findByCode(roleCode);
+  const role = await rolesRepository.findByCode(roleCode, db);
 
   if (!role) {
     throw new AppError(404, `Role ${roleCode} not found.`);
@@ -187,55 +179,45 @@ async function transitionComplaint(
   },
   auditMetadata: AuditMetadata | undefined,
 ) {
-  const complaint = await complaintsRepository.findComplaintById(complaintId);
-
-  if (!complaint) {
-    throw new AppError(404, "Complaint not found.");
+    return governanceTransaction(async (tx) => {
+      const complaint = await complaintsRepository.findComplaintById(complaintId, tx);
+      if (!complaint) {
+        throw new AppError(404, "Complaint not found.");
+      }
+      assertComplaintReviewPermissions(actor, complaint.event?.id ?? null);
+      assertComplaintTransition(complaint.state, nextState);
+      const fromRoleId = await getRoleIdByCode(getActorComplaintRoleCode(actor, complaint.event?.id ?? null), tx);
+      const toRoleId = await getRoleIdByCode(input.toRoleCode, tx);
+      const note = sanitizeOptionalText(input.note);
+      const updatedComplaint = await (async () => {
+        await complaintsRepository.createRoutingHistory({
+          complaintId,
+          state: nextState,
+          fromRoleId,
+          toRoleId,
+          routedById: actor.id,
+          note,
+        }, tx);
+        return complaintsRepository.updateComplaintState(complaintId, nextState, tx);
+      })();
+      await auditService.record({
+        actorId: actor.id,
+        action: "complaints.transition",
+        entityType: "Complaint",
+        entityId: updatedComplaint.id,
+        summary: `Moved complaint to ${nextState}`,
+        context: {
+          previousState: complaint.state,
+          nextState,
+          toRoleCode: input.toRoleCode ?? null,
+          eventId: updatedComplaint.event?.id ?? null,
+          note: note ?? null,
+        },
+        ...auditMetadata,
+      }, tx);
+      return mapComplaintForReview(updatedComplaint);
+    }, actor);
   }
-
-  assertComplaintReviewPermissions(actor, complaint.event?.id ?? null);
-  assertComplaintTransition(complaint.state, nextState);
-
-  const fromRoleId = await getRoleIdByCode(
-    getActorComplaintRoleCode(actor, complaint.event?.id ?? null),
-  );
-  const toRoleId = await getRoleIdByCode(input.toRoleCode);
-  const note = sanitizeOptionalText(input.note);
-
-  const updatedComplaint = await prisma.$transaction(async (tx) => {
-    await complaintsRepository.createRoutingHistory(
-      {
-        complaintId,
-        state: nextState,
-        fromRoleId,
-        toRoleId,
-        routedById: actor.id,
-        note,
-      },
-      tx,
-    );
-
-    return complaintsRepository.updateComplaintState(complaintId, nextState, tx);
-  });
-
-  await auditService.record({
-    actorId: actor.id,
-    action: "complaints.transition",
-    entityType: "Complaint",
-    entityId: updatedComplaint.id,
-    summary: `Moved complaint to ${nextState}`,
-    context: {
-      previousState: complaint.state,
-      nextState,
-      toRoleCode: input.toRoleCode ?? null,
-      eventId: updatedComplaint.event?.id ?? null,
-      note: note ?? null,
-    },
-    ...auditMetadata,
-  });
-
-  return mapComplaintForReview(updatedComplaint);
-}
 
 export const complaintsService = {
   async listMyComplaints(actor: AuthenticatedUser, filters: ComplaintQueueFilters) {
@@ -273,85 +255,62 @@ export const complaintsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
-    if (input.eventId) {
-      const event = await eventsRepository.findById(input.eventId);
-
-      if (!event) {
-        throw new AppError(404, "Event not found.");
-      }
-    }
-
-    const storedUploads = files && files.length > 0 ? await Promise.all(files.map(storeComplaintEvidence)) : [];
-
+    const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.COMPLAINT_EVIDENCE, destinationDir: documentDirectories.COMPLAINT_EVIDENCE, rule: uploadRules.COMPLAINT_EVIDENCE });
     try {
-      const complaint = await prisma.$transaction(async (tx) => {
-        const createdComplaint = await complaintsRepository.createComplaint(
-          {
+      return await governanceTransaction(async (tx) => {
+        if (input.eventId) {
+          const event = await eventsRepository.findById(input.eventId, tx);
+          if (!event) {
+            throw new AppError(404, "Event not found.");
+          }
+        }
+        const complaint = await (async () => {
+          const createdComplaint = await complaintsRepository.createComplaint({
             subject: input.subject,
             description: input.description,
             eventId: input.eventId,
             submittedById: actor.id,
-          },
-          tx,
-        );
-
-        await complaintsRepository.createRoutingHistory(
-          {
+          }, tx);
+          await complaintsRepository.createRoutingHistory({
             complaintId: createdComplaint.id,
             state: ComplaintState.SUBMITTED,
             note: "Complaint received and queued for internal review.",
+          }, tx);
+          if (storedUploads && storedUploads.length > 0) {
+            await Promise.all(storedUploads.map((upload) => complaintsRepository.createSupportingDocument({
+              category: upload.category,
+              originalName: upload.originalName,
+              mimeType: upload.mimeType,
+              storedName: upload.storedName,
+              relativePath: upload.relativePath,
+              sizeBytes: BigInt(upload.sizeBytes),
+              uploadedById: actor.id,
+              complaintId: createdComplaint.id,
+            }, tx)));
+          }
+          const reloadedComplaint = await complaintsRepository.findComplaintById(createdComplaint.id, tx);
+          if (!reloadedComplaint) {
+            throw new AppError(500, "Failed to reload the submitted complaint.");
+          }
+          return reloadedComplaint;
+        })();
+        await auditService.record({
+          actorId: actor.id,
+          action: "complaints.submit",
+          entityType: "Complaint",
+          entityId: complaint.id,
+          summary: `Submitted complaint: ${complaint.subject}`,
+          context: {
+            eventId: complaint.event?.id ?? null,
+            hasEvidence: complaint.documents.length > 0,
+            state: complaint.state,
           },
-          tx,
-        );
-
-        if (storedUploads && storedUploads.length > 0) {
-          await Promise.all(
-            storedUploads.map((upload) =>
-              complaintsRepository.createSupportingDocument(
-                {
-                  category: upload.category,
-                  originalName: upload.originalName,
-                  mimeType: upload.mimeType,
-                  storedName: upload.storedName,
-                  relativePath: upload.relativePath,
-                  sizeBytes: BigInt(upload.sizeBytes),
-                  uploadedById: actor.id,
-                  complaintId: createdComplaint.id,
-                },
-                tx,
-              )
-            )
-          );
-        }
-
-        const reloadedComplaint = await complaintsRepository.findComplaintById(
-          createdComplaint.id,
-          tx,
-        );
-
-        if (!reloadedComplaint) {
-          throw new AppError(500, "Failed to reload the submitted complaint.");
-        }
-
-        return reloadedComplaint;
-      });
-
-      await auditService.record({
-        actorId: actor.id,
-        action: "complaints.submit",
-        entityType: "Complaint",
-        entityId: complaint.id,
-        summary: `Submitted complaint: ${complaint.subject}`,
-        context: {
-          eventId: complaint.event?.id ?? null,
-          hasEvidence: complaint.documents.length > 0,
-          state: complaint.state,
-        },
-        ...auditMetadata,
-      });
-
-      return mapComplaintForSubmitter(complaint);
-    } catch (error) {
+          ...auditMetadata,
+        }, tx);
+        return mapComplaintForSubmitter(complaint);
+      }, actor);
+    }
+    catch (error) {
       if (storedUploads && storedUploads.length > 0) {
         await cleanupStoredUploads(storedUploads.map((u) => ({ relativePath: u.relativePath })));
       }

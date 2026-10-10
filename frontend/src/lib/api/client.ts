@@ -2,6 +2,45 @@ import { ApiError, buildApiUrl, parseApiResponse } from "@/lib/api/shared";
 
 const CLIENT_REQUEST_TIMEOUT_MS = 15_000;
 
+let refreshingSession: Promise<boolean> | null = null;
+
+// Share rotation across requests. Web Locks also serialize cooperating tabs.
+export function recoverClientSession(): Promise<boolean> {
+  if (!refreshingSession) {
+    const recover = async () => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), CLIENT_REQUEST_TIMEOUT_MS);
+      try {
+        const init = { credentials: "include" as const, cache: "no-store" as const, signal: controller.signal, headers: { accept: "application/json" } };
+        const current = await fetch(buildApiUrl("/auth/me"), init);
+        if (current.ok) return true;
+        if (current.status !== 401) return false;
+        return (await fetch(buildApiUrl("/auth/refresh"), { ...init, method: "POST" })).ok;
+      } finally {
+        clearTimeout(timeout);
+      }
+    };
+    const operation = (async () => typeof navigator !== "undefined" && navigator.locks
+      ? await navigator.locks.request("mu-session-refresh", recover)
+      : await recover())();
+    refreshingSession = operation.finally(() => { refreshingSession = null; });
+  }
+  return refreshingSession!;
+}
+
+async function waitForSession(signal: AbortSignal) {
+  if (signal.aborted) throw new DOMException("Request aborted", "AbortError");
+  let abort: () => void = () => {};
+  try {
+    return await new Promise<boolean>((resolve, reject) => {
+      abort = () => reject(new DOMException("Request aborted", "AbortError"));
+      signal.addEventListener("abort", abort, { once: true });
+      // Cancellation affects this caller; other requests still share recovery.
+      recoverClientSession().then(resolve, reject);
+    });
+  } finally { signal.removeEventListener("abort", abort); }
+}
+
 export async function apiFetchClient<T>(
   path: string,
   options?: RequestInit & {
@@ -12,6 +51,7 @@ export async function apiFetchClient<T>(
   const headers = new Headers(options?.headers);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), CLIENT_REQUEST_TIMEOUT_MS);
+  const abortFromCaller = () => controller.abort();
 
   if (!headers.has("accept")) {
     headers.set("accept", "application/json");
@@ -21,7 +61,7 @@ export async function apiFetchClient<T>(
     if (options.signal.aborted) {
       controller.abort();
     } else {
-      options.signal.addEventListener("abort", () => controller.abort(), { once: true });
+      options.signal.addEventListener("abort", abortFromCaller, { once: true });
     }
   }
 
@@ -37,19 +77,11 @@ export async function apiFetchClient<T>(
     if (
       response.status === 401 &&
       !options?._isRetry &&
-      path !== "/auth/refresh" &&
-      path !== "/auth/login" &&
-      path !== "/auth/internal-login" &&
-      path !== "/auth/event-team-login"
+      (!path.startsWith("/auth/") || path === "/auth/me" || path === "/auth/update-email")
     ) {
-      const refreshResponse = await fetch(buildApiUrl("/auth/refresh"), {
-        method: "POST",
-        credentials: "include",
-        headers: { accept: "application/json" },
-        signal: controller.signal,
-      });
-
-      if (refreshResponse.ok) {
+      if (await waitForSession(controller.signal)) {
+        if (options?.signal?.aborted) throw new DOMException("Request aborted", "AbortError");
+        clearTimeout(timeoutId);
         // Token successfully refreshed, retry the original request
         return await apiFetchClient<T>(path, { ...options, _isRetry: true });
       }
@@ -71,6 +103,7 @@ export async function apiFetchClient<T>(
     throw error;
   } finally {
     clearTimeout(timeoutId);
+    options?.signal?.removeEventListener("abort", abortFromCaller);
   }
 }
 

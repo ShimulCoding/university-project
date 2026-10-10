@@ -2,10 +2,14 @@ import { createApp } from "./app";
 import { env } from "./config/env";
 import { connectDatabase, disconnectDatabase } from "./config/prisma";
 import { rolesService } from "./modules/roles/services/roles.service";
+import { authRepository } from "./modules/auth/repositories/auth.repository";
 
 async function startServer() {
   await connectDatabase();
   await rolesService.ensureRoleCatalog();
+  void authRepository.pruneStaleTokens();
+  const tokenCleanup = setInterval(() => void authRepository.pruneStaleTokens(), 60 * 60 * 1000);
+  tokenCleanup.unref();
 
   const app = createApp();
   const server = app.listen(env.PORT, () => {
@@ -14,6 +18,7 @@ async function startServer() {
 
   const shutdown = async (signal: string) => {
     console.log(`Received ${signal}. Shutting down gracefully...`);
+    clearInterval(tokenCleanup);
 
     server.close(async () => {
       await disconnectDatabase();

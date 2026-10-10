@@ -5,6 +5,7 @@ import { paginationQuerySchema } from "../../../utils/pagination-validation";
 export const listPublicSummariesSchema = z.object({
   query: z.object({
     ...paginationQuerySchema,
+    latestOnly: z.enum(["true", "false"]).transform((value) => value === "true").optional(),
     search: z.string().trim().min(1).max(200).optional(),
   }),
 });

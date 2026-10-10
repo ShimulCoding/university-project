@@ -186,9 +186,7 @@ export const paymentsRepository = {
     return db.paymentProof.findMany({
       where: buildQueueWhere(filters),
       include: paymentProofDetailInclude,
-      orderBy: {
-        submittedAt: "desc",
-      },
+      orderBy: [{ submittedAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
@@ -256,9 +254,7 @@ export const paymentsRepository = {
     return db.incomeRecord.findMany({
       where: buildIncomeWhere(filters),
       include: incomeRecordDetailInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },

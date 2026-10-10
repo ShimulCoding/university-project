@@ -11,6 +11,7 @@
     "verify:governance": "tsx scripts/verify-governance-closure-slice.ts",
     "verify:event-scope": "tsx scripts/verify-event-scope.ts",
     "verify:event-workspaces": "tsx scripts/verify-event-workspaces.ts",
+    "verify:project-audit": "tsx scripts/verify-project-audit.ts",
     "verify:demo:runtime": "tsx scripts/verify-demo-runtime.ts",
     "seed:demo:flows": "tsx scripts/seed-events-payments-demo.ts",
     "seed:demo:runtime": "tsx scripts/seed-demo-runtime-data.ts",
@@ -34,7 +35,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
-    "nodemailer": "^9.0.5",
+    "nodemailer": "^10.1.0",
     "zod": "^3.24.4"
   },
   "devDependencies": {

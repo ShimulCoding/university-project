@@ -1,11 +1,12 @@
+import type { BudgetRecord, ExpenseRequestRecord } from "@/types";
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage, apiOptions } from "@/lib/api/list";
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, CreditCard, CalendarDays, FileText, TrendingDown, CheckCircle2, LinkIcon } from "lucide-react";
 
 import {
   getExpenseRecord,
-  listBudgets,
   listExpenseRecords,
-  listExpenseRequests,
   listInternalEventOptions,
 } from "@/lib/api/internal";
 import { buildRelativeHref } from "@/lib/detail-query";
@@ -50,10 +51,10 @@ export default async function ExpenseRecordsPage({
   try {
     const canManageExpenseRecords = false;
     const [expenseRecords, events, expenseRequests, activeBudgets] = await Promise.all([
-      listExpenseRecords({ eventId, state }),
+      listExpenseRecords({ page: queryPage(params.page), eventId, state }),
       listInternalEventOptions(),
-      listExpenseRequests({ state: "APPROVED" }),
-      listBudgets({ state: "APPROVED" }),
+      apiOptions<ExpenseRequestRecord>("/requests/expense-requests", "expenseRequests", { state: "APPROVED" }),
+      apiOptions<BudgetRecord>("/budgets", "budgets", { state: "APPROVED", isActive: "true" }),
     ]);
     const selectedExpenseRecordId =
       expenseRecords.find((record) => record.id === expenseRecordId)?.id ?? expenseRecords[0]?.id;
@@ -290,7 +291,7 @@ export default async function ExpenseRecordsPage({
 
                 <SupportingDocumentList documents={selectedRecord.documents} />
                 {canManageExpenseRecords ? (
-                  <ExpenseRecordStatePanel
+                  <ExpenseRecordStatePanel key={selectedRecord.id}
                     expenseRecordId={selectedRecord.id}
                     allowSettle={selectedRecord.state === "RECORDED"}
                     allowVoid={selectedRecord.state !== "VOIDED"}
@@ -317,7 +318,8 @@ export default async function ExpenseRecordsPage({
         {canManageExpenseRecords ? (
           <ExpenseRecordForm events={events} expenseRequests={expenseRequests} budgets={activeBudgets} />
         ) : null}
-      </div>
+      <ListPagination pagination={expenseRecords.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

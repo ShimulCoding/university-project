@@ -1,3 +1,4 @@
+import { moneyField } from "../../../utils/money-validation";
 import { IncomeSourceType } from "@prisma/client";
 import { z } from "zod";
 
@@ -8,20 +9,6 @@ const optionalDateField = z.preprocess(
   z.coerce.date().optional(),
 );
 
-const moneyField = z.preprocess(
-  (value) => {
-    if (typeof value === "number") {
-      return value.toString();
-    }
-
-    if (typeof value === "string") {
-      return value.trim();
-    }
-
-    return value;
-  },
-  z.string().regex(/^\d+(\.\d{1,2})?$/, "Amount must be a valid monetary value."),
-);
 
 const optionalMoneyField = z.preprocess(
   (value) => (value === "" || value === null || value === undefined ? undefined : value),

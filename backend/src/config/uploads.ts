@@ -2,7 +2,17 @@ import path from "path";
 
 import { env } from "./env";
 
-export const uploadsRoot = path.resolve(process.cwd(), env.UPLOADS_ROOT);
+// src/config and dist/config both resolve to the backend directory.
+export const uploadsRoot = path.resolve(__dirname, "../..", env.UPLOADS_ROOT);
+
+export function resolveUploadPath(relativePath: string) {
+  const absolutePath = path.resolve(uploadsRoot, relativePath);
+  const relative = path.relative(uploadsRoot, absolutePath);
+  if (!relative || relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error("The stored document path is invalid.");
+  }
+  return absolutePath;
+}
 
 export const documentDirectories = {
   PAYMENT_PROOF: path.join(uploadsRoot, "payment-proofs"),

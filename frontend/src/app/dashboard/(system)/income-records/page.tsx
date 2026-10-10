@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, Wallet, CalendarDays, Tag, FileText, TrendingUp } from "lucide-react";
 
@@ -48,7 +50,7 @@ export default async function IncomeRecordsPage({
 
   try {
     const [incomeRecords, events] = await Promise.all([
-      listIncomeRecords({ eventId, search }),
+      listIncomeRecords({ page: queryPage(params.page), eventId, search }),
       listInternalEventOptions(),
     ]);
 
@@ -264,7 +266,7 @@ export default async function IncomeRecordsPage({
                   title="Cryptographic Evidences"
                   emptyMessage="This income record does not yet have an attached evidence file."
                 />
-                <IncomeRecordStatePanel
+                <IncomeRecordStatePanel key={selectedIncome.id}
                   incomeRecordId={selectedIncome.id}
                   allowVerify={false}
                   allowVoid={false}
@@ -273,7 +275,8 @@ export default async function IncomeRecordsPage({
             ) : null}
           </div>
         </div>
-      </div>
+      <ListPagination pagination={incomeRecords.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

@@ -36,7 +36,7 @@ export default async function EventRegistrationPage({
       getCurrentUser(),
     ]);
 
-    const myRegistrations = user ? await listMyRegistrations() : [];
+    const myRegistrations = user ? await listMyRegistrations(undefined, event.id) : [];
     const existingRegistration = myRegistrations.find(
       (registration) => registration.event.id === event.id,
     );
@@ -126,7 +126,7 @@ export default async function EventRegistrationPage({
                 description="This event is visible publicly, but the registration window is not currently open for new student entries."
               />
             ) : (
-              <RegistrationForm event={event} />
+              <RegistrationForm event={event} accountStudentId={user.studentId ?? ""} />
             )}
           </div>
         </main>

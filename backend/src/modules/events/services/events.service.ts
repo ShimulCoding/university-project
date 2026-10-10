@@ -384,7 +384,7 @@ export const eventsService = {
         ...auditMetadata,
       }, tx);
       return freshEvent;
-    });
+    }, actor);
 
     return mapManageEvent(event);
   },
@@ -475,7 +475,7 @@ export const eventsService = {
         ...auditMetadata,
       }, tx);
       return updatedEvent;
-    });
+    }, actor);
 
     return mapManageEvent(updatedEvent);
   },
@@ -533,7 +533,7 @@ export const eventsService = {
         ...auditMetadata,
       }, tx);
       return updatedEvent;
-    });
+    }, actor);
 
     return mapManageEvent(updatedEvent);
   },
@@ -583,7 +583,7 @@ export const eventsService = {
         ...auditMetadata,
       }, tx);
       return updatedEvent;
-    });
+    }, actor);
 
     return mapManageEvent(updatedEvent);
   },

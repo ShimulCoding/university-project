@@ -127,9 +127,7 @@ export const requestsRepository = {
     return db.budgetRequest.findMany({
       where: buildRequestWhere(filters),
       include: budgetRequestDetailInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
@@ -152,9 +150,7 @@ export const requestsRepository = {
         requestedById,
       },
       include: budgetRequestDetailInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
@@ -226,9 +222,7 @@ export const requestsRepository = {
     return db.expenseRequest.findMany({
       where: buildExpenseRequestWhere(filters),
       include: expenseRequestDetailInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
@@ -251,9 +245,7 @@ export const requestsRepository = {
         requestedById,
       },
       include: expenseRequestDetailInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },
@@ -367,9 +359,7 @@ export const requestsRepository = {
     return db.expenseRecord.findMany({
       where: buildExpenseRecordWhere(filters),
       include: expenseRecordDetailInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       ...(pagination ? { skip: pagination.skip, take: pagination.take } : {}),
     });
   },

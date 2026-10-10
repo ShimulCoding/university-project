@@ -1,3 +1,4 @@
+import { passwordField } from "../../../utils/password-validation";
 import { AccountStatus, RoleCode } from "@prisma/client";
 import { z } from "zod";
 
@@ -19,10 +20,15 @@ export const listUsersSchema = z.object({
 export const createUserSchema = z.object({
   body: z.object({
     fullName: z.string().trim().min(2).max(100),
-    email: z.string().trim().email(),
-    password: z.string().min(8).max(72),
+    email: z.string().trim().email().max(255),
+    password: passwordField,
+    studentId: z.string().trim().min(3).max(30).optional(),
     status: z.nativeEnum(AccountStatus).optional(),
-    roleCodes: z.array(globalAccountRoleSchema).min(1).optional(),
+    roleCodes: z.array(globalAccountRoleSchema).max(2).optional(),
+  }).superRefine((body, context) => {
+    if ((body.roleCodes ?? [RoleCode.GENERAL_STUDENT]).includes(RoleCode.GENERAL_STUDENT) && !body.studentId) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["studentId"], message: "A Student ID is required for student sign-in." });
+    }
   }),
 });
 
@@ -39,4 +45,10 @@ export const updateUserStatusSchema = z.object({
   body: z.object({
     status: z.nativeEnum(AccountStatus),
   }),
+});
+
+export const updateUserProfileSchema = z.object({
+  params: z.object({ userId: z.string().cuid() }),
+  body: z.object({ fullName: z.string().trim().min(2).max(100).optional(), studentId: z.string().trim().min(3).max(30).optional() })
+    .refine((body) => Object.keys(body).length > 0, "At least one profile field is required."),
 });

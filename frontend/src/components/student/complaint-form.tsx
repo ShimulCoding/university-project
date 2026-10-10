@@ -23,8 +23,8 @@ export function ComplaintForm({ events }: { events: PublicEvent[] }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [, startTransition] = useTransition();
-  const isBusy = isSubmitting;
+  const [isRoutingPending, startTransition] = useTransition();
+  const isBusy = isSubmitting || isRoutingPending;
 
   const initialEventId = searchParams.get("eventId") ?? "";
 

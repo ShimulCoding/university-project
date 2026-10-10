@@ -1,19 +1,22 @@
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 
 import { env } from "./env";
 
-let transporter: nodemailer.Transporter | null = null;
+let transporter: Transporter | null = null;
 
 async function getTransporter() {
   if (transporter) return transporter;
 
-  if (env.NODE_ENV === "development" || env.NODE_ENV === "test") {
+  if (!process.env.SMTP_HOST && env.NODE_ENV !== "production") {
     // Generate a test account dynamically using Ethereal
     const testAccount = await nodemailer.createTestAccount();
     transporter = nodemailer.createTransport({
       host: "smtp.ethereal.email",
       port: 587,
       secure: false,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 10000,
       auth: {
         user: testAccount.user,
         pass: testAccount.pass,
@@ -24,11 +27,16 @@ async function getTransporter() {
     // For production, you would configure real SMTP settings via env vars
     // e.g., using SendGrid, AWS SES, or a dedicated SMTP server.
     // For now, if these are missing, we throw an error or log a warning.
-    console.warn("Real SMTP is not configured for production yet. Email sending may fail.");
+    if (!process.env.SMTP_HOST || !process.env.SMTP_FROM) {
+      throw new Error("SMTP_HOST and SMTP_FROM are required for password recovery.");
+    }
     transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "localhost",
-      port: Number(process.env.SMTP_PORT) || 25,
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
       secure: process.env.SMTP_SECURE === "true",
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 10000,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -44,7 +52,7 @@ export const mailer = {
     const t = await getTransporter();
 
     const info = await t.sendMail({
-      from: '"MU CSE Transparency" <noreply@mucse.org>',
+      from: process.env.SMTP_FROM || '"MU CSE Transparency" <noreply@mucse.org>',
       to,
       subject: "Password Reset Request",
       text: `You have requested to reset your password. Please click the following link to securely set a new password: ${resetLink}\n\nThis link will expire in 1 hour.`,

@@ -1,3 +1,4 @@
+import { apiList } from "@/lib/api/list";
 import type { ComplaintRecord, RegistrationRecord, UserProfile } from "@/types";
 
 import { ApiError } from "@/lib/api/shared";
@@ -24,15 +25,10 @@ export async function getRegistration(registrationId: string) {
   return response.registration;
 }
 
-export async function listMyRegistrations() {
-  const response = await apiFetchServer<{ registrations: RegistrationRecord[] }>(
-    "/registrations/me",
-  );
-
-  return response.registrations;
+export async function listMyRegistrations(page?: string, eventId?: string) {
+  return apiList<RegistrationRecord>("/registrations/me", "registrations", { page, eventId });
 }
 
-export async function listMyComplaints() {
-  const response = await apiFetchServer<{ complaints: ComplaintRecord[] }>("/complaints/mine");
-  return response.complaints;
+export async function listMyComplaints(page?: string) {
+  return apiList<ComplaintRecord>("/complaints/mine", "complaints", { page });
 }

@@ -1,3 +1,5 @@
+import { ListPagination } from "@/components/ui/list-pagination";
+import { queryPage } from "@/lib/api/list";
 import Link from "next/link";
 import { AlertTriangle, SearchSlash, ShieldAlert, CheckSquare, ClipboardCheck, Clock, FileText, Banknote } from "lucide-react";
 
@@ -47,7 +49,7 @@ export default async function ApprovalsPage({
 
   try {
     const [queue, events] = await Promise.all([
-      listApprovalQueue({ eventId, entityType }),
+      listApprovalQueue({ page: queryPage(params.page), eventId, entityType }),
       listInternalEventOptions(),
     ]);
     const selectedItem =
@@ -265,12 +267,13 @@ export default async function ApprovalsPage({
                 <DecisionHistoryCard decisions={selectedRecord.approvalDecisions} />
                 
                 {/* DECISION MATRIX */}
-                <ApprovalDecisionForm item={selectedItem} canDecide={false} />
+                <ApprovalDecisionForm key={selectedItem.entityId} item={selectedItem} canDecide={false} />
               </div>
             ) : null}
           </div>
         </div>
-      </div>
+      <ListPagination pagination={queue.pagination} />
+        </div>
     );
   } catch (error) {
     if (error instanceof ApiError && error.status === 403) {

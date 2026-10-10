@@ -315,8 +315,8 @@ function createUploadFile(overrides: Partial<Express.Multer.File> = {}) {
     originalname: "proof.pdf",
     encoding: "7bit",
     mimetype: "application/pdf",
-    size: 2048,
-    buffer: Buffer.from("demo-file"),
+    size: Buffer.byteLength("%PDF-1.4\n%%EOF"),
+    buffer: Buffer.from("%PDF-1.4\n%%EOF"),
     destination: "",
     filename: "",
     path: "",
@@ -360,6 +360,13 @@ async function expectAppError(
 }
 
 async function withPatches<T>(entries: PatchEntry[], runner: () => Promise<T>) {
+  const { prisma } = await import("../src/config/prisma");
+  // Unit fixtures supply a current actor; database authority races are tested separately.
+  if (!entries.some((entry) => entry.target === prisma && entry.key === "$transaction")) {
+    entries = [{ target: prisma as unknown as Record<string, unknown>, key: "$transaction",
+      value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
+    }, ...entries];
+  }
   const originals = entries.map((entry) => ({
     target: entry.target,
     key: entry.key,
@@ -708,7 +715,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -799,7 +806,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
           },
           {
             target: reconciliationRepository as unknown as Record<string, unknown>,
@@ -915,7 +922,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -1018,7 +1025,7 @@ async function main() {
       await expectAppError(
         "Expense request missing document",
         () =>
-          requestsService.createExpenseRequest(
+          withPatches([], () => requestsService.createExpenseRequest(
             eventManagerActor,
             {
               eventId: makeCuid("event5"),
@@ -1027,7 +1034,7 @@ async function main() {
               purpose: "Volunteer movement",
             },
             undefined,
-          ),
+          )),
         400,
         "supporting document",
       );
@@ -1095,7 +1102,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -1197,6 +1204,7 @@ async function main() {
 
       const linkedRecord = await withPatches(
         [
+          { target: reconciliationRepository as unknown as Record<string, unknown>, key: "markReportsStaleForEvent", value: async () => ({ count: 0 }) },
           {
             target: eventsRepository as unknown as Record<string, unknown>,
             key: "findById",
@@ -1254,7 +1262,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -1332,7 +1340,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
           },
           {
             target: reconciliationRepository as unknown as Record<string, unknown>,
@@ -1500,7 +1508,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -1619,7 +1627,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({}),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
           },
           {
             target: auditService as unknown as Record<string, unknown>,

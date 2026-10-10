@@ -6,4 +6,4 @@ export type CreateRegistrationInput = {
   phone?: string | undefined;
 };
 
-export type RegistrationListFilters = PaginationInput;
+export type RegistrationListFilters = PaginationInput & { eventId?: string | undefined };

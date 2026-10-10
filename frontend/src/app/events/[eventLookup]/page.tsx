@@ -34,7 +34,7 @@ export default async function PublicEventDetailsPage({
       getCurrentUser(),
     ]);
 
-    const myRegistrations = user ? await listMyRegistrations() : [];
+    const myRegistrations = user ? await listMyRegistrations(undefined, event.id) : [];
     const existingRegistration = myRegistrations.find(
       (registration) => registration.event.id === event.id,
     );

@@ -45,22 +45,22 @@ async function getLandingData() {
       metrics: [
         {
           label: "Published Reports",
-          value: String(latestPublishedSummaries.length),
+          value: String(publishedSnapshots.pagination.totalItems),
           detail: "Fully reconciled financial statements.",
           icon: FileCheck,
         },
         {
           label: "Active Initiatives",
-          value: String(events.length),
+          value: String(events.pagination.totalItems),
           detail: "Currently managed university events.",
           icon: Activity,
         },
         {
-          label: "Open Registrations",
+          label: "Recent Open Registrations",
           value: String(
             events.filter((event) => event.registrationWindow.state === "OPEN").length,
           ),
-          detail: "Events currently accepting enrollments.",
+          detail: "Open registration windows among the latest events.",
           icon: Calendar,
         },
         {
@@ -80,7 +80,7 @@ async function getLandingData() {
       metrics: [
         { label: "Published Reports", value: "-", detail: "System synchronization in progress", icon: FileCheck },
         { label: "Active Initiatives", value: "-", detail: "System synchronization in progress", icon: Activity },
-        { label: "Open Registrations", value: "-", detail: "System synchronization in progress", icon: Calendar },
+        { label: "Recent Open Registrations", value: "-", detail: "System synchronization in progress", icon: Calendar },
         { label: "Verified Collections", value: "-", detail: "System synchronization in progress", icon: ShieldCheck },
       ],
       latestSummary: null,

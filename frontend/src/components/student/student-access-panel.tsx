@@ -8,9 +8,16 @@ import { getApiErrorMessage } from "@/lib/api/shared";
 import { postJson } from "@/lib/api/client";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Badge } from "@/components/ui/badge";
 
 type StudentAccessPanelProps = {
@@ -54,7 +61,11 @@ export function StudentAccessPanel({
   /* Only two top-level tabs — forgot is reached via inline link */
   const options = useMemo(
     () => [
-      { value: "register", label: "Create access", meta: "New student account" },
+      {
+        value: "register",
+        label: "Create access",
+        meta: "New student account",
+      },
       { value: "login", label: "Sign in", meta: "Student ID + password" },
     ],
     [],
@@ -103,7 +114,8 @@ export function StudentAccessPanel({
         nextFieldErrors.email = "Email is required.";
       }
       if (password.length < 8) {
-        nextFieldErrors.password = "Use at least 8 characters for your password.";
+        nextFieldErrors.password =
+          "Use at least 8 characters for your password.";
       }
     }
 
@@ -112,7 +124,8 @@ export function StudentAccessPanel({
         nextFieldErrors.studentId = "Student ID is required.";
       }
       if (password.length < 8) {
-        nextFieldErrors.password = "Use at least 8 characters for your password.";
+        nextFieldErrors.password =
+          "Use at least 8 characters for your password.";
       }
     }
 
@@ -147,7 +160,9 @@ export function StudentAccessPanel({
           email: normalizedEmail,
           password,
         });
-        setSuccessMessage("Student access created. Loading your private session...");
+        setSuccessMessage(
+          "Student access created. Loading your private session...",
+        );
         setIsSubmitting(false);
         startTransition(() => {
           router.refresh();
@@ -157,21 +172,28 @@ export function StudentAccessPanel({
           studentId: trimmedStudentId,
           password,
         });
-        setSuccessMessage("Signed in successfully. Loading your private session...");
+        setSuccessMessage(
+          "Signed in successfully. Loading your private session...",
+        );
         setIsSubmitting(false);
         startTransition(() => {
           router.refresh();
         });
       } else {
-        const result = await postJson<{ message: string }>("/auth/forgot-password", {
-          studentId: trimmedStudentId,
-          email: normalizedEmail,
-        });
+        const result = await postJson<{ message: string }>(
+          "/auth/forgot-password",
+          {
+            studentId: trimmedStudentId,
+            email: normalizedEmail,
+          },
+        );
         setSuccessMessage(result.message);
         setIsSubmitting(false);
       }
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error, "Unable to complete the request."));
+      setErrorMessage(
+        getApiErrorMessage(error, "Unable to complete the request."),
+      );
       setIsSubmitting(false);
     }
   };
@@ -186,13 +208,13 @@ export function StudentAccessPanel({
     );
 
   return (
-    <Card>
+    <Card className="mx-auto max-w-3xl p-6 sm:p-8">
       <CardHeader>
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/10 bg-primary/5 text-primary">
           {modeIcon}
         </div>
         <Badge variant="info" className="mt-4 w-fit">
-          Student-owned access only
+          Your student account
         </Badge>
         <CardTitle className="mt-3 text-2xl">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -201,6 +223,7 @@ export function StudentAccessPanel({
         {/* Show segmented control only for register / login; hide when in forgot mode */}
         {mode !== "forgot" ? (
           <SegmentedControl
+            label="Account access options"
             value={mode}
             onValueChange={(value) => switchMode(value as AccessMode)}
             options={options}
@@ -209,15 +232,18 @@ export function StudentAccessPanel({
           <div className="flex items-center gap-3 rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-3">
             <KeyRound className="h-4 w-4 text-primary shrink-0" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">Reset your password</p>
+              <p className="text-sm font-medium text-foreground">
+                Reset your password
+              </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Verify your identity using Student ID + registered email, then set a new password.
+                Verify your identity using Student ID + registered email, then
+                set a new password.
               </p>
             </div>
             <button
               type="button"
               onClick={() => switchMode("login")}
-              className="text-xs font-medium text-primary hover:underline shrink-0"
+              className="focus-ring min-h-11 shrink-0 rounded-lg px-2 text-xs font-medium text-success hover:underline"
             >
               Back to sign in
             </button>
@@ -230,7 +256,7 @@ export function StudentAccessPanel({
               <Field
                 className="md:col-span-2"
                 label="Full name"
-                description="This becomes the student-owned profile name for registrations and complaints."
+                description="Use the name you want on your event registrations."
                 error={fieldErrors.fullName}
               >
                 <Input
@@ -261,7 +287,11 @@ export function StudentAccessPanel({
                   required
                 />
               </Field>
-              <Field label="Batch" description="Your intake batch number." error={fieldErrors.batch}>
+              <Field
+                label="Batch"
+                description="Your intake batch number."
+                error={fieldErrors.batch}
+              >
                 <Input
                   value={batch}
                   onChange={(event) => {
@@ -273,7 +303,11 @@ export function StudentAccessPanel({
                   required
                 />
               </Field>
-              <Field label="Department" description="Your department or program." error={fieldErrors.department}>
+              <Field
+                label="Department"
+                description="Your department or program."
+                error={fieldErrors.department}
+              >
                 <Input
                   value={department}
                   onChange={(event) => {
@@ -285,7 +319,11 @@ export function StudentAccessPanel({
                   required
                 />
               </Field>
-              <Field label="Section" description="Your class section." error={fieldErrors.section}>
+              <Field
+                label="Section"
+                description="Your class section."
+                error={fieldErrors.section}
+              >
                 <Input
                   value={section}
                   onChange={(event) => {
@@ -297,7 +335,11 @@ export function StudentAccessPanel({
                   required
                 />
               </Field>
-              <Field label="Email" description="Your backend session is attached to this email." error={fieldErrors.email}>
+              <Field
+                label="Email"
+                description="Used for account recovery and important account information."
+                error={fieldErrors.email}
+              >
                 <Input
                   type="email"
                   value={email}
@@ -316,8 +358,7 @@ export function StudentAccessPanel({
                 description="Use at least 8 characters."
                 error={fieldErrors.password}
               >
-                <Input
-                  type="password"
+                <PasswordInput
                   value={password}
                   onChange={(event) => {
                     clearFieldError("password");
@@ -358,8 +399,7 @@ export function StudentAccessPanel({
                 description="Use at least 8 characters."
                 error={fieldErrors.password}
               >
-                <Input
-                  type="password"
+                <PasswordInput
                   value={password}
                   onChange={(event) => {
                     clearFieldError("password");
@@ -376,7 +416,7 @@ export function StudentAccessPanel({
                 <button
                   type="button"
                   onClick={() => switchMode("forgot")}
-                  className="text-sm font-medium text-primary hover:underline"
+                  className="focus-ring inline-flex min-h-11 items-center rounded-lg text-sm font-medium text-success hover:underline"
                 >
                   Forgot password?
                 </button>
@@ -426,12 +466,18 @@ export function StudentAccessPanel({
           ) : null}
 
           {errorMessage ? (
-            <div className="md:col-span-2 rounded-[1rem] border border-destructive/15 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <div
+              role="alert"
+              className="md:col-span-2 rounded-[1rem] border border-destructive/15 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+            >
               {errorMessage}
             </div>
           ) : null}
           {successMessage ? (
-            <div className="md:col-span-2 rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success">
+            <div
+              role="status"
+              className="md:col-span-2 rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success"
+            >
               {successMessage}
             </div>
           ) : null}

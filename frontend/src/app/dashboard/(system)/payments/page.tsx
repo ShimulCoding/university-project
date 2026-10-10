@@ -46,35 +46,35 @@ export default async function PaymentVerificationQueuePage({
     const selectedProofId = selectedProof?.id;
 
     return (
-      <div className="flex flex-col gap-8 pb-16">
+      <div className="flex flex-col gap-6 pb-8">
         {/* HERO SECTION */}
-        <section className="relative overflow-hidden rounded-3xl border border-border/20 bg-background/50 shadow-2xl shadow-black/5 backdrop-blur-3xl px-8 py-10 lg:px-12 lg:py-12">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-          <div className="absolute top-0 left-0 -z-10 m-auto h-[300px] w-[300px] rounded-full bg-warning/10 opacity-60 blur-[100px] pointer-events-none -translate-x-1/4 -translate-y-1/4" />
-          
+        <section className="workspace-intro">
+
+
+
           <div className="relative z-10 flex flex-col gap-6 max-w-3xl">
             <div className="flex items-center gap-3">
-              <Badge variant="warning" className="px-3 py-1 font-semibold tracking-wider uppercase border-warning/30 bg-warning/10 text-warning backdrop-blur-md">
+              <Badge variant="warning" className="px-3 py-1 font-semibold border-warning/30 bg-warning/10 text-warning">
                 <FileCheck className="w-3 h-3 mr-1.5 inline-block" />
                 Proof Verification
               </Badge>
-              <Badge variant="info" className="px-3 py-1 font-semibold tracking-wider uppercase border-info/30 bg-info/10 text-info backdrop-blur-md">
+              <Badge variant="info" className="px-3 py-1 font-semibold border-info/30 bg-info/10 text-info">
                 Finance Authorized
               </Badge>
             </div>
-            
-            <h1 className="text-3xl lg:text-5xl font-black tracking-tight text-foreground">
-              Verify <span className="text-transparent bg-clip-text bg-gradient-to-br from-warning via-warning/80 to-warning/50">Payments</span>
+
+            <h1 className="text-3xl font-semibold leading-tight tracking-tight text-foreground lg:text-4xl">
+              Verify <span className="text-success">Payments</span>
             </h1>
-            
-            <p className="text-muted-foreground text-lg leading-relaxed font-light">
-              Securely authenticate incoming financial proofs against official banking endpoints. Submissions must be explicitly verified or rejected before they are logged in the event ledger.
+
+            <p className="text-muted-foreground text-lg leading-relaxed font-normal">
+              Review participant receipts and transfer details. Assigned Finance Controllers verify or reject submissions before verified payments contribute to event income.
             </p>
 
             <div className="flex flex-wrap items-center gap-2 pt-2">
-              <Badge variant="neutral" className="bg-background/50 backdrop-blur-sm border-border/50 text-sm py-1.5">
+              <Badge variant="neutral" className="bg-panel border-border/50 text-sm py-1.5">
                 <BadgeDollarSign className="w-4 h-4 mr-2 inline-block text-warning" />
-                {queue.length} Pending authentications
+                {queue.length} proofs on this page
               </Badge>
             </div>
           </div>
@@ -82,12 +82,12 @@ export default async function PaymentVerificationQueuePage({
 
         {/* CONTROLS */}
         <FilterCard resetHref="/dashboard/payments">
-          <Field label="Target Initiative">
+          <Field label="Event">
             <Select
               name="eventId"
               defaultValue={eventId ?? ""}
               options={[
-                { value: "", label: "All Active Initiatives" },
+                { value: "", label: "All Active Events" },
                 ...events.map((event) => ({
                   value: event.id,
                   label: event.title,
@@ -95,7 +95,7 @@ export default async function PaymentVerificationQueuePage({
               ]}
             />
           </Field>
-          <Field label="Query Record">
+          <Field label="Search records">
             <Input
               name="search"
               defaultValue={search ?? ""}
@@ -105,10 +105,10 @@ export default async function PaymentVerificationQueuePage({
         </FilterCard>
 
         {/* WORKSPACE AREA */}
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.25fr)_450px] items-start">
-          
+        <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px] items-start">
+
           {/* QUEUE TABLE */}
-          <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/40 backdrop-blur-xl overflow-hidden flex flex-col h-full">
+          <Card className="border-border/40 shadow-panel bg-panel overflow-hidden flex flex-col h-full">
             <CardHeader className="border-b border-border/30 bg-muted/10 pb-5">
               <CardTitle className="text-xl tracking-tight">Active Queue</CardTitle>
               <CardDescription>Select a submission row to inspect its proof files and execute a decision.</CardDescription>
@@ -128,10 +128,10 @@ export default async function PaymentVerificationQueuePage({
                   <TableHeader className="bg-muted/30">
                     <TableRow>
                       <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12 px-6">Participant</TableHead>
-                      <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12">Initiative</TableHead>
+                      <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12">Event</TableHead>
                       <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12">Channel</TableHead>
                       <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12 text-right">Amount</TableHead>
-                      <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12 text-center">Posture</TableHead>
+                      <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12 text-center">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -155,11 +155,11 @@ export default async function PaymentVerificationQueuePage({
                           </TableCell>
                           <TableCell className="text-sm font-medium">{item.event.title}</TableCell>
                           <TableCell className="text-sm text-muted-foreground font-medium">{item.externalChannel}</TableCell>
-                          <TableCell className="text-right font-mono font-bold">
+                          <TableCell className="text-right font-mono font-semibold">
                             {item.amount ? formatMoney(item.amount) : <span className="text-muted-foreground text-xs uppercase tracking-wider font-sans">Pending</span>}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge variant={getPaymentStateTone(item.state)} className="text-[10px] uppercase tracking-widest px-2 py-0.5">
+                            <Badge variant={getPaymentStateTone(item.state)} className="text-xs px-2 py-0.5">
                               {formatEnumLabel(item.state)}
                             </Badge>
                           </TableCell>
@@ -176,42 +176,42 @@ export default async function PaymentVerificationQueuePage({
           <div id="details-panel" className="space-y-6">
             {!selectedProof ? null : (
               <div key={selectedProof.id} className="space-y-6">
-                
+
                 {/* PROOF METADATA CARD */}
-                <Card className="border-primary/20 shadow-xl shadow-primary/5 bg-background/50 backdrop-blur-xl relative overflow-hidden">
+                <Card className="border-primary/20 shadow-panel bg-panel relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-6 opacity-[0.03] pointer-events-none">
                     <FileCheck className="w-40 h-40" />
                   </div>
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between mb-2">
-                      <Badge variant={getPaymentStateTone(selectedProof.state)} className="text-xs uppercase tracking-widest px-2 py-1 shadow-sm">
+                      <Badge variant={getPaymentStateTone(selectedProof.state)} className="text-xs px-2 py-1 shadow-sm">
                         {formatEnumLabel(selectedProof.state)}
                       </Badge>
                     </div>
-                    <CardTitle className="text-2xl tracking-tight">Inspection Deck</CardTitle>
+                    <CardTitle className="text-2xl tracking-tight">Payment details</CardTitle>
                     <CardDescription className="text-primary/80 font-medium">
                       {selectedProof.event.title}
                     </CardDescription>
                   </CardHeader>
-                  
+
                   <CardContent className="space-y-5">
-                    
+
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-xl border border-border/50 bg-background/80 p-4 shadow-sm">
-                        <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-2">
-                          <User className="h-3 w-3" /> Participant Origin
+                      <div className="rounded-xl border border-border/50 bg-panel p-4 shadow-sm">
+                        <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-2">
+                          <User className="h-3 w-3" /> Participant
                         </div>
-                        <div className="font-bold text-foreground truncate">
+                        <div className="font-semibold text-foreground truncate">
                           {selectedProof.registration.participantName}
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground truncate">
                           {selectedProof.registration.email}
                         </div>
                       </div>
-                      
-                      <div className="rounded-xl border border-border/50 bg-background/80 p-4 shadow-sm">
-                        <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-2">
-                          <CalendarDays className="h-3 w-3" /> Logged Timestamp
+
+                      <div className="rounded-xl border border-border/50 bg-panel p-4 shadow-sm">
+                        <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-2">
+                          <CalendarDays className="h-3 w-3" /> Submitted on
                         </div>
                         <div className="font-mono text-sm text-foreground mt-3">
                           {formatDateTime(selectedProof.submittedAt)}
@@ -219,23 +219,23 @@ export default async function PaymentVerificationQueuePage({
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-border/50 bg-background/80 p-4 shadow-sm">
-                      <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-2">
-                        <FileText className="h-3 w-3" /> Declaration Note
+                    <div className="rounded-xl border border-border/50 bg-panel p-4 shadow-sm">
+                      <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-2">
+                        <FileText className="h-3 w-3" /> Reference note
                       </div>
-                      <div className="text-sm font-light leading-relaxed text-foreground mt-2">
+                      <div className="text-sm font-normal leading-relaxed text-foreground mt-2">
                         {selectedProof.referenceText ?? <span className="italic text-muted-foreground">No supplementary note provided.</span>}
                       </div>
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-xl border border-border/50 bg-background/80 p-4 shadow-sm">
-                        <div className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-2">Payment Gateway</div>
-                        <div className="font-bold text-foreground">{selectedProof.externalChannel}</div>
+                      <div className="rounded-xl border border-border/50 bg-panel p-4 shadow-sm">
+                        <div className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-2">Payment channel</div>
+                        <div className="font-semibold text-foreground">{selectedProof.externalChannel}</div>
                       </div>
-                      <div className="rounded-xl border border-border/50 bg-background/80 p-4 shadow-sm">
-                        <div className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-2">Transaction Ref</div>
-                        <div className="font-mono text-sm font-bold text-primary truncate">
+                      <div className="rounded-xl border border-border/50 bg-panel p-4 shadow-sm">
+                        <div className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-2">Transaction reference</div>
+                        <div className="break-all font-mono text-sm font-semibold text-primary">
                           {selectedProof.transactionReference ?? <span className="text-muted-foreground font-sans text-xs italic">Unspecified</span>}
                         </div>
                       </div>
@@ -247,10 +247,10 @@ export default async function PaymentVerificationQueuePage({
                 {/* ATTACHMENTS */}
                 <SupportingDocumentList
                   documents={selectedProof.documents}
-                  title="Cryptographic Evidences"
+                  title="Supporting documents"
                   emptyMessage="No proof file is attached to this submission."
                 />
-                
+
                 {/* DECISION MATRIX */}
                 <PaymentDecisionForm key={selectedProof.id} paymentProofId={selectedProof.id} canDecide={false} />
               </div>
@@ -266,7 +266,7 @@ export default async function PaymentVerificationQueuePage({
         <div className="pt-12">
           <StatePanel
             icon={ShieldAlert}
-            title="Unauthorized Clearance Level"
+            title="Access restricted"
             description="Cryptographic payment verification is restricted to authenticated Finance Controllers and System Administrators."
             tone="warning"
           />
@@ -278,7 +278,7 @@ export default async function PaymentVerificationQueuePage({
       <div className="pt-12">
         <StatePanel
           icon={AlertTriangle}
-          title="System Sync Error"
+          title="Unable to load this page"
           description={
             error instanceof ApiError
               ? error.message

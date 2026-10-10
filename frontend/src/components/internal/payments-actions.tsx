@@ -217,7 +217,7 @@ export function IncomeRecordStatePanel({
         {allowVerify ? (
           <div className="rounded-[1rem] border border-success/15 bg-success-muted px-4 py-4 text-sm leading-6 text-success">
             <div className="font-semibold">Ready to verify</div>
-            <div className="mt-1 text-success/85">
+            <div className="mt-1 text-success">
               Confirm this evidence-backed income so it can be counted in the next reconciliation report.
             </div>
             <Button

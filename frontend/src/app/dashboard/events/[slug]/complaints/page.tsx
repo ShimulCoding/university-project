@@ -74,7 +74,7 @@ export default async function EventComplaintsPage({
 
   try {
     const complaints = await listComplaintReviewQueue({ page: queryPage(sParams.page), eventId: event.id, state, search });
-    
+
     const selectedComplaintId =
       complaints.find((item) => item.id === complaintId)?.id ?? complaints[0]?.id;
     const selectedComplaint = selectedComplaintId ? await getComplaint(selectedComplaintId) : null;
@@ -84,42 +84,42 @@ export default async function EventComplaintsPage({
     const basePath = `/dashboard/events/${slug}/complaints`;
 
     return (
-      <div className="flex flex-col gap-8 pb-16">
+      <div className="flex flex-col gap-6 pb-8">
         {/* HERO SECTION */}
-        <section className="relative overflow-hidden rounded-3xl border border-border/40 bg-card/50 shadow-sm backdrop-blur-xl px-8 py-10 lg:px-12 lg:py-12">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-          <div className="absolute top-0 right-0 -z-10 m-auto h-[400px] w-[400px] rounded-full bg-primary/5 opacity-50 blur-[100px] pointer-events-none translate-x-1/4 -translate-y-1/4" />
-          
+        <section className="workspace-intro">
+
+
+
           <div className="relative z-10 flex flex-col gap-5 max-w-3xl">
             <div className="flex items-center gap-3 flex-wrap">
-              <Badge variant="neutral" className="px-3 py-1 font-semibold tracking-wide uppercase border-primary/20 bg-primary/5 text-primary backdrop-blur-md">
+              <Badge variant="neutral" className="px-3 py-1 font-semibold tracking-wide border-primary/20 bg-primary/5 text-primary">
                 <Gavel className="w-3.5 h-3.5 mr-1.5 inline-block" />
                 Disciplinary & Grievance
               </Badge>
-              <Badge variant="neutral" className="px-3 py-1 font-medium tracking-wide border-muted-foreground/20 bg-muted/50 text-muted-foreground backdrop-blur-md">
+              <Badge variant="neutral" className="px-3 py-1 font-medium tracking-wide border-muted-foreground/20 bg-muted/50 text-muted-foreground">
                 <ShieldCheck className="w-3.5 h-3.5 mr-1.5 inline-block" />
                 Confidential Workspace
               </Badge>
-              <Badge variant="neutral" className="px-3 py-1 font-semibold tracking-wider uppercase border-info/30 bg-info/10 text-info backdrop-blur-md">
+              <Badge variant="neutral" className="px-3 py-1 font-semibold border-info/30 bg-info/10 text-info">
                 {event.title}
               </Badge>
             </div>
-            
-            <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
-              Complaints <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-primary/90 to-primary/60">Management</span>
+
+            <h1 className="text-3xl font-semibold leading-tight tracking-tight text-foreground lg:text-4xl">
+              Complaints <span className="text-success">Management</span>
             </h1>
-            
+
             <p className="text-muted-foreground text-base md:text-lg leading-relaxed font-medium">
               Review, evaluate, and resolve student and staff grievances for this event. All cases are handled with strict confidentiality to ensure a fair and transparent resolution process.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Badge variant="neutral" className="bg-background/80 backdrop-blur-sm border-border/60 text-sm py-1.5 px-3 shadow-sm">
+              <Badge variant="neutral" className="bg-panel border-border/60 text-sm py-1.5 px-3 shadow-sm">
                 <FileText className="w-4 h-4 mr-2 inline-block text-primary/70" />
                 {complaints.length} Total Complaints
               </Badge>
               {activeCount > 0 && (
-                <Badge variant="neutral" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 text-sm py-1.5 px-3 shadow-sm">
+                <Badge variant="info" className="text-sm py-1.5 px-3">
                   <AlertTriangle className="w-4 h-4 mr-2 inline-block" />
                   {activeCount} Active Review(s)
                 </Badge>
@@ -155,10 +155,10 @@ export default async function EventComplaintsPage({
         </FilterCard>
 
         {/* WORKSPACE */}
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.2fr)_460px] items-start">
-          
+        <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px] items-start">
+
           {/* COMPLAINTS QUEUE TABLE */}
-          <Card className="border-border/40 shadow-sm bg-background/40 backdrop-blur-xl overflow-hidden flex flex-col h-full">
+          <Card className="border-border/40 shadow-sm bg-panel overflow-hidden flex flex-col h-full">
             <CardHeader className="border-b border-border/30 bg-muted/10 pb-5">
               <CardTitle className="text-xl tracking-tight">Review Queue</CardTitle>
               <CardDescription>Select a complaint to inspect details and manage the resolution process.</CardDescription>
@@ -198,13 +198,13 @@ export default async function EventComplaintsPage({
                             >
                               {complaint.subject}
                             </Link>
-                            <div className="mt-1 flex items-center gap-1 text-[10px] uppercase tracking-widest font-mono text-muted-foreground">
+                            <div className="mt-1 flex items-center gap-1 text-xs uppercase tracking-widest font-mono text-muted-foreground">
                               <ShieldCheck className="w-3 h-3" /> {complaint.evidenceCount} attached item(s)
                             </div>
                           </TableCell>
                           <TableCell className="text-sm">{complaint.submittedBy?.fullName ?? "Unknown Submitter"}</TableCell>
                           <TableCell className="text-center">
-                            <Badge variant={getComplaintStateTone(complaint.state)} className="text-[10px] uppercase tracking-widest px-2 py-0.5">
+                            <Badge variant={getComplaintStateTone(complaint.state)} className="text-xs px-2 py-0.5">
                               {formatEnumLabel(complaint.state)}
                             </Badge>
                           </TableCell>
@@ -221,15 +221,15 @@ export default async function EventComplaintsPage({
           <div id="details-panel" className="space-y-6">
             {selectedComplaint ? (
               <div key={selectedComplaint.id} className="space-y-6">
-                
+
                 {/* COMPLAINT DETAIL CARD */}
-                <Card className="border-border/50 shadow-sm bg-background/50 backdrop-blur-xl relative overflow-hidden">
+                <Card className="border-border/50 shadow-sm bg-panel relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-6 opacity-[0.02] pointer-events-none">
                     <FileWarning className="w-40 h-40" />
                   </div>
                   <CardHeader className="pb-4">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <Badge variant={getComplaintStateTone(selectedComplaint.state)} className="text-xs uppercase tracking-widest px-2 py-1 shadow-sm">
+                      <Badge variant={getComplaintStateTone(selectedComplaint.state)} className="text-xs px-2 py-1 shadow-sm">
                         {formatEnumLabel(selectedComplaint.state)}
                       </Badge>
                     </div>
@@ -238,36 +238,36 @@ export default async function EventComplaintsPage({
                       Reference ID: {selectedComplaint.id}
                     </CardDescription>
                   </CardHeader>
-                  
+
                   <CardContent className="space-y-5">
                     {/* SUBJECT & DESCRIPTION */}
-                    <div className="rounded-xl border border-border/50 bg-background/80 p-5 shadow-sm">
-                      <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-3">
+                    <div className="rounded-xl border border-border/50 bg-panel p-5 shadow-sm">
+                      <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-3">
                         <FileText className="h-3 w-3" /> Complaint Description
                       </div>
-                      <div className="text-base font-bold text-foreground">
+                      <div className="text-base font-semibold text-foreground">
                         {selectedComplaint.subject}
                       </div>
-                      <div className="mt-3 text-sm leading-relaxed text-muted-foreground font-light whitespace-pre-wrap">
+                      <div className="mt-3 text-sm leading-relaxed text-muted-foreground font-normal whitespace-pre-wrap">
                         {selectedComplaint.description}
                       </div>
                     </div>
 
                     {/* REPORTER INFO */}
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-xl border border-border/50 bg-background/80 p-4 shadow-sm">
-                        <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-3">
+                      <div className="rounded-xl border border-border/50 bg-panel p-4 shadow-sm">
+                        <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-3">
                           <UserMinus className="h-3 w-3" /> Submitted By
                         </div>
-                        <div className="font-bold text-sm text-foreground">
+                        <div className="font-semibold text-sm text-foreground">
                           {selectedComplaint.submittedBy?.fullName ?? "Unknown Submitter"}
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground font-mono truncate">
                           {selectedComplaint.submittedBy?.email ?? "No email available"}
                         </div>
                       </div>
-                      <div className="rounded-xl border border-border/50 bg-background/80 p-4 shadow-sm">
-                        <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-3">
+                      <div className="rounded-xl border border-border/50 bg-panel p-4 shadow-sm">
+                        <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-3">
                           <AlertTriangle className="h-3 w-3" /> Date Filed
                         </div>
                         <div className="font-mono text-sm text-foreground mt-2">
@@ -279,7 +279,7 @@ export default async function EventComplaintsPage({
                 </Card>
 
                 {/* EVIDENCE & ROUTING */}
-                <div className="rounded-xl border border-border/40 overflow-hidden bg-background/20 backdrop-blur-sm">
+                <div className="rounded-xl border border-border/40 overflow-hidden bg-background/20">
                   <div className="bg-muted/30 px-4 py-3 border-b border-border/40 text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4" /> Confidential Records
                   </div>
@@ -298,12 +298,12 @@ export default async function EventComplaintsPage({
                 </div>
               </div>
             ) : (
-              <Card className="border-border/40 bg-background/50 backdrop-blur-xl shadow-sm relative overflow-hidden">
+              <Card className="border-border/40 bg-panel shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none">
                   <ShieldAlert className="w-24 h-24" />
                 </div>
                 <CardHeader>
-                  <Badge variant="neutral" className="w-fit mb-3 text-xs uppercase tracking-widest px-2 py-1">Private Workspace</Badge>
+                  <Badge variant="neutral" className="w-fit mb-3 text-xs px-2 py-1">Private Workspace</Badge>
                   <CardTitle className="text-xl tracking-tight">Select a Complaint</CardTitle>
                   <CardDescription className="text-muted-foreground leading-relaxed mt-2">
                     Select a complaint from the queue to view its details, review attached evidence, and process routing actions securely.
@@ -334,7 +334,7 @@ export default async function EventComplaintsPage({
       <div className="pt-12">
         <StatePanel
           icon={AlertTriangle}
-          title="System Sync Error"
+          title="Unable to load this page"
           description={
             error instanceof ApiError
               ? error.message

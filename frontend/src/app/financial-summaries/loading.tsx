@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FinancialSummariesLoading() {
   return (
-    <main className="section-shell py-12 sm:py-16">
+    <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
       <div className="surface-panel p-8">
         <Skeleton className="h-4 w-36" />
         <Skeleton className="mt-4 h-10 w-[32rem] max-w-full" />

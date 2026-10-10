@@ -1,15 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { createPdf, downloadPdf, pdfText as unicodeText, type PdfCommand } from "@/lib/pdf";
+import {
+  createPdf,
+  downloadPdf,
+  pdfText as unicodeText,
+  type PdfCommand,
+} from "@/lib/pdf";
 import { getApiErrorMessage } from "@/lib/api/shared";
 
 import { Download } from "lucide-react";
 
-import type { PublicFinancialSummary, PublicFinancialSummaryBreakdownLine } from "@/types";
-import { formatDate, formatMoney } from "@/lib/format";
+import type { PublicFinancialSummary } from "@/types";
+import { formatDate, formatMoney, sumExactMoney } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { pieSlices } from "@/lib/charts";
+import {
+  buildCategoryPairs,
+  financialChartPalette,
+  pieSlices,
+} from "@/lib/charts";
 
 /* ------------------------------------------------------------------ */
 /*  Financial tables and vector charts for the shared PDF renderer     */
@@ -21,15 +30,10 @@ const M = 48;
 const RIGHT = PW - M;
 const COL_W = RIGHT - M;
 
-
 /* ---- Colours for pie/bar charts ---- */
-const PIE_HEX = [
-  "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444",
-  "#0891b2", "#f97316", "#22c55e", "#ec4899", "#0ea5e9",
-  "#84cc16", "#e11d48",
-];
-const BUDGET_HEX = "#7c8594";
-const ACTUAL_HEX = "#2dd4a8";
+const PIE_HEX = financialChartPalette.income;
+const BUDGET_HEX = financialChartPalette.budget;
+const ACTUAL_HEX = financialChartPalette.actual;
 
 type PdfPage = { cmds: PdfCommand[] };
 
@@ -54,7 +58,14 @@ function setColor(hex: string) {
   return `${r.toFixed(3)} ${g.toFixed(3)} ${b.toFixed(3)} rg`;
 }
 
-function pieSector(cx: number, cy: number, rad: number, startDeg: number, endDeg: number, hex: string) {
+function pieSector(
+  cx: number,
+  cy: number,
+  rad: number,
+  startDeg: number,
+  endDeg: number,
+  hex: string,
+) {
   const cmds: string[] = [];
   cmds.push(setColor(hex));
 
@@ -120,31 +131,10 @@ function wrapText(value: string, maxWidth: number, fontSize: number) {
 /* ------------------------------------------------------------------ */
 /*  Main PDF content builder                                          */
 /* ------------------------------------------------------------------ */
-type CategoryPair = { category: string; budget: number; actual: number };
-
-function buildCategoryPairs(
-  expenseItems: PublicFinancialSummaryBreakdownLine[],
-  budgetItems: PublicFinancialSummaryBreakdownLine[],
-): CategoryPair[] {
-  const categories = new Map<string, CategoryPair>();
-  for (const item of expenseItems) {
-    const cat = item.segment.trim() || "Uncategorized";
-    const existing = categories.get(cat);
-    if (existing) existing.actual += Number(item.amount);
-    else categories.set(cat, { category: cat, budget: 0, actual: Number(item.amount) });
-  }
-  for (const item of budgetItems) {
-    const cat = item.label.trim() || "Uncategorized";
-    const existing = categories.get(cat);
-    if (existing) existing.budget += Number(item.amount);
-    else categories.set(cat, { category: cat, budget: Number(item.amount), actual: 0 });
-  }
-  return Array.from(categories.values()).sort(
-    (a, b) => Math.max(b.budget, b.actual) - Math.max(a.budget, a.actual),
-  );
-}
-
-export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Uint8Array[]) {
+export function createSummaryPdf(
+  summary: PublicFinancialSummary,
+  fontBytes?: Uint8Array[],
+) {
   const pages: PdfPage[] = [];
   let page!: PdfPage;
   let y = PH - M;
@@ -188,7 +178,10 @@ export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Ui
 
   kv("Event", summary.event.title);
   kv("Status", summary.event.status);
-  kv("Published", summary.publishedAt ? formatDate(summary.publishedAt) : "Not published");
+  kv(
+    "Published",
+    summary.publishedAt ? formatDate(summary.publishedAt) : "Not published",
+  );
   kv("Reconciliation", summary.reconciliation.status);
 
   y -= 12;
@@ -224,9 +217,15 @@ export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Ui
     y -= 16;
 
     const rows: [string, string][] = [
-      ["Verified registration income", money(summary.payload.breakdown.registrationIncome)],
+      [
+        "Verified registration income",
+        money(summary.payload.breakdown.registrationIncome),
+      ],
       ["Manual income records", money(summary.payload.breakdown.manualIncome)],
-      ["Settled expense records", money(summary.payload.breakdown.settledExpense)],
+      [
+        "Settled expense records",
+        money(summary.payload.breakdown.settledExpense),
+      ],
     ];
     rows.forEach((row) => {
       ensureSpace(18);
@@ -253,20 +252,33 @@ export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Ui
     const radius = 75;
 
     // Draw pie slices
-    pieSlices(incomeItems.map((item) => item.amount)).forEach(({ index, startAngle, endAngle }) => {
-      page.cmds.push(pieSector(cx, cy, radius, startAngle - 90, endAngle - 90, PIE_HEX[index % PIE_HEX.length]!));
-    });
+    pieSlices(incomeItems.map((item) => item.amount)).forEach(
+      ({ index, startAngle, endAngle }) => {
+        page.cmds.push(
+          pieSector(
+            cx,
+            cy,
+            radius,
+            startAngle - 90,
+            endAngle - 90,
+            PIE_HEX[index % PIE_HEX.length]!,
+          ),
+        );
+      },
+    );
 
     // Centre hole (donut)
     page.cmds.push(`1 1 1 rg`);
     page.cmds.push(
       `${cx.toFixed(2)} ${(cy + 40).toFixed(2)} m ` +
-      `${(cx + 40).toFixed(2)} ${(cy + 40).toFixed(2)} ${(cx + 40).toFixed(2)} ${(cy - 40).toFixed(2)} ${cx.toFixed(2)} ${(cy - 40).toFixed(2)} c ` +
-      `${(cx - 40).toFixed(2)} ${(cy - 40).toFixed(2)} ${(cx - 40).toFixed(2)} ${(cy + 40).toFixed(2)} ${cx.toFixed(2)} ${(cy + 40).toFixed(2)} c f`,
+        `${(cx + 40).toFixed(2)} ${(cy + 40).toFixed(2)} ${(cx + 40).toFixed(2)} ${(cy - 40).toFixed(2)} ${cx.toFixed(2)} ${(cy - 40).toFixed(2)} c ` +
+        `${(cx - 40).toFixed(2)} ${(cy - 40).toFixed(2)} ${(cx - 40).toFixed(2)} ${(cy + 40).toFixed(2)} ${cx.toFixed(2)} ${(cy + 40).toFixed(2)} c f`,
     );
     page.cmds.push(`0 0 0 rg`);
     page.cmds.push(txt("Total", cx - 12, cy + 5, 8, "F2"));
-    page.cmds.push(txt(money(summary.totals.collected), cx - 22, cy - 8, 7, "F2"));
+    page.cmds.push(
+      txt("BDT", cx - 8, cy - 8, 7, "F2"),
+    );
 
     // Legend on the right
     let ly = y - 16;
@@ -275,7 +287,9 @@ export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Ui
       const pct = ((Number(item.amount) / numericTotal) * 100).toFixed(1);
       page.cmds.push(rect(lx, ly - 6, 8, 8, PIE_HEX[index % PIE_HEX.length]!));
       page.cmds.push(txt(item.label, lx + 14, ly, 8));
-      page.cmds.push(txt(`${money(item.amount)} (${pct}%)`, lx + 14, ly - 11, 7));
+      page.cmds.push(
+        txt(`${money(item.amount)} (${pct}%)`, lx + 14, ly - 11, 7),
+      );
       ly -= 26;
     });
 
@@ -313,10 +327,20 @@ export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Ui
     const chartH = 150;
     const chartBottom = chartTop - chartH;
 
-    const rawMax = Math.max(...pairs.map((p) => Math.max(p.budget, p.actual)), 1);
+    const rawMax = Math.max(
+      ...pairs.map((p) => Math.max(p.budget, p.actual)),
+      1,
+    );
     const magnitude = Math.pow(10, Math.floor(Math.log10(rawMax)));
     const norm = rawMax / magnitude;
-    const yMax = norm <= 1 ? magnitude : norm <= 2 ? 2 * magnitude : norm <= 5 ? 5 * magnitude : 10 * magnitude;
+    const yMax =
+      norm <= 1
+        ? magnitude
+        : norm <= 2
+          ? 2 * magnitude
+          : norm <= 5
+            ? 5 * magnitude
+            : 10 * magnitude;
 
     // Y-axis ticks
     for (let i = 0; i <= 4; i++) {
@@ -344,17 +368,22 @@ export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Ui
       const gx = chartLeft + i * groupW + barPad / 2;
 
       if (pair.budget > 0) {
-        const h = Math.max((pair.budget / yMax) * chartH, 1);
+        const h = (pair.budget / yMax) * chartH;
         page.cmds.push(rect(gx, chartBottom, singleW, h, BUDGET_HEX));
       }
       if (pair.actual > 0) {
-        const h = Math.max((pair.actual / yMax) * chartH, 1);
+        const h = (pair.actual / yMax) * chartH;
         page.cmds.push(rect(gx + singleW, chartBottom, singleW, h, ACTUAL_HEX));
       }
 
       // Category label
-      const label = pair.category.length > 10 ? pair.category.slice(0, 9) + "..." : pair.category;
-      page.cmds.push(txt(label, gx + barArea / 2 - label.length * 2.5, chartBottom - 12, 7));
+      const label =
+        pair.category.length > 10
+          ? pair.category.slice(0, 9) + "..."
+          : pair.category;
+      page.cmds.push(
+        txt(label, gx + barArea / 2 - label.length * 2.5, chartBottom - 12, 7),
+      );
     });
 
     // Baseline
@@ -364,29 +393,39 @@ export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Ui
     y = chartBottom - 24;
 
     // Detail table
-    ensureSpace(pairs.length * 14 + 20);
+    ensureSpace(36);
     addText("Category Detail:", M, 9, "F2");
     y -= 14;
     pairs.forEach((pair) => {
-      ensureSpace(16);
-      addText(pair.category, M + 4, 8);
-      let detail = "";
-      if (pair.budget > 0) detail += `B: ${money(pair.budget)}  `;
-      detail += `A: ${money(pair.actual)}`;
-      const diff = pair.actual - pair.budget;
+      const labelLines = wrapText(pair.category, 210, 8);
+      const detailLines: string[] = [];
+      if (pair.budget > 0)
+        detailLines.push(`Budget: ${money(pair.budgetExact)}`);
+      detailLines.push(`Actual: ${money(pair.actualExact)}`);
+      const diff = Number(pair.difference);
       if (pair.budget > 0 && diff !== 0) {
-        detail += diff > 0 ? `  (+${money(diff)})` : `  (${money(diff)})`;
+        detailLines.push(
+          `Difference: ${diff > 0 ? "+" : ""}${money(pair.difference)}`,
+        );
       }
-      addText(detail, 280, 8);
-      y -= 14;
+      const rowHeight =
+        Math.max(labelLines.length, detailLines.length) * 12 + 8;
+      ensureSpace(rowHeight);
+      labelLines.forEach((label, index) =>
+        page.cmds.push(txt(label, M + 4, y - index * 12, 8)),
+      );
+      detailLines.forEach((detail, index) =>
+        page.cmds.push(txt(detail, 280, y - index * 12, 8)),
+      );
+      y -= rowHeight;
     });
 
-    const totalBudget = pairs.reduce((s, p) => s + p.budget, 0);
-    const totalActual = pairs.reduce((s, p) => s + p.actual, 0);
+    const totalBudget = sumExactMoney(pairs.map((pair) => pair.budgetExact));
+    const totalActual = sumExactMoney(pairs.map((pair) => pair.actualExact));
     y -= 4;
     page.cmds.push(line(M, y, RIGHT, y, 0.3));
     y -= 14;
-    if (totalBudget > 0) {
+    if (Number(totalBudget) > 0) {
       addText(`Total Budget: ${money(totalBudget)}`, M, 9, "F2");
       y -= 14;
     }
@@ -404,9 +443,12 @@ export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Ui
     y -= 14;
 
     incomeItems.forEach((item, index) => {
-      const pct = Math.max(0, Math.min(100, (Number(item.amount) / numericTotal) * 100));
+      const pct = Math.max(
+        0,
+        Math.min(100, (Number(item.amount) / numericTotal) * 100),
+      );
       const barMax = COL_W - 160;
-      const barW = Math.max((pct / 100) * barMax, 1);
+      const barW = (pct / 100) * barMax;
 
       ensureSpace(36);
       addText(item.label, M, 9, "F2");
@@ -414,7 +456,11 @@ export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Ui
       y -= 14;
       page.cmds.push(rect(M, y - 2, barW, 8, PIE_HEX[index % PIE_HEX.length]!));
       y -= 14;
-      addText(`${item.segment}${item.recordCount > 0 ? ` | ${item.recordCount} record(s)` : ""}`, M, 7);
+      addText(
+        `${item.segment}${item.recordCount > 0 ? ` | ${item.recordCount} record(s)` : ""}`,
+        M,
+        7,
+      );
       y -= 14;
     });
   }
@@ -432,17 +478,26 @@ export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Ui
       y -= 14;
 
       expenseItems.forEach((item, index) => {
-        const pct = Math.max(0, Math.min(100, (Number(item.amount) / expenseTotal) * 100));
+        const pct = Math.max(
+          0,
+          Math.min(100, (Number(item.amount) / expenseTotal) * 100),
+        );
         const barMax = COL_W - 160;
-        const barW = Math.max((pct / 100) * barMax, 1);
+        const barW = (pct / 100) * barMax;
 
         ensureSpace(36);
         addText(item.label, M, 9, "F2");
         addText(`${money(item.amount)} | ${pct.toFixed(1)}%`, RIGHT - 140, 8);
         y -= 14;
-        page.cmds.push(rect(M, y - 2, barW, 8, PIE_HEX[(index + 3) % PIE_HEX.length]!));
+        page.cmds.push(
+          rect(M, y - 2, barW, 8, PIE_HEX[(index + 3) % PIE_HEX.length]!),
+        );
         y -= 14;
-        addText(`${item.segment}${item.recordCount > 0 ? ` | ${item.recordCount} record(s)` : ""}`, M, 7);
+        addText(
+          `${item.segment}${item.recordCount > 0 ? ` | ${item.recordCount} record(s)` : ""}`,
+          M,
+          7,
+        );
         y -= 14;
       });
     }
@@ -452,11 +507,23 @@ export function createSummaryPdf(summary: PublicFinancialSummary, fontBytes?: Ui
   pages.forEach((p, i) => {
     p.cmds.push(`0.6 0.6 0.6 rg`);
     p.cmds.push(txt(`Page ${i + 1} of ${pages.length}`, PW / 2 - 25, 28, 7));
-    p.cmds.push(txt("MU CSE Financial Transparency Platform - Public Disclosure", M, 28, 7));
+    p.cmds.push(
+      txt(
+        "MU CSE Financial Transparency Platform - Public Disclosure",
+        M,
+        28,
+        7,
+      ),
+    );
     p.cmds.push(`0 0 0 rg`);
   });
 
-  return createPdf(pages.map((page) => page.cmds), PW, PH, fontBytes);
+  return createPdf(
+    pages.map((page) => page.cmds),
+    PW,
+    PH,
+    fontBytes,
+  );
 }
 
 function buildFileName(summary: PublicFinancialSummary) {
@@ -467,22 +534,46 @@ function buildFileName(summary: PublicFinancialSummary) {
   return `${slug || "event"}-financial-summary.pdf`;
 }
 
-export function SummaryPdfDownloadButton({ summary }: { summary: PublicFinancialSummary }) {
+export function SummaryPdfDownloadButton({
+  summary,
+}: {
+  summary: PublicFinancialSummary;
+}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   return (
     <div>
-      <Button type="button" disabled={pending} onClick={async () => {
-        setPending(true);
-        setError(null);
-        try { downloadPdf(await createSummaryPdf(summary), buildFileName(summary)); }
-        catch (error) { setError(getApiErrorMessage(error, "Unable to generate the PDF. Please retry.")); }
-        finally { setPending(false); }
-      }}>
+      <Button
+        type="button"
+        disabled={pending}
+        onClick={async () => {
+          setPending(true);
+          setError(null);
+          try {
+            downloadPdf(
+              await createSummaryPdf(summary),
+              buildFileName(summary),
+            );
+          } catch (error) {
+            setError(
+              getApiErrorMessage(
+                error,
+                "Unable to generate the PDF. Please retry.",
+              ),
+            );
+          } finally {
+            setPending(false);
+          }
+        }}
+      >
         <Download size={16} aria-hidden="true" />
         {pending ? "Preparing PDF..." : "Download PDF"}
       </Button>
-      {error ? <p role="alert" className="mt-2 text-sm text-destructive">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="mt-2 text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

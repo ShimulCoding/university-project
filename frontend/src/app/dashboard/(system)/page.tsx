@@ -30,7 +30,7 @@ export default async function SystemOverviewPage() {
       <div className="space-y-6">
         <PageHeader eyebrow="Global governance" title="System administration"
           description="Publish upcoming events with separate teams. After publication, each assigned team manages its event's operations." />
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 xl:grid-cols-3">
           {links.map(({ href, title, detail, icon: Icon }) => (
             <Card key={href}><CardHeader><Icon className="h-6 w-6 text-primary" /><CardTitle>{title}</CardTitle><CardDescription>{detail}</CardDescription></CardHeader>
               <CardContent><Button asChild variant="outline"><Link href={href}>Open {title.toLowerCase()}</Link></Button></CardContent>
@@ -54,6 +54,6 @@ export default async function SystemOverviewPage() {
       </div>
     );
   } catch {
-    return <StatePanel icon={ShieldCheck} tone="error" title="Unable to load platform overview" description="Check that the backend is running, then reload this page." />;
+    return <StatePanel icon={ShieldCheck} tone="error" title="Unable to load platform overview" description="Please try reloading the overview shortly." />;
   }
 }

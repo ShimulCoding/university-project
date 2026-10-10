@@ -6,7 +6,7 @@ import { InternalAccessPanel } from "@/components/internal/internal-access-panel
 import { RolePreviewProvider } from "@/components/providers/role-preview-provider";
 import { DashboardShell } from "@/components/shell/dashboard-shell";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
-import { PageHeader } from "@/components/ui/page-header";
+import { AccessLayout } from "@/components/shell/access-layout";
 
 export default async function SystemDashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
@@ -16,11 +16,7 @@ export default async function SystemDashboardLayout({ children }: { children: Re
   if (!isSystemAdmin(user) || !user) {
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
-          <PageHeader eyebrow="System Administration" title="System Admin sign in"
-            description="Create and publish events, assign their teams, manage accounts, and review the platform audit trail." />
-          <div className="mt-8"><InternalAccessPanel /></div>
-        </main>
+        <AccessLayout kind="system" title="System Admin sign in" description="Bring your events to life. Build their teams, manage platform access, and keep every handoff clear."><InternalAccessPanel /></AccessLayout>
       </PublicPageShell>
     );
   }

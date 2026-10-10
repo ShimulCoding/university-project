@@ -111,8 +111,7 @@ export function PaymentProofForm({ registrationId }: { registrationId: string })
       <CardHeader>
         <CardTitle className="text-2xl">Submit payment proof</CardTitle>
         <CardDescription>
-          No live payment gateway is used here. Submit the external payment channel,
-          reference, and optional proof file for finance review.
+          Already made your payment? Add the transfer details and any receipt files so the event’s Finance Controller can verify it.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -177,24 +176,25 @@ export function PaymentProofForm({ registrationId }: { registrationId: string })
           </Field>
           <Field
             label="Proof file"
-            description="Images and PDFs are accepted where allowed by the backend upload policy."
+            description="JPEG, PNG, or PDF · Up to 5 MB per proof file."
             error={fieldErrors.proofFile}
           >
             <Input
               name="proofFile"
               type="file"
+              accept="image/jpeg,image/png,application/pdf"
               multiple
               onChange={() => clearFieldError("proofFile")}
               aria-invalid={Boolean(fieldErrors.proofFile)}
             />
           </Field>
           {errorMessage ? (
-            <div className="rounded-[1rem] border border-destructive/15 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <div role="alert" className="rounded-[1rem] border border-destructive/15 bg-destructive/5 px-4 py-3 text-sm text-destructive">
               {errorMessage}
             </div>
           ) : null}
           {successMessage ? (
-            <div className="rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success">
+            <div role="status" className="rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success">
               {successMessage}
             </div>
           ) : null}

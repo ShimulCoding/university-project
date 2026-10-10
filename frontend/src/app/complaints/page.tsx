@@ -49,7 +49,7 @@ const complaintTrackingCopy: Record<ComplaintState, { title: string; nextStep: s
   },
   CLOSED: {
     title: "Closed",
-    nextStep: "The complaint lifecycle is complete and remains available for your records.",
+    nextStep: "Review is complete. This complaint remains available for your records.",
   },
 };
 
@@ -137,7 +137,7 @@ export default async function MyComplaintsPage({
     if (!user) {
       return (
         <PublicPageShell>
-          <main className="section-shell py-12 sm:py-16">
+          <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
             <PageHeader
               eyebrow="My complaints"
               title="Sign in to view your complaints"
@@ -161,10 +161,10 @@ export default async function MyComplaintsPage({
 
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="My complaints"
-            title="Complaint records owned by your student session"
+            title="Your complaint history"
             description="This list is private. It shows the current complaint state and high-level routing history without exposing reviewer-only internals."
             action={
               <Button asChild size="sm">
@@ -225,7 +225,7 @@ export default async function MyComplaintsPage({
                 <StatePanel
                   icon={MessageSquareText}
                   tone="empty"
-                  title="No complaints have been submitted from this session"
+                  title="You haven’t submitted a complaint yet"
                   description="If you need to raise a concern, you can submit one now and track its protected status here afterward."
                   action={
                     <Button asChild size="sm">
@@ -324,7 +324,7 @@ export default async function MyComplaintsPage({
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/10 bg-primary/5 text-primary">
                     <FileWarning className="h-5 w-5" />
                   </div>
-                  <CardTitle className="mt-4 text-xl">Protected review boundary</CardTitle>
+                  <CardTitle className="mt-4 text-xl">Your privacy</CardTitle>
                   <CardDescription>
                     You can track complaint state and routing progression here, but reviewer-only notes and internal handling detail remain protected.
                   </CardDescription>
@@ -339,11 +339,11 @@ export default async function MyComplaintsPage({
   } catch (error) {
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="My complaints"
             title="Complaint history could not be loaded"
-            description="The private complaint area depends on an active student session and live backend data."
+            description="We could not load your complaint history. Check your connection and try again."
           />
           <div className="mt-10">
             <StatePanel

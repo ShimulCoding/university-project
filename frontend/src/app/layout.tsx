@@ -9,20 +9,20 @@ import "./globals.css";
 const publicSans = Public_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
-  display: "block",
+  display: "swap",
 });
 
 const fraunces = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
-  display: "block",
+  display: "swap",
 });
 
 const plexMono = IBM_Plex_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
-  display: "block",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -45,22 +45,8 @@ export default async function RootLayout({
   const expired = accessCookieExpired(access);
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-              body {
-                background: hsl(210, 38%, 98%);
-                color: hsl(221, 39%, 16%);
-                font-family: 'Public Sans', 'Segoe UI', system-ui, sans-serif;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-              }
-            `,
-          }}
-        />
-      </head>
       <body className={`${publicSans.variable} ${fraunces.variable} ${plexMono.variable}`} suppressHydrationWarning>
+        <a href="#main-content" className="skip-link">Skip to content</a>
         <SessionRecovery needed={refresh && expired}>{children}</SessionRecovery>
       </body>
     </html>

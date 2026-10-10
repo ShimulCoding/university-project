@@ -20,6 +20,7 @@ const config: Config = {
     },
     extend: {
       colors: {
+        info: "hsl(var(--info))",
         canvas: "hsl(var(--canvas))",
         panel: {
           DEFAULT: "hsl(var(--panel))",
@@ -78,9 +79,9 @@ const config: Config = {
       },
       boxShadow: {
         panel:
-          "0 1px 2px rgba(15, 23, 42, 0.05), 0 16px 36px rgba(15, 23, 42, 0.08)",
+          "0 2px 3px rgba(23, 47, 54, 0.02), 0 8px 24px rgba(23, 47, 54, 0.04)",
         lift:
-          "0 18px 40px rgba(15, 23, 42, 0.1), 0 1px 0 rgba(255, 255, 255, 0.65) inset",
+          "0 16px 40px rgba(23, 47, 54, 0.10)",
         inset:
           "inset 0 1px 0 rgba(255, 255, 255, 0.75), inset 0 0 0 1px rgba(148, 163, 184, 0.08)",
       },

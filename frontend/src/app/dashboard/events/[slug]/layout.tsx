@@ -7,6 +7,7 @@ import { EventTeamAccessPanel } from "@/components/internal/event-team-access-pa
 import { LogoutButton } from "@/components/student/logout-button";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
 import { PageHeader } from "@/components/ui/page-header";
+import { AccessLayout } from "@/components/shell/access-layout";
 import { StatePanel } from "@/components/ui/state-panel";
 import { ShieldAlert } from "lucide-react";
 import Link from "next/link";
@@ -41,13 +42,8 @@ export default async function EventWorkspaceLayout({
   if (!user || (!isSystemAdmin(user) && !assignedToLookup)) {
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
-          <PageHeader
-            eyebrow="Event workspace"
-            title="Sign in to this event's internal workspace"
-            description="Access is granted only when your active account has a team assignment for this exact event."
-          />
-          <div className="mt-8">
+        <AccessLayout kind="event" title="A space for your event team." description="Coordinate the event, manage its finances, and keep every decision moving. Sign in to this event’s internal workspace.">
+          <div>
             {user ? (
               <div className="mb-6 rounded-2xl border border-border p-5 text-sm">
                 <p>You are signed in as {user.fullName} ({user.email}). This account has no active team assignment for this event. Sign in below with an assigned account.</p>
@@ -56,7 +52,7 @@ export default async function EventWorkspaceLayout({
             ) : null}
             <EventTeamAccessPanel eventLookupKey={slug} />
           </div>
-        </main>
+        </AccessLayout>
       </PublicPageShell>
     );
   }
@@ -66,7 +62,7 @@ export default async function EventWorkspaceLayout({
   if (!event) {
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="Event workspace"
             title="Event not found"
@@ -89,7 +85,7 @@ export default async function EventWorkspaceLayout({
   if (!isSystemAdmin(user) && !hasEventAccess(user, event.id)) {
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="Access denied"
             title="You are not assigned to this event"

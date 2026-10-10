@@ -6,11 +6,21 @@ import type { AppRole, EventStatus, ManagedEvent } from "@/types";
 import { getMissingEventTeamRoles } from "@/lib/access";
 import { apiFetchClient, patchJson, postJson } from "@/lib/api/client";
 import { formatEnumLabel } from "@/lib/format";
-import { FeedbackMessage, useActionState } from "@/components/internal/action-utils";
+import {
+  FeedbackMessage,
+  useActionState,
+} from "@/components/internal/action-utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -31,10 +41,16 @@ const eventTransitions: Record<EventStatus, EventStatus[]> = {
 
 type RequiredEventTeamRole = Extract<
   AppRole,
-  "EVENT_ADMIN" | "EVENT_MANAGEMENT_USER" | "FINANCIAL_CONTROLLER" | "ORGANIZATIONAL_APPROVER"
+  | "EVENT_ADMIN"
+  | "EVENT_MANAGEMENT_USER"
+  | "FINANCIAL_CONTROLLER"
+  | "ORGANIZATIONAL_APPROVER"
 >;
 
-const requiredEventTeamRoles: Array<{ roleCode: RequiredEventTeamRole; label: string }> = [
+const requiredEventTeamRoles: Array<{
+  roleCode: RequiredEventTeamRole;
+  label: string;
+}> = [
   { roleCode: "EVENT_ADMIN", label: "Event Admin" },
   { roleCode: "EVENT_MANAGEMENT_USER", label: "Event Manager" },
   { roleCode: "FINANCIAL_CONTROLLER", label: "Finance Controller" },
@@ -115,8 +131,9 @@ export function EventCreateForm() {
       <CardHeader>
         <CardTitle className="text-xl">Create event</CardTitle>
         <CardDescription>
-          Only the System Admin can create events. Each event must start with its own assigned
-          Event Admin, Event Manager, Finance Controller, and Approver.
+          Only the System Admin can create events. Each event must start with
+          its own assigned Event Admin, Event Manager, Finance Controller, and
+          Approver.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 pt-0">
@@ -222,10 +239,13 @@ export function EventCreateForm() {
         </div>
         <div className="space-y-4 rounded-[1rem] border border-border/70 bg-panel-muted p-4">
           <div>
-            <div className="text-sm font-semibold text-foreground">Required event team</div>
+            <div className="text-sm font-semibold text-foreground">
+              Required event team
+            </div>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Use separate email accounts for the four required roles. A password is required
-              only when the email does not already belong to an internal account.
+              Use separate email accounts for the four required roles. A
+              password is required only when the email does not already belong
+              to an internal account.
             </p>
           </div>
           <div className="grid gap-4">
@@ -238,7 +258,11 @@ export function EventCreateForm() {
                     <Input
                       value={draft.fullName}
                       onChange={(event) =>
-                        updateTeamMember(role.roleCode, "fullName", event.target.value)
+                        updateTeamMember(
+                          role.roleCode,
+                          "fullName",
+                          event.target.value,
+                        )
                       }
                       placeholder={role.label}
                     />
@@ -248,18 +272,25 @@ export function EventCreateForm() {
                       type="email"
                       value={draft.email}
                       onChange={(event) =>
-                        updateTeamMember(role.roleCode, "email", event.target.value)
+                        updateTeamMember(
+                          role.roleCode,
+                          "email",
+                          event.target.value,
+                        )
                       }
                       placeholder="name@gmail.com"
                       required
                     />
                   </Field>
                   <Field label={`${role.label} password (new account only)`}>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       value={draft.password}
                       onChange={(event) =>
-                        updateTeamMember(role.roleCode, "password", event.target.value)
+                        updateTeamMember(
+                          role.roleCode,
+                          "password",
+                          event.target.value,
+                        )
                       }
                       placeholder="Leave blank for an existing account"
                     />
@@ -287,7 +318,8 @@ export function EventCreateForm() {
                   endsAt: optionalDateTime(endsAt),
                   teamMembers: requiredEventTeamRoles.map((role) => ({
                     roleCode: role.roleCode,
-                    fullName: teamMembers[role.roleCode].fullName.trim() || undefined,
+                    fullName:
+                      teamMembers[role.roleCode].fullName.trim() || undefined,
                     email: teamMembers[role.roleCode].email.trim(),
                     password: teamMembers[role.roleCode].password || undefined,
                   })),
@@ -330,18 +362,23 @@ export function EventStatusControl({
     value: status,
     label: formatEnumLabel(status),
   }));
-  const [nextStatus, setNextStatus] = useState<EventStatus | "">(options[0]?.value ?? "");
+  const [nextStatus, setNextStatus] = useState<EventStatus | "">(
+    options[0]?.value ?? "",
+  );
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
   const missingRoles = getMissingEventTeamRoles(event);
-  const publicationBlocked = event.status === "DRAFT" && nextStatus === "PUBLISHED" && missingRoles.length > 0;
+  const publicationBlocked =
+    event.status === "DRAFT" &&
+    nextStatus === "PUBLISHED" &&
+    missingRoles.length > 0;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">Lifecycle control</CardTitle>
+        <CardTitle className="text-xl">Event status</CardTitle>
         <CardDescription>
-          Move this event through launch, completion, and closure without bypassing the backend
-          transition rules.
+          Update this event’s status as registration, the program, and financial
+          closure progress.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 pt-0">
@@ -357,13 +394,19 @@ export function EventStatusControl({
                 options={options}
               />
             </Field>
-            {publicationBlocked ? <p className="text-sm text-destructive">Assign active personnel before publishing: {missingRoles.map(formatEnumLabel).join(", ")}.</p> : null}
+            {publicationBlocked ? (
+              <p className="text-sm text-destructive">
+                Assign active personnel before publishing:{" "}
+                {missingRoles.map(formatEnumLabel).join(", ")}.
+              </p>
+            ) : null}
             <FeedbackMessage feedback={feedback} />
             <Button
               disabled={isPending || !nextStatus || publicationBlocked}
               onClick={() =>
                 void runAction(
-                  () => patchJson(`/events/${event.slug}`, { status: nextStatus }),
+                  () =>
+                    patchJson(`/events/${event.slug}`, { status: nextStatus }),
                   "Event status updated.",
                 )
               }
@@ -373,7 +416,7 @@ export function EventStatusControl({
           </>
         ) : (
           <div className="rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
-            This event has no further lifecycle transition available from its current status.
+            No further status changes are available for this event.
           </div>
         )}
       </CardContent>
@@ -382,16 +425,23 @@ export function EventStatusControl({
 }
 
 export function EventTeamManagement({ event }: { event: ManagedEvent }) {
-  const [roleCode, setRoleCode] = useState<AssignableEventTeamRole>("EVENT_ADMIN");
+  const [roleCode, setRoleCode] =
+    useState<AssignableEventTeamRole>("EVENT_ADMIN");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
-  const requiredRoleCodes = new Set(requiredEventTeamRoles.map((role) => role.roleCode));
-  const roleCounts = event.teamMembers.reduce<Record<string, number>>((counts, member) => {
-    if (member.user.status === "ACTIVE") counts[member.roleCode] = (counts[member.roleCode] ?? 0) + 1;
-    return counts;
-  }, {});
+  const requiredRoleCodes = new Set(
+    requiredEventTeamRoles.map((role) => role.roleCode),
+  );
+  const roleCounts = event.teamMembers.reduce<Record<string, number>>(
+    (counts, member) => {
+      if (member.user.status === "ACTIVE")
+        counts[member.roleCode] = (counts[member.roleCode] ?? 0) + 1;
+      return counts;
+    },
+    {},
+  );
   const canAssign =
     email.trim().length > 0 && (password.length === 0 || password.length >= 8);
 
@@ -400,19 +450,39 @@ export function EventTeamManagement({ event }: { event: ManagedEvent }) {
       <CardHeader>
         <CardTitle className="text-xl">Event team assignments</CardTitle>
         <CardDescription>
-          Assign personnel only to this event. Existing accounts can be reused across events by
-          email; provide a temporary password only when creating a new account.
+          Assign personnel only to this event. Existing accounts can be reused
+          across events by email; provide a temporary password only when
+          creating a new account.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5 pt-0">
         <div className="grid gap-2 sm:grid-cols-2">
-          {requiredEventTeamRoles.map((role) => <div key={role.roleCode} className="rounded-lg border border-border p-3 text-sm"><span className="font-semibold">{role.label}</span><p className={roleCounts[role.roleCode] ? "mt-1 text-muted-foreground" : "mt-1 text-destructive"}>{roleCounts[role.roleCode] ? `${roleCounts[role.roleCode]} active account(s)` : "Active assignment required"}</p></div>)}
+          {requiredEventTeamRoles.map((role) => (
+            <div
+              key={role.roleCode}
+              className="rounded-lg border border-border p-3 text-sm"
+            >
+              <span className="font-semibold">{role.label}</span>
+              <p
+                className={
+                  roleCounts[role.roleCode]
+                    ? "mt-1 text-muted-foreground"
+                    : "mt-1 text-destructive"
+                }
+              >
+                {roleCounts[role.roleCode]
+                  ? `${roleCounts[role.roleCode]} active account(s)`
+                  : "Active assignment required"}
+              </p>
+            </div>
+          ))}
         </div>
         <div className="space-y-3">
           {event.teamMembers.map((member) => {
             const isOnlyRequiredMember =
               requiredRoleCodes.has(member.roleCode as RequiredEventTeamRole) &&
-              member.user.status === "ACTIVE" && roleCounts[member.roleCode] === 1;
+              member.user.status === "ACTIVE" &&
+              roleCounts[member.roleCode] === 1;
 
             return (
               <div
@@ -420,9 +490,15 @@ export function EventTeamManagement({ event }: { event: ManagedEvent }) {
                 className="flex flex-col gap-3 rounded-[1rem] border border-border/70 bg-panel-muted px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
-                  <div className="font-semibold text-foreground">{member.user.fullName}</div>
-                  <div className="mt-1 text-sm text-muted-foreground">{member.user.email}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">Account: {formatEnumLabel(member.user.status)}</div>
+                  <div className="font-semibold text-foreground">
+                    {member.user.fullName}
+                  </div>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    {member.user.email}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Account: {formatEnumLabel(member.user.status)}
+                  </div>
                   <div className="mt-1 text-xs font-medium uppercase tracking-wider text-primary">
                     {formatEnumLabel(member.roleCode)}
                   </div>
@@ -492,8 +568,7 @@ export function EventTeamManagement({ event }: { event: ManagedEvent }) {
             />
           </Field>
           <Field label="Password (new account only)">
-            <Input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={(event) => {
                 clearFeedback();
@@ -508,20 +583,17 @@ export function EventTeamManagement({ event }: { event: ManagedEvent }) {
           type="button"
           disabled={isPending || !canAssign}
           onClick={() =>
-            void runAction(
-              async () => {
-                await postJson(`/events/${event.slug}/team-members`, {
-                  roleCode,
-                  email: email.trim(),
-                  fullName: fullName.trim() || undefined,
-                  password: password || undefined,
-                });
-                setFullName("");
-                setEmail("");
-                setPassword("");
-              },
-              "Event team assignment saved.",
-            )
+            void runAction(async () => {
+              await postJson(`/events/${event.slug}/team-members`, {
+                roleCode,
+                email: email.trim(),
+                fullName: fullName.trim() || undefined,
+                password: password || undefined,
+              });
+              setFullName("");
+              setEmail("");
+              setPassword("");
+            }, "Event team assignment saved.")
           }
         >
           {isPending ? "Saving assignment..." : "Assign to this event"}

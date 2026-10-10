@@ -13,8 +13,8 @@ export function ListPagination({ pagination }: { pagination: Pagination }) {
     next.set("page", String(page));
     return `${pathname}?${next}`;
   };
-  return <nav aria-label="Result pages" className="flex flex-wrap items-center justify-between gap-3 py-4">
-    <p className="text-sm text-muted-foreground">Page {pagination.page} of {Math.max(1, pagination.totalPages)} · {pagination.totalItems} results</p>
+  return <nav aria-label="Result pages" className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border py-5">
+    <p className="text-xs text-muted-foreground">Page <span className="font-semibold text-foreground">{pagination.page}</span> of {Math.max(1, pagination.totalPages)} · {pagination.totalItems} results</p>
     <div className="flex gap-3">
       {pagination.page > 1 ? <Button asChild size="sm" variant="outline"><Link href={href(pagination.page - 1)}>Previous</Link></Button> : null}
       {pagination.page < pagination.totalPages ? <Button asChild size="sm" variant="outline"><Link href={href(pagination.page + 1)}>Next</Link></Button> : null}

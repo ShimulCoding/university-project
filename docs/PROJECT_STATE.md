@@ -10,6 +10,18 @@
 - `/dashboard/users` manages accounts/global roles. Event `/funding-requests` exposes monetary budget requests separately from itemized budget versions.
 - Read the findings, permission matrix, rollout, and verification evidence in `docs/event-role-architecture-audit.md` for the 2026-10-10 architecture review.
 - Read `docs/project-audit.md` for the subsequent project-wide audit, permanent fixes, regression evidence, dependency finding and rollout limits.
+- Read `docs/ui-design-review.md` for the subsequent review of all 39 page files, shared UI changes, responsive/accessibility checks and visual verification limits.
+
+## UI Architecture
+
+- Public pages use an editorial layout with warm neutral surfaces, deep ink, jade accents and Fraunces headings. Public Sans supports operational text; financial identifiers use IBM Plex Mono.
+- Shared controls provide explicit borders, visible focus, associated labels/help/errors, password visibility and consistent target sizes. Client select controls preserve IDs through the server/client rendering boundary.
+- Public navigation uses a native mobile disclosure menu. System Admin and event teams share a responsive workspace sidebar, with separate scopes, role-filtered navigation and clear account context.
+- The home ledger uses actual published amounts. Public directories include validated search/status filters; archived and draft events are not offered as public status filters.
+- Student participation pages include account/registration/payment progress. Complaint submission keeps previous history available in a disclosure panel.
+- Account lists and audit metadata support keyboard scrolling; account selection links directly to the profile. Event creation uses a full-width form.
+- Financial category grouping and differences use exact decimal sums shared by web charts and PDFs. Displayed amounts remain exact; charts use proportional geometry without artificial minimum bars and support keyboard/touch selection.
+- Reduced motion, a skip link and one main-content target are part of the shared UI. Avoid reintroducing oversized operational heroes, low-contrast translucent text, unsupported semantic colors, or invented bank/cryptographic/health claims.
 
 ## Responsibility Boundary
 - System Admin: event creation, initial draft setup/publication, team assignment/replacement, users, roles, global audit, and read-only oversight.
@@ -59,11 +71,12 @@
 - Run `npm run lint --workspace frontend`.
 - Run `npm run build --workspace frontend`.
 - Run `npm exec --workspace frontend -- tsc --noEmit` and the frontend `verify:client`, `verify:pdf`, and `verify:ui` scripts.
+- For UI changes, start both built apps and run `npm run verify:design --workspace frontend`. Add `VERIFY_DESIGN=1` to the browser workspace run for authenticated screen checks at 360, 768, 1440 and 1920px. See setup notes for optional screenshots and browser selection.
 - Run `npm run verify:project-audit --workspace backend` against a migrated local database. It passed 80 isolated concurrency/security/rollback checks.
 - Run `npm run verify:event-scope --workspace backend`.
 - Run `npm run verify:event-workspaces --workspace backend` against a migrated local database with its role catalog initialized. It uses isolated fixtures and cleans them up; do not reseed existing data for this check.
 - The default workspace suite passed 91 HTTP/boundary checks.
-- To include rendered frontend checks, start both built apps, set `VERIFY_FRONTEND_BASE_URL=http://localhost:3000`, and run the workspace check. Add `VERIFY_BROWSER=1` for actual browser interactions; the full suite passed 154 checks including 54 browser checks using installed Microsoft Edge. See setup notes for browser selection.
+- To include rendered frontend checks, start both built apps, set `VERIFY_FRONTEND_BASE_URL=http://localhost:3000`, and run the workspace check. Add `VERIFY_BROWSER=1` for actual browser interactions. The architecture-audit baseline passed 154 checks including 54 browser assertions using installed Microsoft Edge; the subsequent UI review results are recorded below. See setup notes for browser selection.
 - Run the flow, finance, and governance verification scripts after database setup.
 - With existing demo data and a running backend, run `npm run verify:demo:runtime --workspace backend` for public, student-owner, event-team, auth-replay, and recovery-privacy checks. Do not reseed existing data just to verify.
 - Run registry-enabled `npm audit --omit=dev` and `npm audit`; record remaining development advisories separately.
@@ -73,3 +86,14 @@
 - All eleven migrations are applied locally, including `20261010120000_session_invalidation` and `20261010130000_financial_invariants`. The audit adds these two migrations; production deployment was not performed.
 - Four older events lack active required teams: MU CP BOOSTER, Spring Coding Bootcamp 2026, MU CP BOOSTER 3.0, and IMUPC. Assign actual personnel through System Admin → Events and teams. No event assignments are inferred from legacy global roles.
 - Schema/build/type/lint, audit/client/PDF/UI regression suites, existing flow/finance/governance checks, and live demo/workspace checks passed. Actual browser interactions were exercised locally; this does not claim exhaustive visual testing, SMTP delivery, load capacity, or production deployment.
+
+## UI Review Verification (2026-10-11)
+
+- All 39 page files and the shared UI were reviewed; see `ui-design-review.md` for the page inventory and permanent fixes.
+- Frontend production build compiled all 40 Next routes (including not-found). Frontend lint with zero warnings, standalone type checking, backend build and Prisma validation passed.
+- Client, PDF and UI regressions passed, including exact large category totals/differences, distinct fractional chart ticks, Bengali PDF content, page bounds, explicit control labels and datalist associations.
+- The isolated workspace suite with browser/design flags passed 1,136 combined checks: 980 responsive/accessibility assertions across 49 route states, 56 actual browser assertions and 100 API/boundary/rendered-route assertions. It covers all internal route families and authenticated student submission states.
+- Public design verification passed 301 checks across 14 route states and interactions at 360, 768, 1440 and 1920px. This includes all visible public status filters, keyboard skip navigation, menu behavior, password visibility, fallback fonts, chart selection and both published PDF downloads.
+- The project audit suite passed 80 checks; flow, finance, governance, event-scope and existing demo-runtime checks passed without reseeding the existing database.
+- Screenshots were inspected locally. Screenshot output is ignored and is not committed. Microsoft Edge was the browser used; physical devices, other browser engines, assistive-technology certification and production deployment remain outside this verification.
+- Registry-enabled production dependency audit remains clear. Full audit remains nonzero for the seven previously documented development entries associated with `braces`; no forced downgrade/major migration was performed.

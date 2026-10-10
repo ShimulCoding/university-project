@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function RegistrationsLoading() {
   return (
-    <main className="section-shell py-12 sm:py-16">
+    <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
       <div className="surface-panel p-8">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="mt-4 h-10 w-[30rem] max-w-full" />

@@ -13,6 +13,7 @@ import {
 } from "@/lib/format";
 import { StudentAccessPanel } from "@/components/student/student-access-panel";
 import { StudentSessionCard } from "@/components/student/student-session-card";
+import { ParticipationSteps } from "@/components/student/participation-steps";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ export default async function RegistrationStatusPage({
     if (!user) {
       return (
         <PublicPageShell>
-          <main className="section-shell py-12 sm:py-16">
+          <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
             <PageHeader
               eyebrow="My registration"
               title="Sign in to view your registration status"
@@ -63,7 +64,7 @@ export default async function RegistrationStatusPage({
 
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="My registration"
             title={`${registration.event.title} registration`}
@@ -77,6 +78,8 @@ export default async function RegistrationStatusPage({
               </div>
             }
           />
+
+          <div className="mt-6"><ParticipationSteps current={2} complete={registration.paymentState === "VERIFIED"} /></div>
 
           <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
             <div className="space-y-6">
@@ -169,7 +172,7 @@ export default async function RegistrationStatusPage({
                             </div>
                           </div>
                           <div>
-                            <div className="data-kicker">Document coverage</div>
+                            <div className="data-kicker">Attachments</div>
                             <div className="mt-2 text-sm text-foreground">
                               {proof.hasDocument
                                 ? `${proof.documentCount ?? 0} supporting file(s)`
@@ -239,7 +242,7 @@ export default async function RegistrationStatusPage({
               {myRegistrations.length > 1 ? (
                 <Card tone="muted">
                   <CardHeader>
-                    <CardTitle className="text-xl">Other registrations in this session</CardTitle>
+                    <CardTitle className="text-xl">Your other registrations</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 pt-0">
                     {myRegistrations
@@ -269,7 +272,7 @@ export default async function RegistrationStatusPage({
 
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="My registration"
             title="Registration status could not be loaded"

@@ -23,3 +23,4 @@ Start implementation tasks with `../AGENTS.md` and `PROJECT_STATE.md`.
 - `PROJECT_STATE.md`: current architecture, invariants, verification requirements, and local data handoff
 - `event-role-architecture-audit.md`: event team audit findings, implementation plan, permissions, rollout, and verification evidence
 - `project-audit.md`: subsequent project-wide defects, fixes, regression evidence, migration rollout and remaining verification limits
+- `ui-design-review.md`: page coverage, design decisions, UI defect fixes, browser checks and visual review limits

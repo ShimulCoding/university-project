@@ -1,159 +1,205 @@
 import type { RegistrationRecord } from "@/types";
+import {
+  CalendarRange,
+  Users,
+  Sparkles,
+  History,
+  AlertTriangle,
+} from "lucide-react";
 import { ListPagination } from "@/components/ui/list-pagination";
 import { queryPage, apiOptions } from "@/lib/api/list";
-import { AlertTriangle, CalendarRange, Users, Sparkles, History } from "lucide-react";
-
 import { listPublicEvents } from "@/lib/api/public";
 import { getCurrentUser } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/shared";
 import { PublicEventCard } from "@/components/public/public-event-card";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { MetricCard } from "@/components/ui/metric-card";
 import { StatePanel } from "@/components/ui/state-panel";
+import { FilterCard } from "@/components/internal/filter-card";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 
 export const dynamic = "force-dynamic";
+const statuses = [
+  "PUBLISHED",
+  "REGISTRATION_CLOSED",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CLOSED",
+];
 
-export default async function PublicEventsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default async function PublicEventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const params = await searchParams;
+  const search =
+    typeof params.search === "string"
+      ? params.search.trim().slice(0, 200) || undefined
+      : undefined;
+  const status =
+    typeof params.status === "string" && statuses.includes(params.status)
+      ? params.status
+      : undefined;
   try {
-    const [events, user] = await Promise.all([listPublicEvents({ page: queryPage(params.page) }), getCurrentUser()]);
-    const myRegistrations = user ? await apiOptions<RegistrationRecord>("/registrations/me", "registrations") : [];
-
-    // Build a lookup map: event ID → registration ID
+    const [events, user] = await Promise.all([
+      listPublicEvents({
+        page: queryPage(params.page),
+        ...(search ? { search } : {}),
+        ...(status ? { status } : {}),
+      }),
+      getCurrentUser(),
+    ]);
+    const registrations = user
+      ? await apiOptions<RegistrationRecord>(
+          "/registrations/me",
+          "registrations",
+        )
+      : [];
     const registrationByEventId: Record<string, string> = {};
-    for (const reg of myRegistrations) {
-      registrationByEventId[reg.event.id] = reg.id;
-    }
-
+    for (const registration of registrations)
+      registrationByEventId[registration.event.id] = registration.id;
     const studentCtx = user
       ? { isSignedIn: true, registrationByEventId }
       : undefined;
-
-    const openEvents = events.filter((event) => event.registrationWindow.state === "OPEN").length;
-    const closedEvents = events.filter(
-      (event) => event.status === "COMPLETED" || event.status === "CLOSED",
-    ).length;
-    const totalRegistrations = events.reduce((sum, event) => sum + event.registeredCount, 0);
-
     return (
       <PublicPageShell>
-        <main className="flex flex-col min-h-screen bg-background selection:bg-primary/20">
-          
-          {/* HERO HEADER */}
-          <section className="relative overflow-hidden pt-24 pb-16 lg:pt-32 lg:pb-20 section-shell border-b border-border/10">
-            {/* Background effects */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-            <div className="absolute top-0 right-0 -z-10 m-auto h-[400px] w-[400px] rounded-full bg-primary/10 opacity-60 blur-[120px] pointer-events-none translate-x-1/3 -translate-y-1/3" />
-            
-            <div className="relative z-10 max-w-4xl space-y-6">
-              <Badge variant="neutral" className="px-4 py-1.5 text-xs font-semibold tracking-widest uppercase shadow-sm border-primary/20 bg-primary/5 text-primary backdrop-blur-md">
-                Initiatives & Activities
-              </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-foreground text-balance">
-                Explore <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-primary/80 to-primary/50">Events</span>
-              </h1>
-              <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed font-light">
-                Discover upcoming workshops, symposiums, and activities hosted by the MU CSE Society. Register seamlessly and track your participation.
-              </p>
-            </div>
-          </section>
-
-          <section className="section-shell py-12 relative z-20">
-            {/* METRICS */}
-            <div className="grid gap-6 md:grid-cols-3 mb-16">
-              <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Open registrations on this page</CardDescription>
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-black text-foreground tracking-tight">{openEvents}</div>
-                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
-                    Listed events currently accepting registrations.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Closed registrations on this page</CardDescription>
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-                    <History className="h-5 w-5" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-black text-foreground tracking-tight">{closedEvents}</div>
-                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
-                    Listed events whose registration windows have closed.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Registrations on this page</CardDescription>
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-                    <Users className="h-5 w-5" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-black text-foreground tracking-tight">{totalRegistrations}</div>
-                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
-                    Registrations for the events shown on this page.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* EVENT LISTING */}
-            {events.length === 0 ? (
-              <Card className="border-dashed border-border/50 bg-muted/10 rounded-3xl">
-                <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-                  <CalendarRange className="h-16 w-16 text-muted-foreground/30 mb-6" />
-                  <p className="text-2xl font-bold text-foreground tracking-tight">No active events</p>
-                  <p className="text-muted-foreground font-light mt-3 max-w-md">
-                    There are no public events available right now. Please check back later for upcoming activities.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-8 lg:grid-cols-2">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="section-shell py-10 sm:py-14"
+        >
+          <PageHeader
+            eyebrow="The society calendar"
+            title="Explore events."
+            description="Find workshops, competitions, and experiences for the MU CSE community. Your next chapter starts here."
+          />
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <MetricCard
+              label="Open registrations on this page"
+              value={
+                events.filter(
+                  (event) => event.registrationWindow.state === "OPEN",
+                ).length
+              }
+              detail="Listed events accepting participants"
+              icon={Sparkles}
+            />
+            <MetricCard
+              label="Closed registration windows on this page"
+              value={
+                events.filter(
+                  (event) => event.registrationWindow.state === "CLOSED",
+                ).length
+              }
+              detail="Based on the actual registration window"
+              icon={History}
+            />
+            <MetricCard
+              label="Registrations on this page"
+              value={events.reduce(
+                (sum, event) => sum + event.registeredCount,
+                0,
+              )}
+              detail="Participants across the listed events"
+              icon={Users}
+            />
+          </div>
+          <div className="mt-8">
+            <FilterCard resetHref="/events">
+              <Field label="Find an event">
+                <Input
+                  name="search"
+                  type="search"
+                  defaultValue={search ?? ""}
+                  maxLength={200}
+                  placeholder="Search by event name…"
+                />
+              </Field>
+              <Field label="Event status">
+                <Select
+                  name="status"
+                  defaultValue={status ?? ""}
+                  options={[
+                    { value: "", label: "All public events" },
+                    { value: "PUBLISHED", label: "Published" },
+                    {
+                      value: "REGISTRATION_CLOSED",
+                      label: "Registration closed",
+                    },
+                    { value: "IN_PROGRESS", label: "In progress" },
+                    { value: "COMPLETED", label: "Completed" },
+                    { value: "CLOSED", label: "Closed" },
+                  ]}
+                />
+              </Field>
+            </FilterCard>
+          </div>
+          <div className="mt-8 flex items-baseline justify-between gap-4">
+            <h2 className="text-xl font-semibold">
+              {search || status ? "Matching events" : "The event directory"}
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              {events.pagination.totalItems} results
+            </span>
+          </div>
+          <div className="mt-5">
+            {events.length ? (
+              <div className="grid gap-5 lg:grid-cols-2">
                 {events.map((event) => (
-                  <PublicEventCard key={event.id} event={event} studentCtx={studentCtx} />
+                  <PublicEventCard
+                    key={event.id}
+                    event={event}
+                    studentCtx={studentCtx}
+                  />
                 ))}
               </div>
+            ) : (
+              <StatePanel
+                icon={CalendarRange}
+                title={
+                  search || status
+                    ? "No matching events"
+                    : "The next experience is on its way"
+                }
+                description={
+                  search || status
+                    ? "Try a different event name or reset the filters to browse all events."
+                    : "New society events will appear here after they are published."
+                }
+              />
             )}
-          </section>
-        <ListPagination pagination={events.pagination} />
+          </div>
+          <ListPagination pagination={events.pagination} />
         </main>
       </PublicPageShell>
     );
   } catch (error) {
-    const message =
-      error instanceof ApiError ? error.message : "Unable to load public event data right now.";
-
     return (
       <PublicPageShell>
-        <main className="flex flex-col min-h-screen bg-background">
-          <section className="relative overflow-hidden pt-24 pb-16 section-shell">
-            <div className="relative z-10 max-w-4xl space-y-4">
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance">
-                Explore Events
-              </h1>
-            </div>
-          </section>
-          
-          <section className="section-shell py-12">
-            <StatePanel
-              icon={AlertTriangle}
-              tone="error"
-              title="System Temporarily Unavailable"
-              description={message}
-            />
-          </section>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="section-shell space-y-8 py-12"
+        >
+          <PageHeader
+            eyebrow="The society calendar"
+            title="Explore events."
+            description="Find your next society experience."
+          />
+          <StatePanel
+            icon={AlertTriangle}
+            tone="error"
+            title="Events are temporarily unavailable"
+            description={
+              error instanceof ApiError
+                ? error.message
+                : "Please try loading the directory again shortly."
+            }
+          />
         </main>
       </PublicPageShell>
     );

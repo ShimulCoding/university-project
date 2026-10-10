@@ -158,7 +158,33 @@ npm run verify:event-workspaces --workspace backend
 Remove-Item Env:VERIFY_FRONTEND_BASE_URL,Env:VERIFY_BROWSER
 ```
 
-`VERIFY_BROWSER_CHANNEL` can select another installed Playwright-supported channel. Playwright is a frontend dev dependency; `npm ci` installs its runner without downloading a browser. The full local suite passed 154 checks, including 54 browser checks for team isolation, account profile changes, pagination, session recovery, student registration/proof/complaint submissions and PDF download.
+`VERIFY_BROWSER_CHANNEL` can select another installed Playwright-supported channel. Playwright is a frontend dev dependency; `npm ci` installs its runner without downloading a browser. The architecture audit's browser suite passed 154 checks, including 54 browser assertions. The subsequent UI review adds the event selector and interface examples; its design-enabled run passed 1,136 combined checks, including 56 browser assertions and 980 responsive/accessibility assertions across 49 route states. Browser workflows cover team isolation, account profile changes, pagination, session recovery, student registration/proof/complaint submissions and PDF download.
+
+### Responsive design and accessibility
+
+With both built applications running on the same hostname, check the public screens:
+
+```powershell
+npm run verify:design --workspace frontend
+```
+
+To include authenticated design checks in the isolated workspace fixtures:
+
+```powershell
+$env:VERIFY_FRONTEND_BASE_URL = "http://localhost:3000"
+$env:VERIFY_BROWSER = "1"
+$env:VERIFY_DESIGN = "1"
+npm run verify:event-workspaces --workspace backend
+$result = $LASTEXITCODE
+Remove-Item Env:VERIFY_FRONTEND_BASE_URL,Env:VERIFY_BROWSER,Env:VERIFY_DESIGN
+if ($result -ne 0) { throw "Workspace verification failed ($result)" }
+```
+
+These checks exercise 360, 768, 1440 and 1920px layouts, page overflow, main landmarks, headings, reduced motion and axe WCAG A/AA rules. Workspace fixtures also cover authenticated student forms, event-team permissions and System Admin screens. They remove their own temporary data; do not reseed an existing database to run them.
+
+Set `VERIFY_DESIGN_SCREENSHOTS` to an absolute directory inside the ignored `.cache` folder to save mobile and desktop screenshots. Relative paths resolve from the executing workspace (`frontend` or `backend`). `VERIFY_API_BASE_URL` changes the public check's default API URL (`http://localhost:4000/api`); `VERIFY_FRONTEND_BASE_URL` changes its default frontend URL. Browser selection uses `VERIFY_BROWSER_CHANNEL`, with installed Microsoft Edge as the default.
+
+See `ui-design-review.md` for the page inventory, design findings and verification boundaries.
 
 Run the remaining verification from the repository root:
 

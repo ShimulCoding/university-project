@@ -12,6 +12,7 @@ import {
   isRegistrationOpen,
 } from "@/lib/format";
 import { RegistrationForm } from "@/components/student/registration-form";
+import { ParticipationSteps } from "@/components/student/participation-steps";
 import { StudentAccessPanel } from "@/components/student/student-access-panel";
 import { StudentSessionCard } from "@/components/student/student-session-card";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
@@ -43,11 +44,12 @@ export default async function EventRegistrationPage({
 
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
+          <ParticipationSteps current={!user ? 0 : existingRegistration ? 2 : 1} complete={existingRegistration?.paymentState === "VERIFIED"} />
           <PageHeader
             eyebrow="Student registration"
             title={`Register for ${event.title}`}
-            description="This creates a private participant record for the selected event. Public event pages remain separate from your student-owned registration data."
+            description="Reserve your place, then add payment evidence if needed. Your participation details are visible only to you and authorized event personnel."
             action={
               <div className="flex flex-wrap gap-2">
                 <Badge variant={getEventStatusTone(event.status)}>
@@ -65,8 +67,7 @@ export default async function EventRegistrationPage({
               <CardHeader>
                 <CardTitle className="text-2xl">Before you register</CardTitle>
                 <CardDescription>
-                  Student registration is private and session-bound. After registration,
-                  payment proof submission and status tracking stay in your student-owned area.
+                  Use your student account to register. You can follow payment review and event participation from your registration page.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -101,7 +102,7 @@ export default async function EventRegistrationPage({
             {!user ? (
               <StudentAccessPanel
                 title="Sign in or create student access to continue"
-                description="Authentication is required before the platform can create your participant record and attach future payment proof actions to your account."
+                description="Create a student account or sign in with your Student ID to register for this event."
               />
             ) : existingRegistration ? (
               <StatePanel
@@ -139,11 +140,11 @@ export default async function EventRegistrationPage({
 
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="Student registration"
             title="Registration is temporarily unavailable"
-            description="The live backend could not load the selected event or registration context right now."
+            description="We could not load this event’s registration details. Please try again shortly."
           />
           <div className="mt-10">
             <StatePanel

@@ -1,47 +1,54 @@
 import Link from "next/link";
-
+import { ArrowUpRight, LockKeyhole } from "lucide-react";
 import { publicNavigation } from "@/lib/navigation";
 import { AppLogo } from "@/components/shell/app-logo";
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-border/70 bg-panel/95 backdrop-blur">
-      <div className="section-shell grid gap-10 py-12 lg:grid-cols-[1.4fr_0.8fr_0.8fr]">
-        <div className="space-y-4">
+    <footer className="border-t border-border bg-panel">
+      <div className="section-shell grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div>
           <AppLogo />
-          <p className="max-w-xl text-sm leading-7 text-muted-foreground">
-            A trust-first financial transparency platform for MU CSE Society,
-            designed to keep public-safe reporting clearly separated from internal
-            financial review, approval, and evidence workflows.
+          <p className="mt-5 max-w-sm text-sm leading-7 text-muted-foreground">
+            A clearer view of society events and their finances. Built for the
+            MU CSE community.
           </p>
         </div>
-        <div>
-          <div className="data-kicker">Public navigation</div>
-          <div className="mt-4 space-y-3">
+        <nav aria-label="Footer navigation">
+          <div className="data-kicker">Explore the platform</div>
+          <div className="mt-4 space-y-1">
             {publicNavigation.map((item) => (
               <Link
                 key={item.href}
+                className="focus-ring flex min-h-11 w-fit items-center gap-2 rounded-lg text-sm text-muted-foreground hover:text-success"
                 href={item.href}
-                className="block text-sm text-muted-foreground hover:text-foreground"
               >
                 {item.label}
+                <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             ))}
+            <Link
+              href="/complaints"
+              className="focus-ring flex min-h-11 w-fit items-center rounded-lg text-sm text-muted-foreground hover:text-success"
+            >
+              Student area
+            </Link>
           </div>
-        </div>
+        </nav>
         <div>
-          <div className="data-kicker">Control boundary</div>
-          <div className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
-            <p>Only finalized reconciliation can cross into public publication.</p>
-            <p>Protected evidence, reviewer notes, and complaint details stay internal.</p>
+          <div className="data-kicker">Open reporting. Private records.</div>
+          <p className="mt-5 text-sm leading-7 text-muted-foreground">
+            Published summaries share approved financial totals. Personal
+            information, payment evidence, and complaint details stay protected.
+          </p>
+          <div className="mt-4 flex items-center gap-2 text-xs font-medium text-success">
+            <LockKeyhole className="h-4 w-4" aria-hidden="true" />
+            Privacy by design
           </div>
         </div>
-        <div className="lg:col-span-3">
-          <div className="subtle-divider" />
-          <div className="mt-4 flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <span>Designed for clarity, accountability, and controlled publication.</span>
-            <span>Frontend foundation preview for MU CSE Financial Transparency Platform.</span>
-          </div>
+        <div className="flex flex-wrap justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground md:col-span-3">
+          <span>Metropolitan University · CSE Society</span>
+          <span>Clarity in every event. Accountability in every report.</span>
         </div>
       </div>
     </footer>

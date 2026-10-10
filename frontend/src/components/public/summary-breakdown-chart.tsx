@@ -59,7 +59,7 @@ export function SummaryBreakdownChart({
                     {formatMoney(item.amount)} | {percentage.toFixed(1)}%
                   </div>
                 </div>
-                <div className="h-3 overflow-hidden rounded-full bg-panel shadow-inset">
+                <div aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-panel shadow-inset">
                   <div
                     className={cn(
                       "h-full rounded-full",
@@ -68,7 +68,7 @@ export function SummaryBreakdownChart({
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
-                <div className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                <div className="text-xs text-muted-foreground">
                   {item.segment}
                   {item.recordCount > 0 ? ` | ${item.recordCount} record(s)` : ""}
                 </div>

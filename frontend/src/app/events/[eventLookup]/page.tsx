@@ -41,13 +41,13 @@ export default async function PublicEventDetailsPage({
 
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="Public event details"
             title={event.title}
             description={
               event.description ??
-              "This event is visible publicly, with registration timing and public-safe status context."
+              "Explore this society event and check its registration details."
             }
             action={
               <div className="flex flex-wrap gap-3">
@@ -64,10 +64,9 @@ export default async function PublicEventDetailsPage({
           <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_380px]">
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl">Public-safe event overview</CardTitle>
+                <CardTitle className="text-2xl">Event at a glance</CardTitle>
                 <CardDescription>
-                  This page shares timing, availability, and public context only. Proof
-                  files, participant-private details, and internal review notes stay protected.
+                  Dates, registration timing, and available places for this event.
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
@@ -114,10 +113,9 @@ export default async function PublicEventDetailsPage({
 
             <Card tone="muted">
               <CardHeader>
-                <CardTitle className="text-2xl">Next public action</CardTitle>
+                <CardTitle className="text-2xl">Join this event</CardTitle>
                 <CardDescription>
-                  Public visitors can continue into student-owned actions without ever
-                  crossing into protected internal workflows.
+                  Register, check your participation, or contact the review team.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -138,8 +136,7 @@ export default async function PublicEventDetailsPage({
                 ) : isRegistrationOpen(event) ? (
                   <>
                     <div className="rounded-[1.15rem] border border-success/15 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
-                      Registration is open. Student access is required before a participant
-                      record and payment-proof flow can be created.
+                      Registration is open. Sign in to your student account to reserve your place.
                     </div>
                     <Button asChild className="w-full">
                       <Link href={`/events/${event.slug}/register`}>
@@ -191,11 +188,11 @@ export default async function PublicEventDetailsPage({
 
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="Public event details"
             title="Event details are temporarily unavailable"
-            description="The live backend could not return this event right now."
+            description="We could not load this event’s details. Please try again shortly."
           />
           <div className="mt-10">
             <StatePanel

@@ -13,13 +13,13 @@ export function DashboardShell({
   user: UserProfile;
 }) {
   return (
-    <div className="section-shell py-6 lg:py-8">
-      <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
-        <DashboardSidebar user={user} />
-        <div className="order-1 min-w-0 space-y-6 lg:order-none">
-          <DashboardHeader user={user} />
-          <main className="space-y-6">{children}</main>
-        </div>
+    <div className="workspace-frame">
+      <DashboardSidebar user={user} />
+      <div className="workspace-content">
+        <DashboardHeader user={user} />
+        <main id="main-content" tabIndex={-1} className="space-y-6">
+          {children}
+        </main>
       </div>
     </div>
   );

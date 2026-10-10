@@ -72,7 +72,7 @@ export default async function EventBudgetRequestsPage({
   try {
     const budgets = await listBudgets({ page: queryPage(sParams.page), eventId: event.id, state });
     const eventsArray = [event]; // Lock composer to this event
-    
+
     const selectedBudgetId = budgets.find((budget) => budget.id === budgetId)?.id ?? budgets[0]?.id;
     const selectedBudget = selectedBudgetId ? await getBudget(selectedBudgetId) : null;
 
@@ -82,34 +82,34 @@ export default async function EventBudgetRequestsPage({
     const basePath = `/dashboard/events/${slug}/budget-requests`;
 
     return (
-      <div className="flex flex-col gap-8 pb-16">
+      <div className="flex flex-col gap-6 pb-8">
         {/* HERO SECTION */}
-        <section className="relative overflow-hidden rounded-3xl border border-border/20 bg-background/50 shadow-2xl shadow-black/5 backdrop-blur-3xl px-8 py-10 lg:px-12 lg:py-12">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-          <div className="absolute top-0 left-0 -z-10 m-auto h-[300px] w-[300px] rounded-full bg-primary/10 opacity-60 blur-[100px] pointer-events-none -translate-x-1/4 -translate-y-1/4" />
-          
-          <div className="relative z-10 flex flex-col lg:flex-row gap-8 lg:items-center justify-between">
+        <section className="workspace-intro">
+
+
+
+          <div className="relative z-10 flex flex-col lg:flex-row gap-6 lg:items-center justify-between">
             <div className="space-y-5 max-w-2xl">
               <div className="flex items-center gap-3 flex-wrap">
-                <Badge variant="info" className="px-3 py-1 font-semibold tracking-wider uppercase border-info/30 bg-info/10 text-info backdrop-blur-md">
+                <Badge variant="info" className="px-3 py-1 font-semibold border-info/30 bg-info/10 text-info">
                   <FileSpreadsheet className="w-3 h-3 mr-1.5 inline-block" />
                   Budget Lifecycle
                 </Badge>
-                <Badge variant="neutral" className="px-3 py-1 font-medium tracking-wide border-muted-foreground/20 bg-muted/50 text-muted-foreground backdrop-blur-md">
+                <Badge variant="neutral" className="px-3 py-1 font-medium tracking-wide border-muted-foreground/20 bg-muted/50 text-muted-foreground">
                   {event.title}
                 </Badge>
               </div>
-              
-              <h1 className="text-3xl lg:text-5xl font-black tracking-tight text-foreground">
-                Budget <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-primary/80 to-primary/50">Authorization</span>
+
+              <h1 className="text-3xl font-semibold leading-tight tracking-tight text-foreground lg:text-4xl">
+                Budget <span className="text-success">Authorization</span>
               </h1>
-              
-              <p className="text-muted-foreground text-lg leading-relaxed font-light">
+
+              <p className="text-muted-foreground text-lg leading-relaxed font-normal">
                 Compose, submit, and review itemized event budgets for this event. Each version is tracked through a governed draft → submission → approval pipeline until finalized.
               </p>
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
-                <Badge variant="neutral" className="bg-background/50 backdrop-blur-sm border-border/50 text-sm py-1.5">
+                <Badge variant="neutral" className="bg-panel border-border/50 text-sm py-1.5">
                   <ClipboardList className="w-4 h-4 mr-2 inline-block text-info" />
                   {budgets.length} Version(s)
                 </Badge>
@@ -129,12 +129,12 @@ export default async function EventBudgetRequestsPage({
 
             <Link
               href={`/dashboard/events/${slug}/budgets`}
-              className="flex items-center gap-3 rounded-2xl border border-primary/15 bg-background/60 backdrop-blur-md px-6 py-5 shadow-xl shadow-primary/5 hover:bg-primary/5 hover:border-primary/30 transition-all group"
+              className="flex items-center gap-3 rounded-2xl border border-primary/15 bg-panel px-6 py-5 shadow-panel hover:bg-primary/5 hover:border-primary/30 transition-all group"
             >
               <div>
-                <div className="text-xs font-bold tracking-widest uppercase text-muted-foreground mb-1">Quick Access</div>
-                <div className="text-base font-bold text-foreground group-hover:text-primary transition-colors">Final Budgets</div>
-                <div className="text-xs text-muted-foreground font-light mt-1">View approved & active budgets</div>
+                <div className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-1">Quick Access</div>
+                <div className="text-base font-semibold text-foreground group-hover:text-primary transition-colors">Final Budgets</div>
+                <div className="text-xs text-muted-foreground font-normal mt-1">View approved & active budgets</div>
               </div>
               <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
             </Link>
@@ -159,10 +159,10 @@ export default async function EventBudgetRequestsPage({
         </FilterCard>
 
         {/* WORKSPACE */}
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.2fr)_460px] items-start">
-          
+        <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px] items-start">
+
           {/* VERSION QUEUE TABLE */}
-          <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/40 backdrop-blur-xl overflow-hidden flex flex-col h-full">
+          <Card className="border-border/40 shadow-panel bg-panel overflow-hidden flex flex-col h-full">
             <CardHeader className="border-b border-border/30 bg-muted/10 pb-5">
               <CardTitle className="text-xl tracking-tight">Version Queue</CardTitle>
               <CardDescription>Select a budget version to inspect its line-item composition and execute approval decisions.</CardDescription>
@@ -207,11 +207,11 @@ export default async function EventBudgetRequestsPage({
                               by {budget.createdBy?.fullName ?? "Unknown"}
                             </div>
                           </TableCell>
-                          <TableCell className="text-right font-mono font-bold">
+                          <TableCell className="text-right font-mono font-semibold">
                             {budget.totalAmount ? formatMoney(budget.totalAmount) : <span className="text-muted-foreground text-xs font-sans uppercase tracking-wider">Pending</span>}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge variant={getBudgetStateTone(budget.state)} className="text-[10px] uppercase tracking-widest px-2 py-0.5">
+                            <Badge variant={getBudgetStateTone(budget.state)} className="text-xs px-2 py-0.5">
                               {formatEnumLabel(budget.state)}
                             </Badge>
                           </TableCell>
@@ -228,19 +228,19 @@ export default async function EventBudgetRequestsPage({
           <div id="details-panel" className="space-y-6">
             {selectedBudget ? (
               <div key={selectedBudget.id} className="space-y-6">
-                
+
                 {/* BUDGET DETAIL CARD */}
-                <Card className="border-primary/20 shadow-xl shadow-primary/5 bg-background/50 backdrop-blur-xl relative overflow-hidden">
+                <Card className="border-primary/20 shadow-panel bg-panel relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-6 opacity-[0.03] pointer-events-none">
                     <FileSpreadsheet className="w-40 h-40" />
                   </div>
                   <CardHeader className="pb-4">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <Badge variant={getBudgetStateTone(selectedBudget.state)} className="text-xs uppercase tracking-widest px-2 py-1 shadow-sm">
+                      <Badge variant={getBudgetStateTone(selectedBudget.state)} className="text-xs px-2 py-1 shadow-sm">
                         {formatEnumLabel(selectedBudget.state)}
                       </Badge>
                       {selectedBudget.isActive && (
-                        <Badge variant="success" className="text-xs uppercase tracking-widest px-2 py-1 shadow-sm border-success/30 bg-success/10">
+                        <Badge variant="success" className="text-xs px-2 py-1 shadow-sm border-success/30 bg-success/10">
                           <CheckCircle2 className="w-3 h-3 mr-1" />Final Budget
                         </Badge>
                       )}
@@ -252,12 +252,12 @@ export default async function EventBudgetRequestsPage({
                       {selectedBudget.event.title}
                     </CardDescription>
                   </CardHeader>
-                  
+
                   <CardContent className="space-y-5">
                     {/* TOTAL AMOUNT */}
                     <div className="rounded-xl border border-success/20 bg-success/5 p-5 shadow-sm">
-                      <div className="text-[10px] font-bold tracking-widest uppercase text-success/80 mb-2">Proposed Allocation</div>
-                      <div className="text-3xl font-black text-success tracking-tight">
+                      <div className="text-xs font-semibold tracking-widest uppercase text-success mb-2">Proposed Allocation</div>
+                      <div className="text-3xl font-semibold text-success tracking-tight">
                         {selectedBudget.totalAmount ? formatMoney(selectedBudget.totalAmount) : "Pending"}
                       </div>
                       <div className="text-xs text-muted-foreground mt-2">
@@ -267,30 +267,30 @@ export default async function EventBudgetRequestsPage({
 
                     {/* LINE ITEMS */}
                     <div>
-                      <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-4">
+                      <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-4">
                         <Tag className="h-3 w-3" /> Itemized Breakdown ({selectedBudget.items.length} line{selectedBudget.items.length !== 1 ? "s" : ""})
                       </div>
                       <div className="space-y-3">
                         {selectedBudget.items.map((item) => (
                           <div
                             key={item.id}
-                            className="rounded-xl border border-border/50 bg-background/80 p-4 shadow-sm hover:bg-muted/20 transition-colors"
+                            className="rounded-xl border border-border/50 bg-panel p-4 shadow-sm hover:bg-muted/20 transition-colors"
                           >
                             <div className="flex flex-wrap items-start justify-between gap-3">
                               <div className="flex-1 min-w-0">
-                                <div className="text-sm font-bold text-foreground truncate">
+                                <div className="text-sm font-semibold text-foreground truncate">
                                   {item.label}
                                 </div>
                                 <div className="mt-1 font-mono text-[11px] text-muted-foreground tracking-widest bg-muted/50 w-fit px-1.5 py-0.5 rounded">
                                   {item.category}
                                 </div>
                               </div>
-                              <div className="text-sm font-mono font-bold text-foreground shrink-0">
+                              <div className="text-sm font-mono font-semibold text-foreground shrink-0">
                                 {formatMoney(item.amount)}
                               </div>
                             </div>
                             {item.notes && (
-                              <div className="mt-3 text-xs leading-relaxed text-muted-foreground font-light border-t border-border/30 pt-2">
+                              <div className="mt-3 text-xs leading-relaxed text-muted-foreground font-normal border-t border-border/30 pt-2">
                                 {item.notes}
                               </div>
                             )}
@@ -327,7 +327,7 @@ export default async function EventBudgetRequestsPage({
         <div className="pt-12">
           <StatePanel
             icon={ShieldAlert}
-            title="Unauthorized Clearance Level"
+            title="Access restricted"
             description="Budget composition requires Event Management access. Budget review requires Organizational Approver privileges."
             tone="warning"
           />
@@ -339,7 +339,7 @@ export default async function EventBudgetRequestsPage({
       <div className="pt-12">
         <StatePanel
           icon={AlertTriangle}
-          title="System Sync Error"
+          title="Unable to load this page"
           description={
             error instanceof ApiError
               ? error.message

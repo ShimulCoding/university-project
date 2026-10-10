@@ -30,26 +30,26 @@ export default async function PublicFinancialSummaryDetailsPage({
 
     return (
       <PublicPageShell>
-        <main className="flex flex-col min-h-screen bg-background selection:bg-primary/20">
-          
+        <main id="main-content" tabIndex={-1} className="flex flex-col min-h-screen bg-background selection:bg-primary/20">
+
           {/* HERO HEADER */}
-          <section className="relative overflow-hidden pt-24 pb-16 lg:pt-32 lg:pb-20 section-shell border-b border-border/10">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-            <div className="absolute top-0 right-0 -z-10 m-auto h-[400px] w-[400px] rounded-full bg-success/10 opacity-60 blur-[120px] pointer-events-none translate-x-1/3 -translate-y-1/3" />
-            
+          <section className="public-intro section-shell">
+
+
+
             <div className="relative z-10 max-w-4xl space-y-6">
-              <Badge variant="success" className="px-4 py-1.5 text-xs font-semibold tracking-widest uppercase shadow-sm border-success/20 bg-success/5 text-success backdrop-blur-md">
+              <Badge variant="success" className="px-4 py-1.5 text-xs font-semibold shadow-sm border-success/20 bg-success/5 text-success">
                 Verified Disclosure
               </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-foreground text-balance">
+              <h1 className="font-display text-4xl font-normal leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl text-balance">
                 {summary.event.title}
               </h1>
-              <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed font-light">
-                Official reconciled financial report. All figures are derived from settled transactions and have passed rigorous multi-tier review.
+              <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed font-normal">
+                An approved account of this event’s collected funds and settled expenses. Explore the totals, category breakdowns, and downloadable report.
               </p>
-              
+
               <div className="flex flex-wrap items-center gap-4 pt-6">
-                <Badge variant="neutral" className="px-4 py-2 text-sm font-medium tracking-wide border-success/30 bg-background/50">
+                <Badge variant="neutral" className="px-4 py-2 text-sm font-medium tracking-wide border-success/30 bg-panel">
                   <CheckCircle2 className="mr-2 h-4 w-4 text-success" />
                   Published {formatDate(summary.publishedAt)}
                 </Badge>
@@ -60,12 +60,12 @@ export default async function PublicFinancialSummaryDetailsPage({
 
           <section className="section-shell py-12 relative z-20">
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_380px] lg:items-start">
-              
+
               {/* MAIN LEDGER AREA */}
               <div className="space-y-8">
                 {/* METRICS */}
-                <div className="grid gap-4 md:grid-cols-3">
-                  <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <Card className="border-border/40 shadow-panel bg-panel hover:bg-panel transition-all duration-300">
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Total Collected</CardDescription>
@@ -73,13 +73,13 @@ export default async function PublicFinancialSummaryDetailsPage({
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-black text-foreground tracking-tight">
+                      <div className="break-words text-2xl font-semibold tabular-nums text-foreground tracking-tight">
                         {formatMoney(summary.totals.collected)}
                       </div>
                     </CardContent>
                   </Card>
-                  
-                  <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300">
+
+                  <Card className="border-border/40 shadow-panel bg-panel hover:bg-panel transition-all duration-300">
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Total Spent</CardDescription>
@@ -87,30 +87,30 @@ export default async function PublicFinancialSummaryDetailsPage({
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-black text-foreground tracking-tight">
+                      <div className="text-3xl font-semibold text-foreground tracking-tight">
                         {formatMoney(summary.totals.spent)}
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="border-success/30 shadow-xl shadow-success/5 bg-success/5 backdrop-blur-2xl hover:bg-success/10 transition-all duration-300">
+                  <Card className="border-success/30 shadow-panel bg-success/5 hover:bg-success/10 transition-all duration-300">
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
-                        <CardDescription className="font-medium text-success-foreground/80 uppercase tracking-wider text-xs">Closing Balance</CardDescription>
+                        <CardDescription className="font-medium text-success uppercase tracking-wider text-xs">Closing Balance</CardDescription>
                         <Landmark className="h-4 w-4 text-success" />
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-black text-success tracking-tight">
+                      <div className="break-words text-2xl font-semibold tabular-nums text-success tracking-tight">
                         {formatMoney(summary.totals.closingBalance)}
                       </div>
                     </CardContent>
                   </Card>
                 </div>
 
-                <Card className="border-border/40 bg-background/50 backdrop-blur-xl shadow-lg">
+                <Card className="border-border/40 bg-panel shadow-panel">
                   <CardHeader>
-                    <CardTitle className="text-2xl font-bold tracking-tight">Ledger Summary</CardTitle>
+                    <CardTitle className="text-2xl font-semibold tracking-tight">Ledger Summary</CardTitle>
                     <CardDescription className="text-muted-foreground">
                       Consolidated overview of authorized revenue streams and expenditures.
                     </CardDescription>
@@ -129,7 +129,7 @@ export default async function PublicFinancialSummaryDetailsPage({
                             <TableCell className="font-semibold text-foreground py-4">
                               Verified registration income
                             </TableCell>
-                            <TableCell className="text-right font-bold tabular-nums text-foreground py-4">
+                            <TableCell className="text-right font-semibold tabular-nums text-foreground py-4">
                               {formatMoney(summary.payload?.breakdown.registrationIncome ?? "0")}
                             </TableCell>
                           </TableRow>
@@ -137,7 +137,7 @@ export default async function PublicFinancialSummaryDetailsPage({
                             <TableCell className="font-semibold text-foreground py-4">
                               Manual income records
                             </TableCell>
-                            <TableCell className="text-right font-bold tabular-nums text-foreground py-4">
+                            <TableCell className="text-right font-semibold tabular-nums text-foreground py-4">
                               {formatMoney(summary.payload?.breakdown.manualIncome ?? "0")}
                             </TableCell>
                           </TableRow>
@@ -145,7 +145,7 @@ export default async function PublicFinancialSummaryDetailsPage({
                             <TableCell className="font-semibold text-foreground py-4">
                               Settled expense records
                             </TableCell>
-                            <TableCell className="text-right font-bold tabular-nums text-foreground py-4">
+                            <TableCell className="text-right font-semibold tabular-nums text-foreground py-4">
                               {formatMoney(summary.payload?.breakdown.settledExpense ?? "0")}
                             </TableCell>
                           </TableRow>
@@ -190,16 +190,16 @@ export default async function PublicFinancialSummaryDetailsPage({
               </div>
 
               {/* SIDEBAR AREA */}
-              <div className="space-y-6">
-                <Card className="border-border/40 bg-background/50 backdrop-blur-xl shadow-lg overflow-hidden relative">
+              <div className="space-y-6 xl:sticky xl:top-28">
+                <Card className="border-border/40 bg-panel shadow-panel overflow-hidden relative">
                   <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
                     <ShieldCheck className="w-32 h-32" />
                   </div>
                   <CardHeader>
                     <Badge variant="success" className="w-fit mb-3">{formatEnumLabel(summary.reconciliation.status)}</Badge>
-                    <CardTitle className="text-xl font-bold tracking-tight">Reconciliation Context</CardTitle>
+                    <CardTitle className="text-xl font-semibold tracking-tight">Reconciliation Context</CardTitle>
                     <CardDescription className="text-muted-foreground leading-relaxed mt-2">
-                      This public disclosure is bound to the cryptographically finalized reconciliation report 
+                      Based on finalized reconciliation report
                       <span className="font-mono text-xs ml-1 bg-muted px-1 py-0.5 rounded text-foreground">{summary.reconciliation.reportId}</span>.
                     </CardDescription>
                   </CardHeader>
@@ -225,15 +225,15 @@ export default async function PublicFinancialSummaryDetailsPage({
 
     return (
       <PublicPageShell>
-        <main className="flex flex-col min-h-screen bg-background">
-          <section className="relative overflow-hidden pt-24 pb-16 section-shell border-b border-border/10">
+        <main id="main-content" tabIndex={-1} className="flex flex-col min-h-screen bg-background">
+          <section className="public-intro section-shell">
             <div className="relative z-10 max-w-4xl space-y-4">
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance">
+              <h1 className="font-display text-4xl font-normal leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl text-balance">
                 Disclosure Unavailable
               </h1>
             </div>
           </section>
-          
+
           <section className="section-shell py-12">
             <StatePanel
               icon={AlertTriangle}

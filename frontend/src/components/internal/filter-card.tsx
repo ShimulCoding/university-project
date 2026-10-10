@@ -11,10 +11,10 @@ export function FilterCard({
   resetHref: string;
 }) {
   return (
-    <Card tone="muted" className="p-5">
-      <form className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{children}</div>
-        <div className="flex flex-wrap gap-3 xl:justify-end">
+    <Card tone="default" className="p-4 sm:p-5">
+      <form aria-label="Filter records" className="flex flex-col gap-4 2xl:flex-row 2xl:items-end">
+        <div className="grid min-w-0 flex-1 gap-4 sm:grid-cols-2">{children}</div>
+        <div className="flex shrink-0 flex-wrap gap-2">
           <Button type="submit" size="sm">
             <Search className="h-4 w-4" />
             Apply filters

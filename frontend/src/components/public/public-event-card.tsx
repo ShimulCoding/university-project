@@ -1,6 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, CheckCircle, KeyRound, UsersRound } from "lucide-react";
-
+import {
+  ArrowRight,
+  CalendarDays,
+  CheckCircle2,
+  KeyRound,
+  UsersRound,
+} from "lucide-react";
 import type { PublicEvent } from "@/types";
 import {
   formatDate,
@@ -11,14 +16,11 @@ import {
 } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type StudentEventContext = {
   isSignedIn: boolean;
-  /** Map from event ID → registration ID, if the student already registered */
   registrationByEventId: Record<string, string>;
 };
-
 export function PublicEventCard({
   event,
   studentCtx,
@@ -26,84 +28,90 @@ export function PublicEventCard({
   event: PublicEvent;
   studentCtx?: StudentEventContext | undefined;
 }) {
-  const existingRegistrationId = studentCtx?.registrationByEventId[event.id];
-  const signedIn = studentCtx?.isSignedIn ?? false;
+  const registrationId = studentCtx?.registrationByEventId[event.id];
+  const open = isRegistrationOpen(event);
   return (
-    <Card className="h-full">
-      <CardHeader>
+    <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-panel shadow-panel transition-colors hover:border-success/40">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 bg-panel-muted px-6 py-4">
+        <Badge variant={getEventStatusTone(event.status)}>
+          {formatEnumLabel(event.status)}
+        </Badge>
+        <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <CalendarDays className="h-4 w-4" aria-hidden="true" />
+          {formatDate(event.schedule.startsAt)}
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col p-6">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={getEventStatusTone(event.status)}>{formatEnumLabel(event.status)}</Badge>
           <Badge variant={getWindowStateTone(event.registrationWindow.state)}>
             Registration {formatEnumLabel(event.registrationWindow.state)}
           </Badge>
         </div>
-        <CardTitle className="mt-4 text-2xl">{event.title}</CardTitle>
-        <CardDescription>
-          {event.description ?? "No public description is available for this event yet."}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-[1.15rem] border border-border/70 bg-panel-muted px-4 py-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <CalendarDays className="h-4 w-4 text-primary" />
-              Event date
-            </div>
-            <div className="mt-2 text-sm leading-6 text-muted-foreground">
-              {formatDate(event.schedule.startsAt)}
-            </div>
-          </div>
-          <div className="rounded-[1.15rem] border border-border/70 bg-panel-muted px-4 py-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <UsersRound className="h-4 w-4 text-primary" />
-              Availability
-            </div>
-            <div className="mt-2 text-sm leading-6 text-muted-foreground">
+        <h3 className="mt-4 text-2xl font-semibold leading-snug tracking-tight">
+          <Link
+            className="focus-ring rounded-lg hover:text-success"
+            href={`/events/${event.slug}`}
+          >
+            {event.title}
+          </Link>
+        </h3>
+        <p className="mt-3 line-clamp-3 text-sm leading-7 text-muted-foreground">
+          {event.description ??
+            "Discover the program and check its registration details."}
+        </p>
+        <div className="mt-auto pt-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-2">
+              <UsersRound className="h-4 w-4" aria-hidden="true" />
               {event.seatsRemaining === null
                 ? `${event.registeredCount} registrations`
                 : `${event.seatsRemaining} seats remaining`}
-            </div>
+            </span>
+            <span>
+              Window closes {formatDate(event.registrationWindow.closesAt)}
+            </span>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-sm text-muted-foreground">
-            Window closes {formatDate(event.registrationWindow.closesAt)}
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/events/${event.slug}`}>View details</Link>
-            </Button>
-            <Button asChild variant="ghost" size="sm">
-              <Link href={`/dashboard/events/${event.slug}`}>
-                <KeyRound className="h-4 w-4" />
-                Event team sign in
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Button
+              asChild
+              variant={open && !registrationId ? "outline" : "default"}
+              size="sm"
+            >
+              <Link href={`/events/${event.slug}`}>
+                View details <ArrowRight aria-hidden="true" />
               </Link>
             </Button>
-            {existingRegistrationId ? (
+            {registrationId ? (
               <Button asChild size="sm" variant="outline">
-                <Link href={`/registrations/${existingRegistrationId}`}>
-                  <CheckCircle className="h-4 w-4" />
+                <Link href={`/registrations/${registrationId}`}>
+                  <CheckCircle2 aria-hidden="true" />
                   View my registration
                 </Link>
               </Button>
-            ) : signedIn && isRegistrationOpen(event) ? (
+            ) : open ? (
               <Button asChild size="sm">
                 <Link href={`/events/${event.slug}/register`}>
-                  Register now
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            ) : !signedIn && isRegistrationOpen(event) ? (
-              <Button asChild size="sm" variant="outline">
-                <Link href={`/events/${event.slug}/register`}>
-                  Sign in to register
-                  <ArrowRight className="h-4 w-4" />
+                  {studentCtx?.isSignedIn
+                    ? "Register now"
+                    : "Sign in to register"}
                 </Link>
               </Button>
             ) : null}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="flex items-center justify-between gap-3 border-t border-border/70 px-6 py-2">
+        <span className="text-[11px] text-muted-foreground">
+          For assigned team members
+        </span>
+        <Link
+          className="focus-ring flex min-h-11 items-center gap-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-success"
+          href={`/dashboard/events/${event.slug}`}
+        >
+          <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
+          Event team sign in
+        </Link>
+      </div>
+    </article>
   );
 }

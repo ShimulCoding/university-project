@@ -13,12 +13,12 @@ export default function PageError({
   reset: () => void;
 }) {
   return (
-    <main className="section-shell flex min-h-screen items-center justify-center py-16">
-      <div className="surface-panel max-w-xl p-8">
+    <main id="main-content" tabIndex={-1} className="section-shell flex min-h-screen items-center justify-center py-16">
+      <div className="surface-panel w-full max-w-xl p-6 sm:p-10">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-destructive/15 bg-destructive/10 text-destructive">
           <AlertTriangle className="h-5 w-5" />
         </div>
-        <h1 className="mt-6 text-3xl font-semibold text-foreground">
+        <h1 className="font-display text-4xl font-normal leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl text-balance">
           The interface hit an unexpected error
         </h1>
         <p className="mt-4 text-sm leading-7 text-muted-foreground">
@@ -30,7 +30,7 @@ export default function PageError({
             Digest: {error.digest}
           </div>
         ) : null}
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
           <Button onClick={reset}>Retry page</Button>
           <Button asChild variant="outline">
             <Link href="/">Return home</Link>

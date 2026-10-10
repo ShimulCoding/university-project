@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StatePanel } from "@/components/ui/state-panel";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function FundingRequestsPage({ params, searchParams }: {
   params: Promise<{ slug: string }>;
@@ -38,7 +39,7 @@ export default async function FundingRequestsPage({ params, searchParams }: {
     const canEdit = canCreate && selected?.requestedBy?.id === user.id && (selected.state === "DRAFT" || selected.state === "RETURNED");
     return (
       <div className="space-y-6">
-        <Card><CardHeader><CardTitle>Funding requests for {event.title}</CardTitle><CardDescription>Request additional budget authority and track its decision history. The assigned Approver makes decisions from this event&apos;s Approvals module.</CardDescription></CardHeader></Card>
+        <PageHeader eyebrow="Event funding" title="Funding requests" description={`Request additional funding for ${event.title} and follow its decision history. Your event’s Approver reviews submitted requests.`} />
         <div className="grid gap-6 xl:grid-cols-2">
           <Card><CardHeader><CardTitle>Requests</CardTitle></CardHeader><CardContent className="space-y-3">
             {requests.length === 0 ? <p className="text-sm text-muted-foreground">No funding requests for this event.</p> : null}
@@ -56,6 +57,6 @@ export default async function FundingRequestsPage({ params, searchParams }: {
       </div>
     );
   } catch {
-    return <StatePanel icon={ShieldAlert} tone="error" title="Unable to load funding requests" description="Check your event assignment and backend availability, then reload." />;
+    return <StatePanel icon={ShieldAlert} tone="error" title="Unable to load funding requests" description="Check your event assignment and try reloading the page." />;
   }
 }

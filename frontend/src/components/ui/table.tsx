@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 
 export function Table({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="overflow-hidden rounded-[1.25rem] border border-border/80 bg-panel shadow-panel">
-      <div className="overflow-x-auto">
-        <table className={cn("w-full caption-bottom text-sm", className)} {...props} />
+    <div className="min-w-0 overflow-hidden rounded-xl border border-border/80 bg-panel">
+      <div tabIndex={0} role="region" aria-label="Scrollable data table" className="focus-ring overflow-x-auto focus-visible:ring-inset focus-visible:ring-offset-0">
+        <table className={cn("w-full caption-bottom text-sm leading-6", className)} {...props} />
       </div>
     </div>
   );
@@ -18,7 +18,7 @@ export function TableHeader({
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <thead
-      className={cn("bg-panel-muted text-left text-xs uppercase tracking-[0.18em] text-muted-foreground", className)}
+      className={cn("bg-panel-muted text-left text-xs text-muted-foreground", className)}
       {...props}
     />
   );
@@ -44,9 +44,9 @@ export function TableRow({ className, ...props }: React.HTMLAttributes<HTMLTable
 }
 
 export function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
-  return <th className={cn("px-5 py-3 font-semibold", className)} {...props} />;
+  return <th scope="col" className={cn("whitespace-nowrap px-4 py-3 font-semibold", className)} {...props} />;
 }
 
 export function TableCell({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn("px-5 py-4 align-top", className)} {...props} />;
+  return <td className={cn("px-4 py-4 align-top", className)} {...props} />;
 }

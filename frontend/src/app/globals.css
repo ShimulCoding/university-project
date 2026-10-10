@@ -4,40 +4,42 @@
 
 @layer base {
   :root {
-    --canvas: 210 38% 98%;
-    --background: 213 33% 98%;
-    --foreground: 221 39% 16%;
+    --canvas: 45 25% 97%;
+    --background: 45 25% 97%;
+    --foreground: 195 33% 14%;
     --panel: 0 0% 100%;
-    --panel-foreground: 221 39% 16%;
-    --panel-muted: 210 28% 96%;
+    --panel-foreground: 195 33% 14%;
+    --panel-muted: 45 20% 95%;
     --card: 0 0% 100%;
     --card-foreground: 221 39% 16%;
     --popover: 0 0% 100%;
     --popover-foreground: 221 39% 16%;
-    --primary: 221 57% 19%;
+    --primary: 195 40% 15%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 25% 93%;
-    --secondary-foreground: 221 35% 21%;
-    --muted: 214 21% 93%;
-    --muted-foreground: 215 14% 41%;
-    --accent: 176 41% 90%;
-    --accent-foreground: 177 60% 18%;
-    --success: 168 55% 32%;
+    --secondary: 44 18% 92%;
+    --secondary-foreground: 195 33% 18%;
+    --muted: 44 18% 92%;
+    --muted-foreground: 195 12% 39%;
+    --accent: 160 35% 92%;
+    --accent-foreground: 164 48% 23%;
+    --success: 164 48% 26%;
     --success-foreground: 160 57% 97%;
     --success-muted: 170 45% 92%;
-    --warning: 40 88% 46%;
+    --warning: 32 79% 32%;
     --warning-foreground: 31 78% 17%;
     --warning-muted: 44 100% 93%;
     --destructive: 2 56% 44%;
     --destructive-foreground: 0 0% 100%;
-    --border: 216 19% 86%;
-    --input: 216 19% 86%;
-    --ring: 221 57% 19%;
-    --radius: 1.125rem;
+    --border: 44 15% 85%;
+    --input: 44 15% 79%;
+    --ring: 164 48% 26%;
+    --info: 203 68% 32%;
+    --radius: 1rem;
   }
 
   html {
     @apply scroll-smooth;
+    scroll-padding-top: 6rem;
   }
 
   * {
@@ -51,16 +53,22 @@
 
   body {
     @apply bg-canvas text-foreground antialiased;
-    font-family: var(--font-sans), "Segoe UI", sans-serif;
-    background-image:
-      radial-gradient(circle at top left, rgba(15, 23, 42, 0.06), transparent 32%),
-      radial-gradient(circle at top right, rgba(15, 118, 110, 0.06), transparent 24%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 247, 251, 0.95));
+    font-family: var(--font-sans, "Segoe UI"), sans-serif;
+    text-rendering: optimizeLegibility;
   }
 
   a {
     @apply transition-colors;
   }
+
+  button, input, select, textarea { font: inherit; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  input, select, textarea { font-size: max(1rem, 16px); }
+  :target { scroll-margin-top: 6rem; }
+  main { min-width: 0; }
+  .grid > * { min-width: 0; }
+  svg { flex-shrink: 0; }
+  :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 4px; }
 
   h1,
   h2,
@@ -81,7 +89,7 @@
   }
 
   .surface-panel {
-    @apply rounded-[1.5rem] border border-border/80 bg-panel shadow-panel;
+    @apply rounded-2xl border border-border/80 bg-panel shadow-panel;
   }
 
   .surface-panel-strong {
@@ -101,9 +109,7 @@
   }
 
   .page-tint {
-    background-image:
-      radial-gradient(circle at top, rgba(15, 23, 42, 0.05), transparent 38%),
-      radial-gradient(circle at 90% 8%, rgba(13, 148, 136, 0.08), transparent 20%);
+    background: hsl(var(--canvas));
   }
 
   .page-grid {
@@ -119,7 +125,7 @@
   }
 
   .data-kicker {
-    @apply text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground;
+    @apply text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground;
   }
 
   .headline-display {
@@ -127,14 +133,45 @@
   }
 
   .metric-figure {
-    @apply font-display text-3xl leading-none text-primary tabular-nums tracking-tight break-words sm:text-4xl;
+    @apply text-3xl font-semibold leading-none text-primary tabular-nums tracking-tight break-words sm:text-4xl;
   }
 
   .amount-figure {
-    @apply font-display text-2xl leading-[1.1] text-foreground tabular-nums tracking-tight break-words sm:text-[2rem];
+    @apply text-xl font-semibold leading-tight text-foreground tabular-nums tracking-tight break-words sm:text-2xl;
   }
 
   .subtle-divider {
     @apply h-px w-full bg-gradient-to-r from-transparent via-border to-transparent;
   }
+}
+
+@layer components {
+  .skip-link { @apply fixed left-4 top-4 z-[100] -translate-y-24 rounded-xl bg-primary px-5 py-3 font-semibold text-white shadow-lg focus:translate-y-0; }
+  .workspace-frame { @apply mx-auto grid w-full max-w-[1680px] gap-6 px-4 py-4 sm:px-6 lg:grid-cols-[248px_minmax(0,1fr)] lg:px-8 lg:py-6; }
+  .workspace-nav { @apply rounded-2xl bg-primary p-4 text-white lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto; scrollbar-width: thin; scrollbar-color: #55716c transparent; }
+  .workspace-nav .focus-ring, .ledger-scene .focus-ring { --ring: 160 48% 65%; --canvas: 195 40% 15%; }
+  .workspace-link { @apply flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/75 transition-colors hover:bg-white/10 hover:text-white; }
+  .workspace-link[aria-current="page"] { @apply bg-white/10 font-semibold text-white; box-shadow: inset 3px 0 0 #91d1ba; }
+  .workspace-context { @apply flex min-w-0 flex-wrap items-center justify-between gap-4 border-b border-border pb-5; }
+  .workspace-content { @apply min-w-0 space-y-6; }
+  .workspace-intro { @apply relative rounded-2xl border border-border/70 bg-panel p-5 sm:p-7; }
+  .workspace-intro p { @apply text-sm font-normal leading-7; }
+  .public-intro { @apply relative border-b border-border pt-10 pb-10 sm:pt-14 sm:pb-12; }
+  .editorial-rule { @apply flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-success; }
+  .editorial-rule::before { content: ''; @apply h-px w-8 bg-success; }
+  .ledger-scene { background: radial-gradient(ellipse at 90% 10%, #315950, transparent 65%), #172f36; }
+  .ledger-grid { background-image: linear-gradient(#ffffff08 1px, transparent 1px), linear-gradient(90deg, #ffffff08 1px, transparent 1px); background-size: 36px 36px; }
+  .page-intro { @apply relative border-b border-border pb-8; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  main { animation: page-arrive .45s ease-out both; }
+  @keyframes page-arrive { from { opacity: .6; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media (max-width: 639px) {
+  input, select, textarea { font-size: 16px !important; }
 }

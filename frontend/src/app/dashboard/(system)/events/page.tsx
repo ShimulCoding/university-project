@@ -60,52 +60,53 @@ export default async function DashboardEventsPage({
       : events[0] ?? null;
 
     return (
-      <div className="flex flex-col gap-8 pb-16">
+      <div className="flex flex-col gap-6 pb-8">
         {/* HERO SECTION */}
-        <section className="relative overflow-hidden rounded-3xl border border-border/20 bg-background/50 shadow-2xl shadow-black/5 backdrop-blur-3xl px-8 py-10 lg:px-12 lg:py-12">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 -z-10 m-auto h-[300px] w-[300px] rounded-full bg-info/10 opacity-60 blur-[100px] pointer-events-none -translate-x-1/4 translate-y-1/4" />
-          
+        <section className="workspace-intro">
+
+
+
           <div className="relative z-10 flex flex-col gap-6 max-w-3xl">
             <div className="flex items-center gap-3">
-              <Badge variant="info" className="px-3 py-1 font-semibold tracking-wider uppercase border-info/30 bg-info/10 text-info backdrop-blur-md">
+              <Badge variant="info" className="px-3 py-1 font-semibold border-info/30 bg-info/10 text-info">
                 <Layers className="w-3 h-3 mr-1.5 inline-block" />
-                Initiative Lifecycle
+                Events and teams
               </Badge>
               {canCreateEvents ? (
-                <Badge variant="success" className="px-3 py-1 font-semibold tracking-wider uppercase border-success/30 bg-success/10 text-success backdrop-blur-md">
+                <Badge variant="success" className="px-3 py-1 font-semibold border-success/30 bg-success/10 text-success">
                   Setup Control
                 </Badge>
               ) : (
-                <Badge variant="neutral" className="px-3 py-1 font-semibold tracking-wider uppercase border-border/30 bg-muted/10 text-muted-foreground backdrop-blur-md">
+                <Badge variant="neutral" className="px-3 py-1 font-semibold border-border/30 bg-muted/10 text-muted-foreground">
                   Read-Only Access
                 </Badge>
               )}
             </div>
-            
-            <h1 className="text-3xl lg:text-5xl font-black tracking-tight text-foreground">
-              Event <span className="text-transparent bg-clip-text bg-gradient-to-br from-info via-info/80 to-info/50">Setup and Teams</span>
+
+            <h1 className="text-3xl font-semibold leading-tight tracking-tight text-foreground lg:text-4xl">
+              Event <span className="text-success">Setup and Teams</span>
             </h1>
-            
-            <p className="text-muted-foreground text-lg leading-relaxed font-light">
+
+            <p className="text-muted-foreground text-lg leading-relaxed font-normal">
               Create upcoming events, assign their teams, and publish when ready. Assigned personnel manage each published event from its own workspace.
             </p>
 
             <div className="flex flex-wrap items-center gap-2 pt-2">
-              <Badge variant="neutral" className="bg-background/50 backdrop-blur-sm border-border/50 text-sm py-1.5">
+              <Badge variant="neutral" className="bg-panel border-border/50 text-sm py-1.5">
                 <CalendarRange className="w-4 h-4 mr-2 inline-block text-info" />
-                {pagination.totalItems} Managed initiative(s)
+                {pagination.totalItems} events in the platform
               </Badge>
+              <Button asChild size="sm"><a href="#create-event">Create new event</a></Button>
             </div>
           </div>
         </section>
 
         {/* FILTERS */}
         <FilterCard resetHref="/dashboard/events">
-          <Field label="Query Initiative">
+          <Field label="Search events">
             <Input name="search" defaultValue={search ?? ""} placeholder="Search by title or slug..." />
           </Field>
-          <Field label="Lifecycle Stage">
+          <Field label="Event status">
             <Select
               name="status"
               defaultValue={status ?? ""}
@@ -124,13 +125,13 @@ export default async function DashboardEventsPage({
         </FilterCard>
 
         {/* WORKSPACE */}
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.2fr)_460px] items-start">
-          
+        <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px] items-start">
+
           {/* EVENTS TABLE */}
-          <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/40 backdrop-blur-xl overflow-hidden flex flex-col h-full">
+          <Card className="border-border/40 shadow-panel bg-panel overflow-hidden flex flex-col h-full">
             <CardHeader className="border-b border-border/30 bg-muted/10 pb-5">
-              <CardTitle className="text-xl tracking-tight">Initiative Registry</CardTitle>
-              <CardDescription>Select an initiative to inspect its lifecycle position, registration window, and capacity allocation.</CardDescription>
+              <CardTitle className="text-xl tracking-tight">Event directory</CardTitle>
+              <CardDescription>Select an event to review its status, registration window, capacity and team.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {events.length === 0 ? (
@@ -138,15 +139,15 @@ export default async function DashboardEventsPage({
                   <StatePanel
                     icon={SearchSlash}
                     tone="empty"
-                    title="No Matching Initiatives"
-                    description="No events match the current filter criteria. Create a new initiative draft to begin the lifecycle process."
+                    title="No Matching Events"
+                    description="Try different filters or create a new event draft."
                   />
                 </div>
               ) : (
                 <Table>
                   <TableHeader className="bg-muted/30">
                     <TableRow>
-                      <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12 px-6">Initiative</TableHead>
+                      <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12 px-6">Event</TableHead>
                       <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12">Stage</TableHead>
                       <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12">Enrollment</TableHead>
                       <TableHead className="font-semibold text-muted-foreground tracking-wider uppercase text-xs h-12 text-center">Participants</TableHead>
@@ -173,16 +174,16 @@ export default async function DashboardEventsPage({
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={getEventStatusTone(event.status)} className="text-[10px] uppercase tracking-widest px-2 py-0.5">
+                            <Badge variant={getEventStatusTone(event.status)} className="text-xs px-2 py-0.5">
                               {formatEnumLabel(event.status)}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={getWindowStateTone(event.registrationWindow.state)} className="text-[10px] uppercase tracking-widest px-2 py-0.5">
+                            <Badge variant={getWindowStateTone(event.registrationWindow.state)} className="text-xs px-2 py-0.5">
                               {formatEnumLabel(event.registrationWindow.state)}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-center font-mono font-bold">{event.registeredCount}</TableCell>
+                          <TableCell className="text-center font-mono font-semibold">{event.registeredCount}</TableCell>
                         </TableRow>
                       );
                     })}
@@ -202,52 +203,52 @@ export default async function DashboardEventsPage({
           {/* DETAIL PANEL */}
           <div id="details-panel" className="space-y-6">
             {selectedEvent ? (
-              <Card className="border-primary/20 shadow-xl shadow-primary/5 bg-background/50 backdrop-blur-xl relative overflow-hidden">
+              <Card className="border-primary/20 shadow-panel bg-panel relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-6 opacity-[0.03] pointer-events-none">
                   <CalendarDays className="w-40 h-40" />
                 </div>
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge variant={getEventStatusTone(selectedEvent.status)} className="text-xs uppercase tracking-widest px-2 py-1 shadow-sm">
+                    <Badge variant={getEventStatusTone(selectedEvent.status)} className="text-xs px-2 py-1 shadow-sm">
                       {formatEnumLabel(selectedEvent.status)}
                     </Badge>
-                    <Badge variant={getWindowStateTone(selectedEvent.registrationWindow.state)} className="text-xs uppercase tracking-widest px-2 py-1 shadow-sm">
+                    <Badge variant={getWindowStateTone(selectedEvent.registrationWindow.state)} className="text-xs px-2 py-1 shadow-sm">
                       Registration {formatEnumLabel(selectedEvent.registrationWindow.state)}
                     </Badge>
                   </div>
                   <CardTitle className="text-2xl tracking-tight">{selectedEvent.title}</CardTitle>
-                  <CardDescription className="text-muted-foreground font-light">
-                    Lifecycle inspector and temporal configuration overview.
+                  <CardDescription className="text-muted-foreground font-normal">
+                    Event dates, registration availability and capacity.
                   </CardDescription>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-5">
-                  <div className="rounded-xl border border-border/50 bg-background/80 p-5 shadow-sm">
-                    <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-3">
+                  <div className="rounded-xl border border-border/50 bg-panel p-5 shadow-sm">
+                    <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-3">
                       <Clock className="h-3 w-3" /> Event Schedule
                     </div>
                     <div className="grid gap-2 text-sm">
-                      <div className="flex items-center justify-between py-1 border-b border-border/30">
+                      <div className="flex flex-wrap items-center justify-between gap-2 py-1 border-b border-border/30">
                         <span className="text-muted-foreground font-medium">Starts</span>
                         <span className="font-mono text-foreground">{formatDateTime(selectedEvent.schedule.startsAt)}</span>
                       </div>
-                      <div className="flex items-center justify-between py-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2 py-1">
                         <span className="text-muted-foreground font-medium">Ends</span>
                         <span className="font-mono text-foreground">{formatDateTime(selectedEvent.schedule.endsAt)}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-border/50 bg-background/80 p-5 shadow-sm">
-                    <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-3">
+                  <div className="rounded-xl border border-border/50 bg-panel p-5 shadow-sm">
+                    <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-3">
                       <CalendarRange className="h-3 w-3" /> Registration Window
                     </div>
                     <div className="grid gap-2 text-sm">
-                      <div className="flex items-center justify-between py-1 border-b border-border/30">
+                      <div className="flex flex-wrap items-center justify-between gap-2 py-1 border-b border-border/30">
                         <span className="text-muted-foreground font-medium">Opens</span>
                         <span className="font-mono text-foreground">{formatDateTime(selectedEvent.registrationWindow.opensAt)}</span>
                       </div>
-                      <div className="flex items-center justify-between py-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2 py-1">
                         <span className="text-muted-foreground font-medium">Closes</span>
                         <span className="font-mono text-foreground">{formatDateTime(selectedEvent.registrationWindow.closesAt)}</span>
                       </div>
@@ -255,13 +256,13 @@ export default async function DashboardEventsPage({
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-xl border border-border/50 bg-background/80 p-4 shadow-sm text-center">
-                      <div className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-2">Capacity</div>
-                      <div className="text-2xl font-black text-foreground">{selectedEvent.capacity ?? "∞"}</div>
+                    <div className="rounded-xl border border-border/50 bg-panel p-4 shadow-sm text-center">
+                      <div className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-2">Capacity</div>
+                      <div className="text-2xl font-semibold text-foreground">{selectedEvent.capacity ?? "∞"}</div>
                     </div>
-                    <div className="rounded-xl border border-border/50 bg-background/80 p-4 shadow-sm text-center">
-                      <div className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mb-2">Seats Left</div>
-                      <div className="text-2xl font-black text-foreground">{selectedEvent.seatsRemaining ?? "∞"}</div>
+                    <div className="rounded-xl border border-border/50 bg-panel p-4 shadow-sm text-center">
+                      <div className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-2">Seats Left</div>
+                      <div className="text-2xl font-semibold text-foreground">{selectedEvent.seatsRemaining ?? "∞"}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -280,36 +281,22 @@ export default async function DashboardEventsPage({
               <EventTeamManagement key={selectedEvent.id} event={selectedEvent} />
             ) : null}
 
-            {canCreateEvents ? (
-              <EventCreateForm />
-            ) : (
-              <Card className="border-border/40 bg-background/50 backdrop-blur-xl shadow-lg relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
-                  <ShieldAlert className="w-24 h-24" />
-                </div>
-                <CardHeader>
-                  <Badge variant="warning" className="w-fit mb-3 text-xs uppercase tracking-widest px-2 py-1">Restricted</Badge>
-                  <CardTitle className="text-xl tracking-tight">Observer Mode</CardTitle>
-                  <CardDescription className="text-muted-foreground leading-relaxed">
-                    Your current role permits inspection of event readiness. Event creation is reserved for the System Admin, while lifecycle work belongs to assigned event personnel.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            )}
+
           </div>
         </div>
+        <section id="create-event"><EventCreateForm /></section>
       </div>
     );
   } catch (error) {
     return (
-      <div className="flex flex-col gap-8 pt-4">
-        <section className="relative overflow-hidden rounded-3xl border border-border/20 bg-background/50 shadow-xl px-8 py-10">
-          <h1 className="text-3xl font-black tracking-tight text-foreground">Event Setup and Teams</h1>
+      <div className="flex flex-col gap-6 pt-4">
+        <section className="workspace-intro">
+          <h1 className="text-3xl font-semibold leading-tight tracking-tight text-foreground lg:text-4xl">Event Setup and Teams</h1>
         </section>
         <StatePanel
           icon={ShieldAlert}
           tone="error"
-          title="System Sync Error"
+          title="Unable to load this page"
           description={
             error instanceof ApiError
               ? error.message

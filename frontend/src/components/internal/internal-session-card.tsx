@@ -8,7 +8,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/ca
 export function InternalSessionCard({
   user,
   title = "Active internal session",
-  description = "This workspace uses the live backend session and only exposes workflows allowed for the authenticated internal roles.",
+  description = "Your assigned permissions determine the records and actions available in this workspace.",
 }: {
   user: UserProfile;
   title?: string;

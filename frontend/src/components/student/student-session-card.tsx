@@ -1,14 +1,12 @@
 import type { UserProfile } from "@/types";
-
-import { formatEnumLabel } from "@/lib/format";
+import { LockKeyhole, UserRound } from "lucide-react";
 import { LogoutButton } from "@/components/student/logout-button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 export function StudentSessionCard({
   user,
-  title = "Signed in for student-owned actions",
-  description = "Your registration, payment proof, and complaint actions are handled in a private session that is separate from public-safe pages.",
+  title = "Your student account",
+  description = "Your participation, payment evidence, and complaints stay private.",
 }: {
   user: UserProfile;
   title?: string;
@@ -16,23 +14,35 @@ export function StudentSessionCard({
 }) {
   return (
     <Card tone="muted">
-      <CardHeader className="md:flex-row md:items-start md:justify-between">
-        <div>
-          <Badge variant="success">Private student session</Badge>
-          <CardTitle className="mt-4 text-xl">{title}</CardTitle>
-          <CardDescription className="mt-3 max-w-2xl">{description}</CardDescription>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Badge variant="neutral">{user.fullName}</Badge>
-            <Badge variant="info">{user.email}</Badge>
-            {user.roles.map((role) => (
-              <Badge key={role} variant="neutral">
-                {formatEnumLabel(role)}
-              </Badge>
-            ))}
+      <div className="flex items-center gap-2 text-xs font-medium text-success">
+        <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
+        Private student session
+      </div>
+      <h3 className="mt-4 text-base font-semibold">{title}</h3>
+      <div className="mt-5 flex min-w-0 items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-panel text-success">
+          <UserRound className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <div className="break-words text-sm font-semibold">
+            {user.fullName}
           </div>
+          <div className="mt-1 break-all text-xs leading-5 text-muted-foreground">
+            {user.email}
+          </div>
+          {user.studentId ? (
+            <div className="mt-1 text-xs text-muted-foreground">
+              ID: {user.studentId}
+            </div>
+          ) : null}
         </div>
+      </div>
+      <p className="mt-5 text-xs leading-6 text-muted-foreground">
+        {description}
+      </p>
+      <div className="mt-5 border-t border-border pt-4">
         <LogoutButton />
-      </CardHeader>
+      </div>
     </Card>
   );
 }

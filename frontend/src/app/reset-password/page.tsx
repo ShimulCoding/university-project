@@ -7,9 +7,10 @@ import { KeyRound, ShieldAlert, CheckCircle } from "lucide-react";
 import { getApiErrorMessage } from "@/lib/api/shared";
 import { postJson } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { PublicPageShell } from "@/components/shell/public-page-shell";
+import { PasswordInput } from "@/components/ui/password-input";
 
 function ResetPasswordContent() {
   const router = useRouter();
@@ -23,13 +24,13 @@ function ResetPasswordContent() {
 
   if (!token) {
     return (
-      <div className="flex min-h-[calc(100vh-140px)] items-center justify-center p-4">
+      <main id="main-content" tabIndex={-1} className="flex min-h-[65vh] items-center justify-center px-4 py-12">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-destructive/10 bg-destructive/5 text-destructive">
+            <div role="alert" className="flex h-11 w-11 items-center justify-center rounded-2xl border border-destructive/10 bg-destructive/5 text-destructive">
               <ShieldAlert className="h-5 w-5" />
             </div>
-            <CardTitle className="mt-3 text-xl">Invalid reset link</CardTitle>
+            <h1 className="mt-3 font-display text-3xl font-normal">Invalid reset link</h1>
             <CardDescription>
               This password reset link is invalid or missing the secure token. Please request a new link from the sign-in page.
             </CardDescription>
@@ -40,19 +41,19 @@ function ResetPasswordContent() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </main>
     );
   }
 
   if (successMessage) {
     return (
-      <div className="flex min-h-[calc(100vh-140px)] items-center justify-center p-4">
+      <main id="main-content" tabIndex={-1} className="flex min-h-[65vh] items-center justify-center px-4 py-12">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-success/10 bg-success-muted text-success">
+            <div role="status" className="flex h-11 w-11 items-center justify-center rounded-2xl border border-success/10 bg-success-muted text-success">
               <CheckCircle className="h-5 w-5" />
             </div>
-            <CardTitle className="mt-3 text-xl">Password reset successfully</CardTitle>
+            <h1 className="mt-3 font-display text-3xl font-normal">Password reset successfully</h1>
             <CardDescription>{successMessage}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -61,7 +62,7 @@ function ResetPasswordContent() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </main>
     );
   }
 
@@ -90,20 +91,20 @@ function ResetPasswordContent() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-140px)] items-center justify-center p-4">
+    <main id="main-content" tabIndex={-1} className="flex min-h-[65vh] items-center justify-center px-4 py-12">
       <Card className="max-w-md w-full">
         <CardHeader>
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/10 bg-primary/5 text-primary">
             <KeyRound className="h-5 w-5" />
           </div>
-          <CardTitle className="mt-3 text-2xl">Set new password</CardTitle>
+          <h1 className="mt-3 font-display text-3xl font-normal">Set new password</h1>
           <CardDescription>Enter a new secure password for your account.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Field label="New password" description="Use at least 8 characters." error={errorMessage && newPassword.length < 8 ? errorMessage : undefined}>
-              <Input
-                type="password"
+              <PasswordInput
+
                 value={newPassword}
                 onChange={(e) => {
                   setErrorMessage(null);
@@ -112,12 +113,12 @@ function ResetPasswordContent() {
                 placeholder="Enter new password"
                 minLength={8}
                 required
-                autoFocus
+                autoComplete="new-password"
               />
             </Field>
 
             {errorMessage && newPassword.length >= 8 && (
-              <div className="rounded-[1rem] border border-destructive/15 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <div role="alert" className="rounded-[1rem] border border-destructive/15 bg-destructive/5 px-4 py-3 text-sm text-destructive">
                 {errorMessage}
               </div>
             )}
@@ -133,14 +134,14 @@ function ResetPasswordContent() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <React.Suspense fallback={<div className="flex min-h-[calc(100vh-140px)] items-center justify-center">Loading...</div>}>
+    <PublicPageShell><React.Suspense fallback={<div className="flex min-h-[calc(100vh-140px)] items-center justify-center">Loading...</div>}>
       <ResetPasswordContent />
-    </React.Suspense>
+    </React.Suspense></PublicPageShell>
   );
 }

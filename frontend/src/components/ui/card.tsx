@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-const cardVariants = cva("rounded-[1.5rem] border p-6", {
+const cardVariants = cva("min-w-0 rounded-2xl border p-5 sm:p-6", {
   variants: {
     tone: {
       default: "border-border/80 bg-panel text-panel-foreground shadow-panel",
@@ -23,14 +23,14 @@ export interface CardProps
     VariantProps<typeof cardVariants> {}
 
 export function Card({ className, tone, ...props }: CardProps) {
-  return <div className={cn(cardVariants({ tone }), className)} {...props} />;
+  return <div data-ui="card" className={cn(cardVariants({ tone }), className)} {...props} />;
 }
 
 export function CardHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("space-y-2", className)} {...props} />;
+  return <div className={cn("min-w-0 space-y-2", className)} {...props} />;
 }
 
 export function CardTitle({
@@ -39,7 +39,7 @@ export function CardTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn("text-lg font-semibold tracking-tight text-inherit", className)}
+      className={cn("break-words text-lg font-semibold leading-snug tracking-tight text-inherit", className)}
       {...props}
     />
   );

@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { recoverClientSession } from "@/lib/api/client";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export function SessionRecovery({ needed, children }: { needed: boolean; children: React.ReactNode }) {
   const router = useRouter();
@@ -22,7 +23,7 @@ export function SessionRecovery({ needed, children }: { needed: boolean; childre
   }, [needed, router]);
 
   if (needed && !failed) {
-    return <main className="flex min-h-screen items-center justify-center" role="status">Restoring your session…</main>;
+    return <main id="main-content" tabIndex={-1}><LoadingState label="Restoring your session…" /></main>;
   }
   return children;
 }

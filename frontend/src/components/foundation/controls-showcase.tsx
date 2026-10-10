@@ -59,14 +59,14 @@ export function ControlsShowcase() {
   return (
     <div className="space-y-8">
       <div className="flex justify-center">
-        <SegmentedControl value={activeTab} onValueChange={setActiveTab} options={tabs} />
+        <SegmentedControl label="Interface examples" value={activeTab} onValueChange={setActiveTab} options={tabs} />
       </div>
 
       {activeTab === "request" ? (
-        <Card className="border-border/40 shadow-sm bg-background/40 backdrop-blur-xl overflow-hidden">
+        <Card className="border-border/40 shadow-sm bg-panel overflow-hidden">
           <CardHeader className="border-b border-border/30 bg-muted/10 pb-5">
             <div className="flex items-center gap-2 mb-2">
-              <Badge variant="neutral" className="text-xs uppercase tracking-widest px-2 py-1 shadow-sm">
+              <Badge variant="neutral" className="text-xs px-2 py-1 shadow-sm">
                 Interface Pattern
               </Badge>
             </div>
@@ -103,25 +103,24 @@ export function ControlsShowcase() {
               />
             </Field>
             <Field
-              label="Requested Amount (USD)"
+              label="Requested amount (BDT)"
               description="Enter the precise financial figure associated with this record."
             >
               <Input defaultValue="4,500.00" />
             </Field>
-            <Field
-              label="Supporting Documentation"
-              description="Upload relevant invoices, receipts, or policy approvals."
-            >
-              <div className="flex h-11 items-center gap-3 rounded-lg border border-border bg-background px-4 text-sm text-foreground shadow-sm">
-                <Badge variant="neutral" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
+            <div className="min-w-0 space-y-2">
+              <p className="text-sm font-medium">Supporting documentation</p>
+              <p className="text-xs leading-5 text-muted-foreground">An example of an attached document.</p>
+              <div className="flex min-h-12 flex-wrap items-center gap-3 rounded-xl border bg-background px-4 py-2 text-sm">
+                <Badge variant="info">
                   <FileCheck className="w-3.5 h-3.5 mr-1" />
                   Verified
                 </Badge>
-                <span className="text-muted-foreground font-medium">
+                <span className="break-all text-muted-foreground">
                   vendor_invoice_Q3.pdf
                 </span>
               </div>
-            </Field>
+            </div>
             <Field
               className="md:col-span-2"
               label="Justification / Notes"
@@ -143,10 +142,10 @@ export function ControlsShowcase() {
       ) : null}
 
       {activeTab === "data" ? (
-        <Card className="border-border/40 shadow-sm bg-background/40 backdrop-blur-xl overflow-hidden">
+        <Card className="border-border/40 shadow-sm bg-panel overflow-hidden">
           <CardHeader className="border-b border-border/30 bg-muted/10 pb-5">
             <div className="flex items-center gap-2 mb-2">
-              <Badge variant="neutral" className="text-xs uppercase tracking-widest px-2 py-1 shadow-sm">
+              <Badge variant="neutral" className="text-xs px-2 py-1 shadow-sm">
                 Data Representation
               </Badge>
             </div>
@@ -186,7 +185,7 @@ export function ControlsShowcase() {
                 {auditChecklist.map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 rounded-xl border border-border/50 bg-background/80 p-4 shadow-sm"
+                    className="flex items-start gap-3 rounded-xl border border-border/50 bg-panel p-4 shadow-sm"
                   >
                     <CheckCircle2 className="w-5 h-5 text-primary/70 shrink-0 mt-0.5" />
                     <p className="text-sm leading-relaxed text-muted-foreground font-medium">
@@ -202,7 +201,7 @@ export function ControlsShowcase() {
 
       {activeTab === "states" ? (
         <div className="grid gap-6 xl:grid-cols-2">
-          <Card className="border-border/40 shadow-sm bg-background/50 overflow-hidden h-full flex flex-col justify-center py-8">
+          <Card className="border-border/40 shadow-sm bg-panel overflow-hidden h-full flex flex-col justify-center py-8">
             <StatePanel
               icon={Inbox}
               tone="empty"
@@ -210,8 +209,8 @@ export function ControlsShowcase() {
               description="The queue is currently clear. Any new submissions requiring your attention will appear here."
             />
           </Card>
-          
-          <Card className="border-border/40 shadow-sm bg-background/50 overflow-hidden h-full flex flex-col justify-center py-8">
+
+          <Card className="border-border/40 shadow-sm bg-panel overflow-hidden h-full flex flex-col justify-center py-8">
             <StatePanel
               icon={LoaderCircle}
               tone="loading"
@@ -220,17 +219,17 @@ export function ControlsShowcase() {
             />
           </Card>
 
-          <Card className="border-border/40 shadow-sm bg-background/50 overflow-hidden h-full flex flex-col justify-center py-8 border-l-4 border-l-warning">
+          <Card className="border-border/40 shadow-sm bg-panel overflow-hidden h-full flex flex-col justify-center py-8 border-l-4 border-l-warning">
             <StatePanel
               icon={Clock}
               tone="warning"
               title="Review Period Expiring"
               description="Several department budgets have not been finalized and are approaching the submission deadline."
-              action={<Button variant="outline" size="sm" className="mt-2 text-warning hover:text-warning/80">View Pending Budgets</Button>}
+              action={<Button variant="outline" size="sm" className="mt-2 text-warning hover:text-warning">View Pending Budgets</Button>}
             />
           </Card>
 
-          <Card className="border-border/40 shadow-sm bg-background/50 overflow-hidden h-full flex flex-col justify-center py-8 border-l-4 border-l-destructive">
+          <Card className="border-border/40 shadow-sm bg-panel overflow-hidden h-full flex flex-col justify-center py-8 border-l-4 border-l-destructive">
             <StatePanel
               icon={Ban}
               tone="error"
@@ -244,9 +243,9 @@ export function ControlsShowcase() {
             <StatePanel
               icon={ShieldCheck}
               tone="success"
-              title="System Healthy & Audited"
-              description="All background processes, security protocols, and data synchronization services are operating optimally."
-              action={<Badge variant="neutral" className="bg-background text-foreground mt-2 shadow-sm border-border/50">Last Checked: Just Now</Badge>}
+              title="Action completed"
+              description="A success message confirms that the requested change has been saved."
+              action={<Badge variant="neutral" className="bg-background text-foreground mt-2 shadow-sm border-border/50">Example feedback</Badge>}
             />
           </Card>
         </div>

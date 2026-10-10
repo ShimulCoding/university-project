@@ -65,6 +65,7 @@ export function FeedbackMessage({
 
   return (
     <div
+      role={feedback.tone === "error" ? "alert" : "status"}
       className={
         feedback.tone === "success"
           ? "rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success"

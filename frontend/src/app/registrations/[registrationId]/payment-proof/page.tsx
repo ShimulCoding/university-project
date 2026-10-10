@@ -5,6 +5,7 @@ import { getCurrentUser, getRegistration } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/shared";
 import { formatEnumLabel, getPaymentStateTone } from "@/lib/format";
 import { PaymentProofForm } from "@/components/student/payment-proof-form";
+import { ParticipationSteps } from "@/components/student/participation-steps";
 import { StudentAccessPanel } from "@/components/student/student-access-panel";
 import { StudentSessionCard } from "@/components/student/student-session-card";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
@@ -28,7 +29,7 @@ export default async function PaymentProofPage({
     if (!user) {
       return (
         <PublicPageShell>
-          <main className="section-shell py-12 sm:py-16">
+          <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
             <PageHeader
               eyebrow="Payment proof"
               title="Sign in to submit payment proof"
@@ -52,7 +53,7 @@ export default async function PaymentProofPage({
 
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="Payment proof"
             title={`Submit proof for ${registration.event.title}`}
@@ -63,6 +64,8 @@ export default async function PaymentProofPage({
               </Badge>
             }
           />
+
+          <div className="mt-6"><ParticipationSteps current={2} complete={registration.paymentState === "VERIFIED"} /></div>
 
           <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
             <div className="space-y-6">
@@ -75,8 +78,7 @@ export default async function PaymentProofPage({
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="rounded-[1rem] border border-border/70 bg-panel px-4 py-4 text-sm leading-6 text-muted-foreground">
-                    Use the same external payment details you actually submitted. The
-                    backend will reject duplicate pending proofs and verified registrations.
+                    Use the details from your actual transfer. If a proof is already being reviewed, wait for its decision before submitting another.
                   </div>
                 </CardContent>
               </Card>
@@ -113,7 +115,7 @@ export default async function PaymentProofPage({
 
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="Payment proof"
             title="Payment proof could not be prepared"

@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { ChevronDown } from "lucide-react";
 
@@ -18,11 +20,11 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     const isInvalid = ariaInvalid === true || ariaInvalid === "true";
 
     return (
-      <div className="relative">
+      <div className="relative min-w-0">
         <select
           ref={ref}
           className={cn(
-            "focus-ring h-11 w-full appearance-none rounded-xl bg-panel px-4 pr-10 text-sm text-foreground shadow-sm transition-[border-color,box-shadow,background-color] duration-200",
+            "focus-ring h-12 w-full min-w-0 appearance-none rounded-xl border bg-panel px-3.5 pr-10 text-sm text-foreground transition-[border-color,box-shadow,background-color] duration-200 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
             isInvalid
               ? "border-destructive/40 bg-destructive/5 focus-visible:border-destructive/40 hover:border-destructive/40"
               : "border-input hover:border-primary/20 focus-visible:border-primary/25",

@@ -1,151 +1,148 @@
+import { AlertTriangle, FileCheck2, Landmark, Archive } from "lucide-react";
 import { ListPagination } from "@/components/ui/list-pagination";
 import { queryPage } from "@/lib/api/list";
-import { AlertTriangle, CheckCircle2, Landmark, LineChart, Archive } from "lucide-react";
-
 import { listPublicFinancialSummaries } from "@/lib/api/public";
 import { ApiError } from "@/lib/api/shared";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, sumExactMoney } from "@/lib/format";
 import { PublicSummaryCard } from "@/components/public/public-summary-card";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { MetricCard } from "@/components/ui/metric-card";
 import { StatePanel } from "@/components/ui/state-panel";
+import { FilterCard } from "@/components/internal/filter-card";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import {
   getHistoricalPublishedSnapshotCount,
   getLatestPublishedSummariesPerEvent,
 } from "@/lib/public-summary";
 
 export const dynamic = "force-dynamic";
-
-export default async function FinancialSummariesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default async function FinancialSummariesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const search =
+    typeof params.search === "string"
+      ? params.search.trim().slice(0, 200) || undefined
+      : undefined;
   try {
-    const params = await searchParams;
-    const summaries = await listPublicFinancialSummaries({ page: queryPage(params.page) });
-    const latestSummaries = getLatestPublishedSummariesPerEvent(summaries);
-    const historicalSnapshotCount = summaries.pagination.historicalSnapshotCount ?? getHistoricalPublishedSnapshotCount(summaries);
-    const totalCollected = latestSummaries.reduce(
-      (sum, summary) => sum + Number(summary.totals.collected),
-      0,
+    const summaries = await listPublicFinancialSummaries({
+      page: queryPage(params.page),
+      ...(search ? { search } : {}),
+    });
+    const latest = getLatestPublishedSummariesPerEvent(summaries);
+    const history =
+      summaries.pagination.historicalSnapshotCount ??
+      getHistoricalPublishedSnapshotCount(summaries);
+    const collected = sumExactMoney(
+      latest.map((summary) => summary.totals.collected),
     );
-
     return (
       <PublicPageShell>
-        <main className="flex flex-col min-h-screen bg-background selection:bg-primary/20">
-          
-          {/* HERO HEADER */}
-          <section className="relative overflow-hidden pt-24 pb-16 lg:pt-32 lg:pb-20 section-shell border-b border-border/10">
-            {/* Background effects */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-            <div className="absolute top-0 left-0 -z-10 m-auto h-[400px] w-[400px] rounded-full bg-success/10 opacity-60 blur-[120px] pointer-events-none -translate-x-1/3 -translate-y-1/3" />
-            
-            <div className="relative z-10 max-w-4xl space-y-6">
-              <Badge variant="success" className="px-4 py-1.5 text-xs font-semibold tracking-widest uppercase shadow-sm border-success/20 bg-success/5 text-success backdrop-blur-md">
-                Public Ledger
-              </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-foreground text-balance">
-                Financial <span className="text-transparent bg-clip-text bg-gradient-to-br from-success via-success/80 to-success/50">Disclosures</span>
-              </h1>
-              <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed font-light">
-                Explore fully verified and officially reconciled financial reports. Every disclosure published here has passed rigorous multi-tier review.
-              </p>
-            </div>
-          </section>
-
-          <section className="section-shell py-12 relative z-20">
-            {/* METRICS */}
-            <div className="grid gap-6 md:grid-cols-3 mb-16">
-              <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Published Reports</CardDescription>
-                  <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center text-success border border-success/20">
-                    <LineChart className="h-5 w-5" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-black text-foreground tracking-tight">{summaries.pagination.totalItems}</div>
-                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
-                    Verified event snapshots available publicly.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Collections on this page</CardDescription>
-                  <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center text-success border border-success/20">
-                    <Landmark className="h-5 w-5" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-black text-success tracking-tight">{formatMoney(totalCollected)}</div>
-                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
-                    Disclosed funds across the events shown on this page.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border/40 shadow-xl shadow-black/5 bg-background/60 backdrop-blur-2xl hover:bg-background/80 transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardDescription className="font-medium text-muted-foreground uppercase tracking-wider text-xs">Historical Snapshots</CardDescription>
-                  <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center text-success border border-success/20">
-                    <Archive className="h-5 w-5" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-black text-foreground tracking-tight">{historicalSnapshotCount}</div>
-                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed font-medium">
-                    Legacy versions preserved for internal audit history.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* REPORT LISTING */}
-            {latestSummaries.length === 0 ? (
-              <Card className="border-dashed border-border/50 bg-muted/10 rounded-3xl">
-                <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-                  <CheckCircle2 className="h-16 w-16 text-muted-foreground/30 mb-6" />
-                  <p className="text-2xl font-bold text-foreground tracking-tight">No published disclosures</p>
-                  <p className="text-muted-foreground font-light mt-3 max-w-md mx-auto">
-                    When an initiative completes reconciliation and crosses the release boundary, its public-safe summary will be available here.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-8 lg:grid-cols-2">
-                {latestSummaries.map((summary) => (
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="section-shell py-10 sm:py-14"
+        >
+          <PageHeader
+            eyebrow="Open financial reporting"
+            title="Every event. A clear account."
+            description="See where funds came from, how they were spent, and what remains. Explore the latest approved financial summary for each event."
+          />
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <MetricCard
+              label="Published event reports"
+              value={summaries.pagination.totalItems}
+              detail="Latest approved summary per event"
+              icon={FileCheck2}
+            />
+            <MetricCard
+              label="Collections on this page"
+              value={formatMoney(collected)}
+              detail="Across the event summaries listed below"
+              icon={Landmark}
+            />
+            <MetricCard
+              label="Historical snapshots"
+              value={history}
+              detail="Earlier publications retained for audit history"
+              icon={Archive}
+            />
+          </div>
+          <div className="mt-8">
+            <FilterCard resetHref="/financial-summaries">
+              <Field label="Find a financial report">
+                <Input
+                  type="search"
+                  name="search"
+                  defaultValue={search ?? ""}
+                  maxLength={200}
+                  placeholder="Search by event name…"
+                />
+              </Field>
+            </FilterCard>
+          </div>
+          <div className="mt-8 flex items-baseline justify-between gap-4">
+            <h2 className="text-xl font-semibold">
+              {search ? "Matching reports" : "Published financial summaries"}
+            </h2>
+            <span className="text-xs text-muted-foreground">
+              Amounts in BDT
+            </span>
+          </div>
+          <div className="mt-5">
+            {latest.length ? (
+              <div className="grid gap-5 lg:grid-cols-2">
+                {latest.map((summary) => (
                   <PublicSummaryCard key={summary.id} summary={summary} />
                 ))}
               </div>
+            ) : (
+              <StatePanel
+                icon={FileCheck2}
+                title={
+                  search
+                    ? "No matching reports"
+                    : "No financial reports published yet"
+                }
+                description={
+                  search
+                    ? "Try a different event name, or reset your search to see all reports."
+                    : "An event’s summary appears here after its reconciliation is finalized and approved for publication."
+                }
+              />
             )}
-          </section>
-        <ListPagination pagination={summaries.pagination} />
+          </div>
+          <ListPagination pagination={summaries.pagination} />
         </main>
       </PublicPageShell>
     );
   } catch (error) {
-    const message =
-      error instanceof ApiError ? error.message : "Unable to load public financial data right now.";
-
     return (
       <PublicPageShell>
-        <main className="flex flex-col min-h-screen bg-background">
-          <section className="relative overflow-hidden pt-24 pb-16 section-shell">
-            <div className="relative z-10 max-w-4xl space-y-4">
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground text-balance">
-                Financial Disclosures
-              </h1>
-            </div>
-          </section>
-          
-          <section className="section-shell py-12">
-            <StatePanel
-              icon={AlertTriangle}
-              tone="error"
-              title="System Temporarily Unavailable"
-              description={message}
-            />
-          </section>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="section-shell space-y-8 py-12"
+        >
+          <PageHeader
+            eyebrow="Open financial reporting"
+            title="Financial summaries."
+            description="A clear account of society events."
+          />
+          <StatePanel
+            icon={AlertTriangle}
+            tone="error"
+            title="Reports are temporarily unavailable"
+            description={
+              error instanceof ApiError
+                ? error.message
+                : "Please try loading the reports again shortly."
+            }
+          />
         </main>
       </PublicPageShell>
     );

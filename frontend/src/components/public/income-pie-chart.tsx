@@ -3,22 +3,9 @@
 import { useState } from "react";
 import type { PublicFinancialSummaryBreakdownLine } from "@/types";
 import { formatMoney } from "@/lib/format";
-import { pieSlices } from "@/lib/charts";
+import { financialChartPalette, pieSlices } from "@/lib/charts";
 
-const PIE_COLORS = [
-  "hsl(217, 91%, 60%)",   // vivid blue
-  "hsl(160, 84%, 39%)",   // emerald
-  "hsl(38, 92%, 50%)",    // amber
-  "hsl(280, 67%, 55%)",   // purple
-  "hsl(350, 89%, 60%)",   // rose
-  "hsl(192, 91%, 36%)",   // cyan
-  "hsl(25, 95%, 53%)",    // orange
-  "hsl(142, 71%, 45%)",   // green
-  "hsl(330, 70%, 50%)",   // magenta
-  "hsl(200, 80%, 50%)",   // sky
-  "hsl(60, 80%, 42%)",    // olive
-  "hsl(10, 85%, 55%)",    // red-orange
-];
+const PIE_COLORS = financialChartPalette.income;
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = ((angleDeg - 90) * Math.PI) / 180;
@@ -56,26 +43,34 @@ export function IncomePieChart({
   items: PublicFinancialSummaryBreakdownLine[];
 }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const activeIndex = hoveredIndex ?? selectedIndex;
   const numericTotal = Number(total);
 
   return (
-    <div className="rounded-[1.4rem] border border-border/70 bg-panel-muted p-5">
+    <div className="min-w-0 rounded-2xl border border-border/70 bg-panel-muted p-4 sm:p-5">
       <div>
         <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          {description}
+        </p>
+        <p className="mt-3 break-words text-lg font-semibold tabular-nums">
+          {formatMoney(total)}
+        </p>
       </div>
 
       {items.length === 0 || numericTotal <= 0 ? (
         <div className="mt-5 rounded-[1rem] border border-border/70 bg-panel px-4 py-4 text-sm text-muted-foreground">
-          No public-safe breakdown lines are available for this side of the report yet.
+          No public-safe breakdown lines are available for this side of the
+          report yet.
         </div>
       ) : (
-        <div className="mt-5 flex flex-col items-center gap-6 md:flex-row md:items-start">
+        <div className="mt-5 flex flex-col items-center gap-6 2xl:flex-row 2xl:items-start">
           {/* Pie chart */}
           <div className="shrink-0">
             <svg
               viewBox="0 0 220 220"
-              className="h-52 w-52 drop-shadow-sm md:h-56 md:w-56"
+              className="h-52 w-52"
               role="img"
               aria-label={`${title} pie chart`}
             >
@@ -84,7 +79,7 @@ export function IncomePieChart({
                 return slices.map(({ index, startAngle, endAngle }) => {
                   const item = items[index]!;
                   const isFullCircle = slices.length === 1;
-                  const isHovered = hoveredIndex === index;
+                  const isHovered = activeIndex === index;
                   const scale = isHovered ? "scale(1.04)" : "scale(1)";
 
                   if (isFullCircle) {
@@ -95,9 +90,12 @@ export function IncomePieChart({
                         cy="110"
                         r="90"
                         fill={PIE_COLORS[index % PIE_COLORS.length]}
-                        opacity={hoveredIndex !== null && !isHovered ? 0.4 : 1}
+                        opacity={activeIndex !== null && !isHovered ? 0.4 : 1}
                         className="transition-all duration-200"
-                        style={{ transformOrigin: "110px 110px", transform: scale }}
+                        style={{
+                          transformOrigin: "110px 110px",
+                          transform: scale,
+                        }}
                         onMouseEnter={() => setHoveredIndex(index)}
                         onMouseLeave={() => setHoveredIndex(null)}
                       />
@@ -111,9 +109,12 @@ export function IncomePieChart({
                       fill={PIE_COLORS[index % PIE_COLORS.length]}
                       stroke="hsl(var(--panel-muted))"
                       strokeWidth="2"
-                      opacity={hoveredIndex !== null && !isHovered ? 0.4 : 1}
+                      opacity={activeIndex !== null && !isHovered ? 0.4 : 1}
                       className="cursor-pointer transition-all duration-200"
-                      style={{ transformOrigin: "110px 110px", transform: scale }}
+                      style={{
+                        transformOrigin: "110px 110px",
+                        transform: scale,
+                      }}
                       onMouseEnter={() => setHoveredIndex(index)}
                       onMouseLeave={() => setHoveredIndex(null)}
                     />
@@ -139,42 +140,57 @@ export function IncomePieChart({
                 x="110"
                 y="122"
                 textAnchor="middle"
-                className="fill-primary text-[10px] font-semibold"
+                className="fill-primary text-xs font-semibold"
               >
-                {formatMoney(total)}
+                BDT
               </text>
             </svg>
           </div>
 
           {/* Legend — scrollable when many items */}
           <div className="w-full min-w-0 flex-1">
-            <div className="max-h-[260px] space-y-1 overflow-y-auto pr-1">
+            <div className="max-h-[320px] space-y-1 overflow-y-auto pr-1">
               {items.map((item, index) => {
-                const pct = ((Number(item.amount) / numericTotal) * 100).toFixed(1);
-                const isHovered = hoveredIndex === index;
+                const pct = (
+                  (Number(item.amount) / numericTotal) *
+                  100
+                ).toFixed(1);
+                const isHovered = activeIndex === index;
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={item.key}
+                    aria-pressed={selectedIndex === index}
                     className={
-                      "flex items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-sm transition-colors" +
+                      "focus-ring flex min-h-11 w-full flex-wrap items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors" +
                       (isHovered ? " bg-panel" : " hover:bg-panel/60")
                     }
                     onMouseEnter={() => setHoveredIndex(index)}
                     onMouseLeave={() => setHoveredIndex(null)}
+                    onFocus={() => setHoveredIndex(index)}
+                    onBlur={() => setHoveredIndex(null)}
+                    onClick={() =>
+                      setSelectedIndex((selected) =>
+                        selected === index ? null : index,
+                      )
+                    }
                   >
-                    <div className="flex min-w-0 items-center gap-2">
+                    <span className="flex min-w-0 items-center gap-2">
                       <span
                         className="h-3 w-3 shrink-0 rounded-full"
-                        style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
+                        style={{
+                          backgroundColor:
+                            PIE_COLORS[index % PIE_COLORS.length],
+                        }}
                       />
-                      <span className="truncate font-semibold text-foreground">
+                      <span className="break-words font-medium text-foreground">
                         {item.label}
                       </span>
-                    </div>
-                    <div className="shrink-0 whitespace-nowrap tabular-nums text-muted-foreground">
+                    </span>
+                    <span className="break-words text-xs tabular-nums text-muted-foreground">
                       {formatMoney(item.amount)} ({pct}%)
-                    </div>
-                  </div>
+                    </span>
+                  </button>
                 );
               })}
             </div>

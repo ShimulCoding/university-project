@@ -1,66 +1,11 @@
 "use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
 import type { AppRole, ManagedEvent, UserProfile } from "@/types";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { roleMeta } from "@/lib/navigation";
 import { formatEnumLabel, getEventStatusTone } from "@/lib/format";
 import { LogoutButton } from "@/components/student/logout-button";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-
-const eventModuleTitles: Record<string, { title: string; description: string }> = {
-  "": {
-    title: "Event command surface",
-    description:
-      "Manage finances, verify submissions, and execute approvals scoped to this specific event.",
-  },
-  "/payments": {
-    title: "Payment verification queue",
-    description: "Review payment proofs submitted for this event.",
-  },
-  "/income-records": {
-    title: "Income records",
-    description: "Track and verify income sources for this event.",
-  },
-  "/budgets": {
-    title: "Budget management",
-    description: "Manage budget versions and line items for this event.",
-  },
-  "/budget-requests": {
-    title: "Budget requests",
-    description: "Review and manage funding requests for this event.",
-  },
-  "/expense-requests": {
-    title: "Expense requests",
-    description: "Review spending requests for this event.",
-  },
-  "/funding-requests": {
-    title: "Funding requests",
-    description: "Create and track requests for additional funding within this event.",
-  },
-  "/expense-records": {
-    title: "Expense records",
-    description: "Track settled expenses for this event.",
-  },
-  "/approvals": {
-    title: "Approval queue",
-    description: "Decision queue for this event's workflows.",
-  },
-  "/complaints": {
-    title: "Complaint review",
-    description: "Protected complaint routing for this event.",
-  },
-  "/reconciliation": {
-    title: "Reconciliation workspace",
-    description: "Closure reports and verification for this event.",
-  },
-  "/publications": {
-    title: "Publication boundary",
-    description: "Public-safe release for this event's financial data.",
-  },
-};
 
 export function EventDashboardHeader({
   user,
@@ -71,78 +16,49 @@ export function EventDashboardHeader({
   event: ManagedEvent;
   eventRoles: AppRole[];
 }) {
-  const pathname = usePathname();
-  const basePath = `/dashboard/events/${event.slug}`;
-
-  // Determine current module
-  const relativePath = pathname.startsWith(basePath)
-    ? pathname.slice(basePath.length)
-    : "";
-
-  const matchedModule = Object.keys(eventModuleTitles)
-    .filter((key) => key !== "")
-    .find((key) => relativePath.startsWith(key));
-
-  const current =
-    eventModuleTitles[matchedModule ?? ""] ?? eventModuleTitles[""];
-
-  const primaryRole = eventRoles[0];
-  const primaryRoleMeta = primaryRole ? roleMeta[primaryRole] : null;
-
+  const admin = eventRoles.includes("SYSTEM_ADMIN");
   return (
-    <div className="surface-panel flex flex-col gap-6 p-5 md:flex-row md:items-start md:justify-between">
-      <div className="max-w-3xl">
+    <header className="workspace-context">
+      <div className="min-w-0 space-y-2">
+        <Link
+          href={admin ? "/dashboard/events" : "/dashboard/my-events"}
+          className="focus-ring flex w-fit items-center gap-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-success"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          {admin ? "All events" : "My Events"}
+        </Link>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="info">Event workspace</Badge>
+          <span className="text-sm font-semibold">Event workspace</span>
           <Badge variant={getEventStatusTone(event.status)}>
             {formatEnumLabel(event.status)}
           </Badge>
-          {primaryRoleMeta && (
-            <Badge variant="success">{primaryRoleMeta.shortLabel}</Badge>
-          )}
-        </div>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground">
-          {current?.title ?? "Event workspace"}
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-          {current?.description ?? "Manage this event's internal workflows."}
-        </p>
-        <div className="mt-5 rounded-[1.15rem] border border-border/70 bg-panel-muted px-4 py-4">
-          <div className="data-kicker">Event: {event.title}</div>
-          {primaryRoleMeta && (
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {primaryRoleMeta.focus}
-            </p>
-          )}
-        </div>
-      </div>
-      <div className="flex flex-col items-stretch gap-3 md:min-w-[280px]">
-        <div className="flex flex-wrap gap-3">
-          <Button asChild variant="outline" size="sm">
-            <Link href={eventRoles.includes("SYSTEM_ADMIN") ? "/dashboard/events" : "/dashboard/my-events"}>
-              {eventRoles.includes("SYSTEM_ADMIN") ? "All events" : "My Events"}
-            </Link>
-          </Button>
-          <Button asChild variant="secondary" size="sm">
-            <Link href={`/events/${event.slug}`}>Public page</Link>
-          </Button>
-          <LogoutButton redirectTo="/" />
-        </div>
-        <div className="rounded-[1.15rem] border border-border/70 bg-panel-muted px-4 py-3">
-          <Badge variant="info" className="w-fit mb-2">
-            {eventRoles.includes("SYSTEM_ADMIN") ? "Read-only system oversight" : "Event team member"}
-          </Badge>
-          <div className="text-sm font-semibold text-foreground">{user.fullName}</div>
-          <div className="text-xs text-muted-foreground mt-1">{user.email}</div>
-          <div className="mt-2 flex flex-wrap gap-1">
-            {eventRoles.map((role) => (
-              <Badge key={role} variant="neutral" className="text-[10px]">
-                {formatEnumLabel(role)}
+          {admin ? (
+            <Badge variant="info">Read-only system oversight</Badge>
+          ) : (
+            eventRoles.map((role) => (
+              <Badge key={role} variant="success">
+                {roleMeta[role].shortLabel}
               </Badge>
-            ))}
-          </div>
+            ))
+          )}
         </div>
       </div>
-    </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <span
+          className="max-w-[160px] truncate text-xs text-muted-foreground"
+          title={user.email}
+        >
+          {user.fullName}
+        </span>
+        <Link
+          className="focus-ring flex min-h-11 items-center gap-1 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground"
+          href={`/events/${event.slug}`}
+        >
+          Public page{" "}
+          <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+        </Link>
+        <LogoutButton redirectTo="/" />
+      </div>
+    </header>
   );
 }

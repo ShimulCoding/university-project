@@ -271,7 +271,7 @@ async function main() {
     await request(`/users/${createdAccount.user.id}/status`, adminCookie, "PATCH", { status: "INACTIVE" });
     assert(await prisma.auditLog.count({ where: { entityId: createdAccount.user.id, action: "users.create" } }) === 1, "Account creation audit missing");
     checks += 1;
-    console.log(`Event workspace verification passed (${checks} HTTP and boundary checks${frontend ? ", including rendered frontend routes" : ""}).`);
+    console.log(`Event workspace verification passed (${checks} combined API, boundary${frontend ? ", rendered-route and browser" : ""} checks).`);
   } finally {
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
     const uploadedFixtures = await prisma.supportingDocument.findMany({ where: { uploadedById: { in: userIds } }, select: { relativePath: true } });

@@ -82,8 +82,7 @@ export function RegistrationForm({ event, accountStudentId }: { event: PublicEve
       <CardHeader>
         <CardTitle className="text-2xl">Create your registration</CardTitle>
         <CardDescription>
-          This action creates your participant-event link and opens the student-owned
-          payment proof workflow for this event.
+          Confirm your details below. After registering, you can submit your payment proof and track its review.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -112,6 +111,8 @@ export function RegistrationForm({ event, accountStudentId }: { event: PublicEve
             error={fieldErrors.phone}
           >
             <Input
+              type="tel"
+              autoComplete="tel"
               value={phone}
               onChange={(event) => {
                 clearFieldError("phone");
@@ -124,12 +125,12 @@ export function RegistrationForm({ event, accountStudentId }: { event: PublicEve
             />
           </Field>
           {errorMessage ? (
-            <div className="rounded-[1rem] border border-destructive/15 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <div role="alert" className="rounded-[1rem] border border-destructive/15 bg-destructive/5 px-4 py-3 text-sm text-destructive">
               {errorMessage}
             </div>
           ) : null}
           {successMessage ? (
-            <div className="rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success">
+            <div role="status" className="rounded-[1rem] border border-success/15 bg-success-muted px-4 py-3 text-sm text-success">
               {successMessage}
             </div>
           ) : null}

@@ -75,7 +75,24 @@ export function formatFileSize(value: number) {
   return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+export function sumExactMoney(values: readonly string[]) {
+  const total = values.reduce((sum, value) => {
+    const match = /^(-?)(\d+)(?:\.(\d{1,2}))?$/.exec(value);
+    if (!match) throw new Error("Invalid monetary value.");
+    const amount = BigInt(match[2]!) * 100n + BigInt((match[3] ?? "").padEnd(2, "0"));
+    return sum + (match[1] ? -amount : amount);
+  }, 0n);
+  const absolute = total < 0n ? -total : total;
+  return `${total < 0n ? "-" : ""}${absolute / 100n}.${String(absolute % 100n).padStart(2, "0")}`;
+}
+
 export function formatEnumLabel(value: string) {
+  const roleLabels: Record<string, string> = {
+    SYSTEM_ADMIN: "System Admin", EVENT_ADMIN: "Event Admin", FINANCIAL_CONTROLLER: "Finance Controller",
+    ORGANIZATIONAL_APPROVER: "Approver", EVENT_MANAGEMENT_USER: "Event Manager",
+    GENERAL_STUDENT: "Student", COMPLAINT_REVIEW_AUTHORITY: "Complaint Reviewer",
+  };
+  if (roleLabels[value]) return roleLabels[value];
   return value
     .toLowerCase()
     .split("_")

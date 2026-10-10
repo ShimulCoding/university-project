@@ -2,49 +2,11 @@
 
 import { useState } from "react";
 import type { PublicFinancialSummaryBreakdownLine } from "@/types";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, sumExactMoney } from "@/lib/format";
+import { buildCategoryPairs, financialChartPalette } from "@/lib/charts";
 
-const BUDGET_COLOR = "hsl(220, 15%, 55%)";
-const ACTUAL_COLOR = "hsl(168, 65%, 47%)";
-
-type CategoryPair = {
-  category: string;
-  budget: number;
-  actual: number;
-};
-
-function buildCategoryPairs(
-  expenseItems: PublicFinancialSummaryBreakdownLine[],
-  budgetItems: PublicFinancialSummaryBreakdownLine[],
-): CategoryPair[] {
-  const categories = new Map<string, CategoryPair>();
-
-  for (const item of expenseItems) {
-    const cat = item.segment.trim() || "Uncategorized";
-    const existing = categories.get(cat);
-    if (existing) {
-      existing.actual += Number(item.amount);
-    } else {
-      categories.set(cat, { category: cat, budget: 0, actual: Number(item.amount) });
-    }
-  }
-
-  for (const item of budgetItems) {
-    const cat = item.label.trim() || "Uncategorized";
-    const existing = categories.get(cat);
-    if (existing) {
-      existing.budget += Number(item.amount);
-    } else {
-      categories.set(cat, { category: cat, budget: Number(item.amount), actual: 0 });
-    }
-  }
-
-  return Array.from(categories.values()).sort((a, b) => {
-    const maxA = Math.max(a.budget, a.actual);
-    const maxB = Math.max(b.budget, b.actual);
-    return maxB - maxA;
-  });
-}
+const BUDGET_COLOR = financialChartPalette.budget;
+const ACTUAL_COLOR = financialChartPalette.actual;
 
 function niceMax(value: number): number {
   if (value <= 0) return 100;
@@ -60,14 +22,15 @@ function buildYTicks(maxVal: number, tickCount: number): number[] {
   const step = maxVal / tickCount;
   const ticks: number[] = [];
   for (let i = 0; i <= tickCount; i++) {
-    ticks.push(Math.round(step * i));
+    ticks.push(step * i);
   }
   return ticks;
 }
 
 function formatAxisValue(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(value >= 10_000 ? 0 : 1)}K`;
+  if (value >= 1_000)
+    return `${(value / 1_000).toFixed(value >= 10_000 ? 0 : 1)}K`;
   return value.toString();
 }
 
@@ -83,6 +46,8 @@ export function ExpenseBudgetActualChart({
   budgetItems: PublicFinancialSummaryBreakdownLine[];
 }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const activeIndex = hoveredIndex ?? selectedIndex;
   const pairs = buildCategoryPairs(expenseItems, budgetItems);
 
   const hasBudgetData = pairs.some((p) => p.budget > 0);
@@ -114,7 +79,9 @@ export function ExpenseBudgetActualChart({
     <div className="rounded-[1.4rem] border border-border/70 bg-panel-muted p-5">
       <div>
         <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          {description}
+        </p>
       </div>
 
       {pairs.length === 0 || (!hasBudgetData && !hasActualData) ? (
@@ -142,13 +109,18 @@ export function ExpenseBudgetActualChart({
           </div>
 
           {/* SVG chart */}
-          <div className="mt-4 w-full overflow-x-auto">
+          <div
+            tabIndex={0}
+            role="region"
+            aria-label="Scrollable budget comparison chart"
+            className="focus-ring mt-4 w-full overflow-x-auto"
+          >
             <svg
               viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
               className="w-full"
               style={{ minWidth: `${Math.min(SVG_WIDTH, 520)}px` }}
               role="img"
-              aria-label="Expense budget vs actual stacked column chart"
+              aria-label="Budget and actual expense comparison, amounts in BDT"
             >
               {/* Y-axis grid lines and labels */}
               {yTicks.map((tick) => {
@@ -197,8 +169,8 @@ export function ExpenseBudgetActualChart({
                 const actualH = (pair.actual / yMax) * plotH;
                 const budgetY = CHART_TOP + plotH - budgetH;
                 const actualY = CHART_TOP + plotH - actualH;
-                const isHovered = hoveredIndex === index;
-                const dimmed = hoveredIndex !== null && !isHovered;
+                const isHovered = activeIndex === index;
+                const dimmed = activeIndex !== null && !isHovered;
 
                 return (
                   <g
@@ -215,7 +187,7 @@ export function ExpenseBudgetActualChart({
                         x={groupX}
                         y={budgetY}
                         width={singleBarWidth}
-                        height={Math.max(budgetH, 1)}
+                        height={budgetH}
                         rx="3"
                         fill={BUDGET_COLOR}
                       />
@@ -227,7 +199,7 @@ export function ExpenseBudgetActualChart({
                         x={groupX + singleBarWidth}
                         y={actualY}
                         width={singleBarWidth}
-                        height={Math.max(actualH, 1)}
+                        height={actualH}
                         rx="3"
                         fill={ACTUAL_COLOR}
                       />
@@ -300,37 +272,52 @@ export function ExpenseBudgetActualChart({
           {/* Detail table below chart */}
           <div className="mt-5 space-y-2.5">
             {pairs.map((pair, index) => {
-              const diff = pair.actual - pair.budget;
+              const diff = Number(pair.difference);
               const isOverBudget = pair.budget > 0 && diff > 0;
               const isUnderBudget = pair.budget > 0 && diff < 0;
               return (
-                <div
+                <button
+                  type="button"
+                  aria-pressed={selectedIndex === index}
                   key={pair.category}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-panel"
+                  className="focus-ring flex min-h-11 w-full flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-2 text-left text-sm transition-colors hover:bg-panel"
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
+                  onFocus={() => setHoveredIndex(index)}
+                  onBlur={() => setHoveredIndex(null)}
+                  onClick={() =>
+                    setSelectedIndex((selected) =>
+                      selected === index ? null : index,
+                    )
+                  }
                 >
-                  <span className="font-semibold text-foreground">{pair.category}</span>
+                  <span className="font-semibold text-foreground">
+                    {pair.category}
+                  </span>
                   <span className="tabular-nums text-muted-foreground">
                     {pair.budget > 0 && (
                       <>
-                        <span style={{ color: BUDGET_COLOR }}>B: {formatMoney(pair.budget)}</span>
+                        <span style={{ color: BUDGET_COLOR }}>
+                          Budget: {formatMoney(pair.budgetExact)}
+                        </span>
                         <span className="mx-1.5 text-border">|</span>
                       </>
                     )}
-                    <span style={{ color: ACTUAL_COLOR }}>A: {formatMoney(pair.actual)}</span>
+                    <span style={{ color: ACTUAL_COLOR }}>
+                      Actual: {formatMoney(pair.actualExact)}
+                    </span>
                     {isOverBudget && (
                       <span className="ml-1.5 text-xs font-semibold text-destructive">
-                        +{formatMoney(diff)}
+                        +{formatMoney(pair.difference)}
                       </span>
                     )}
                     {isUnderBudget && (
                       <span className="ml-1.5 text-xs font-semibold text-success">
-                        {formatMoney(diff)}
+                        {formatMoney(pair.difference)}
                       </span>
                     )}
                   </span>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -341,7 +328,9 @@ export function ExpenseBudgetActualChart({
               <div className="text-sm">
                 <span className="text-muted-foreground">Total budget: </span>
                 <span className="font-semibold tabular-nums text-foreground">
-                  {formatMoney(pairs.reduce((s, p) => s + p.budget, 0))}
+                  {formatMoney(
+                    sumExactMoney(pairs.map((pair) => pair.budgetExact)),
+                  )}
                 </span>
               </div>
             )}
@@ -349,7 +338,9 @@ export function ExpenseBudgetActualChart({
               <div className="text-sm">
                 <span className="text-muted-foreground">Total actual: </span>
                 <span className="font-semibold tabular-nums text-foreground">
-                  {formatMoney(pairs.reduce((s, p) => s + p.actual, 0))}
+                  {formatMoney(
+                    sumExactMoney(pairs.map((pair) => pair.actualExact)),
+                  )}
                 </span>
               </div>
             )}

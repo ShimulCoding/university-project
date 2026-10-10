@@ -52,22 +52,22 @@ export const roleMeta: Record<
     focus: "Event team coordination, lifecycle management, and cross-functional oversight.",
   },
   FINANCIAL_CONTROLLER: {
-    label: "Financial Controller",
+    label: "Finance Controller",
     shortLabel: "Finance",
     description:
       "Reviews payment proofs, records income, settles expenses, and generates reconciliation.",
     focus: "Verification quality, ledger integrity, and reconciliation readiness.",
   },
   ORGANIZATIONAL_APPROVER: {
-    label: "Organizational Approver",
+    label: "Approver",
     shortLabel: "Approver",
     description:
       "Reviews high-trust requests and decides what becomes operational or publishable.",
     focus: "Decision clarity, separation of duties, and publish-safe oversight.",
   },
   EVENT_MANAGEMENT_USER: {
-    label: "Event Management User",
-    shortLabel: "Events",
+    label: "Event Manager",
+    shortLabel: "Manager",
     description:
       "Prepares event requests, monitors registrations, and tracks operational needs.",
     focus: "Request quality, event readiness, and student-facing execution.",

@@ -22,17 +22,20 @@ export default async function ComplaintSubmissionPage() {
 
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="Complaint submission"
             title="Submit a private complaint"
-            description="Complaints are student-owned, evidence-aware, and intentionally separated from public event and publication views."
+            description="Tell us what happened and attach any supporting evidence. Your complaint is private and visible to authorized review personnel."
           />
 
-          {user ? (
-            <div className="mt-8">
+          {user && complaints.length > 0 ? (
+            <details className="mt-6 rounded-2xl border border-border bg-panel p-5">
+              <summary className="focus-ring cursor-pointer rounded-lg text-sm font-semibold">Review your previous complaints ({complaints.length} on this page)</summary>
+              <div className="mt-5">
               <ComplaintUpdateSummary complaints={complaints} />
-            </div>
+              </div>
+            </details>
           ) : null}
 
           <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
@@ -85,11 +88,11 @@ export default async function ComplaintSubmissionPage() {
   } catch (error) {
     return (
       <PublicPageShell>
-        <main className="section-shell py-12 sm:py-16">
+        <main id="main-content" tabIndex={-1} className="section-shell py-12 sm:py-16">
           <PageHeader
             eyebrow="Complaint submission"
             title="Complaint submission is temporarily unavailable"
-            description="The live backend could not prepare the protected complaint workflow right now."
+            description="We could not prepare the complaint form. Please try again shortly."
           />
           <div className="mt-10">
             <StatePanel

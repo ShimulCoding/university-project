@@ -3,6 +3,7 @@ import { AccountStatus, Prisma } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { AppError } from "./app-error";
 import type { AuthenticatedUser } from "../types/auth";
+import { assertCurrentRequestSession } from "./authenticated-session-context";
 
 // Governance and operational mutations must validate and write on one snapshot.
 // Serializable transactions prevent two concurrent removals from each seeing
@@ -12,6 +13,7 @@ export async function governanceTransaction<T>(
   actor?: Pick<AuthenticatedUser, "id" | "roles" | "eventRoles">,
 ): Promise<T> {
   return transactionWithRetries(async (tx) => {
+    await assertCurrentRequestSession(tx, actor?.id);
     if (actor) {
       const current = await tx.user.count({ where: {
         id: actor.id,

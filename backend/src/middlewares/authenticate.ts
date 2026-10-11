@@ -6,6 +6,7 @@ import { prisma } from "../config/prisma";
 import { mapUserProfile, userWithActiveRolesInclude } from "../modules/users/users.mappers";
 import { verifyAccessToken } from "../utils/tokens";
 import { hasCurrentMfaAssurance, requiresPrivilegedMfa } from "../modules/auth/services/auth-session";
+import { authenticatedSessionContext } from "../utils/authenticated-session-context";
 
 function extractAccessToken(request: Request) {
   const bearerToken = request.headers.authorization?.startsWith("Bearer ")
@@ -74,7 +75,7 @@ export async function authenticate(request: Request, response: Response, next: N
       },
     };
 
-    next();
+    authenticatedSessionContext.run(Object.freeze({ userId: user.id, sessionId: session!.id, sessionVersion: user.sessionVersion }), next);
   } catch (error) {
     next(error);
   }

@@ -7,6 +7,7 @@ import { mapUserProfile } from "../modules/users/users.mappers";
 import { hashValue } from "../utils/hash";
 import { verifyRefreshToken } from "../utils/tokens";
 import { hasCurrentMfaAssurance, requiresPrivilegedMfa } from "../modules/auth/services/auth-session";
+import { authenticatedSessionContext } from "../utils/authenticated-session-context";
 
 export async function authenticateRefreshSession(
   request: Request,
@@ -65,7 +66,7 @@ export async function authenticateRefreshSession(
       },
     };
 
-    next();
+    authenticatedSessionContext.run(Object.freeze({ userId: storedToken.userId, sessionId: storedToken.id, sessionVersion: storedToken.user.sessionVersion }), next);
   } catch {
     response.status(401).json({ message: "Invalid or expired refresh token." });
   }

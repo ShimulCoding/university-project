@@ -1022,10 +1022,19 @@ async function main() {
 
   results.push(
     await runCheck("Expense request document rules remain strict but allow file-only recovery", async () => {
+      await expectAppError("Missing event is rejected before document validation", () => withPatches([
+        { target: eventsRepository as unknown as Record<string, unknown>, key: "findById", value: async () => null },
+      ], () => requestsService.createExpenseRequest(eventManagerActor, { eventId: makeCuid("event5"), amount: "180.00", category: "Transport", purpose: "Volunteer movement" }, undefined)), 404, "Event not found");
+      await expectAppError("Forbidden actor is rejected before document validation", () => withPatches([
+        { target: eventsRepository as unknown as Record<string, unknown>, key: "findById", value: async () => createEventSummary({ id: makeCuid("event5") }) },
+      ], () => requestsService.createExpenseRequest(financeActor, { eventId: makeCuid("event5"), amount: "180.00", category: "Transport", purpose: "Volunteer movement" }, undefined)), 403);
       await expectAppError(
         "Expense request missing document",
         () =>
-          withPatches([], () => requestsService.createExpenseRequest(
+          withPatches([
+            { target: eventsRepository as unknown as Record<string, unknown>, key: "findById", value: async () => createEventSummary({ id: makeCuid("event5") }) },
+            { target: prisma as unknown as Record<string, unknown>, key: "$transaction", value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }) },
+          ], () => requestsService.createExpenseRequest(
             eventManagerActor,
             {
               eventId: makeCuid("event5"),
@@ -1050,7 +1059,9 @@ async function main() {
             value: async () => {
               findExpenseRequestCallCount += 1;
 
-              if (findExpenseRequestCallCount === 1) {
+              // Preflight and transaction both read the existing version;
+              // only the final reload should expose the replacement document.
+              if (findExpenseRequestCallCount <= 2) {
                 return createExpenseRequestContext({
                   id: makeCuid("returnedexpenserequest"),
                   requestedById: eventManagerActor.id,

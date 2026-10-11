@@ -59,7 +59,9 @@ async function main() {
       body.set("supportingDocument", new Blob([evidence().buffer], { type: "application/pdf" }), "synthetic.pdf");
       return body;
     };
-    for (const key of [undefined, "bad", "x".repeat(4096), `${run},${run}`, run.replace(/-4/, "-1")]) {
+    // The version nibble is in the third group. Replacing the first "-4" in
+    // random input sometimes changes the second group and leaves a valid v4.
+    for (const key of [undefined, "bad", "x".repeat(4096), `${run},${run}`, "00000000-4000-1000-8000-000000000000", "00000000-0000-1000-8000-000000000000"]) {
       check((await json(incomeInput, key)).status === 400, "Missing/invalid financial key accepted");
     }
     check((await fetch(`${base}/requests/expense-records`, { method: "POST", headers: { ...headers(1), "Content-Type": "multipart/form-data; boundary=missing" }, body: "malformed" })).status === 400, "Missing key reached multipart parsing");

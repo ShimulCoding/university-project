@@ -2,6 +2,8 @@
 
 ## Active Architecture
 
+- Financial replay verification now passes 62 checks on successive runs. A random non-v4 fixture previously used `replace(/-4/, "-1")`, which could alter the second group and accidentally leave a valid UUID v4; the API correctly accepted it. Fixed third-group v1 fixtures eliminate this false failure without product changes. Read `financial-replay-fixture-review.md`.
+
 - Follow-up network testing found financial forms relied on secure-context-only `crypto.randomUUID`. They now encode 16 Web Crypto random bytes with pinned `uuid` 14.0.3, preserving stable v4 retry keys on HTTP LAN development without predictable fallback. Client financial checks pass 26, including missing-native-UUID and unavailable-randomness negatives; builds/lint/types/frontend regressions and project audit pass. Read `local-network-financial-review.md`. This does not replace production HTTPS.
 
 - The user's local network sign-in reload was reproduced: unconfigured Next development origins block HMR/client hydration, so the form navigates natively to `/dashboard?`. `NEXT_DEV_ALLOWED_ORIGINS` now accepts only explicit operator-configured hostnames; the ignored local API/CORS configuration uses the requested local host consistently. Origin parsing/installed-framework negatives (19) and actual network-origin password/MFA/cookie/authenticated reload/logout (14) pass. The owner confirmed initial MFA setup; a one-use local grant was issued privately with owner-only ACLs, without changing the existing password/roles or enrolling a factor. Human authenticator enrollment remains required. Read `local-network-sign-in-review.md` and `security-mfa-setup.md`; never auto-enroll the real account or disable MFA to resolve a sign-in problem.

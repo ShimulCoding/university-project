@@ -2,6 +2,8 @@
 
 ## Active Architecture
 
+- Approved reset-link transport is implemented: new email capabilities travel in browser fragments, not request queries. React reads the fragment after hydration with a neutral initial state; a capability-keyed form clears stale state on link changes. Unexpired legacy query links remain valid and log-sensitive until expiry. Parser (16), isolated service/API/Edge/design (91), MFA/email/TLS/project and frontend regressions/builds/lint/types pass. No real account/mail/production change occurred. Read `security-reset-link-proposal.md`.
+
 - Next raw framework logging is disabled through its supported `logging: false` option. A synthetic test first reproduced a reset-query capability in the installed development logger; `verify:framework-logging` now passes five real-wrapper/configuration/request/negative-control checks, covering request URLs, action arguments and fetch warnings. This does not sanitize framework trace files or external proxy logs; the approved reset-fragment transport is tracked separately. Read `security-framework-logging-review.md`.
 
 - Completed financial retries now resolve their original record under current governance/session/event authority before scanner/storage I/O. Matching payload/file hashes and result ownership remain mandatory; new/racing operations still scan/store and clean redundant files. A synthetic outage first reproduced hidden completed results; replay verification now passes 61 checks. Read `security-completed-replay-review.md`. No migration or historical-data change was needed.

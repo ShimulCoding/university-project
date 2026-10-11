@@ -250,7 +250,9 @@ export const authService = {
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
     const resetLink = new URL("/reset-password", env.corsOrigins[0]);
-    resetLink.searchParams.set("token", rawToken);
+    // Fragments stay in the browser; request URLs and proxy/framework URL logs
+    // must not carry newly issued recovery capabilities.
+    resetLink.hash = new URLSearchParams({ token: rawToken }).toString();
 
     try {
       const created = await governanceTransaction(async (tx) => {

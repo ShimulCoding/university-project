@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { KeyRound, ShieldAlert, CheckCircle } from "lucide-react";
 
@@ -11,16 +11,37 @@ import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/
 import { Field } from "@/components/ui/field";
 import { PublicPageShell } from "@/components/shell/public-page-shell";
 import { PasswordInput } from "@/components/ui/password-input";
+import { resolveResetToken } from "@/lib/reset-token";
+
+function subscribeFragment(onChange: () => void) {
+  window.addEventListener("hashchange", onChange);
+  window.addEventListener("popstate", onChange);
+  return () => {
+    window.removeEventListener("hashchange", onChange);
+    window.removeEventListener("popstate", onChange);
+  };
+}
+const browserFragment = () => window.location.hash;
+const serverFragment = () => undefined;
 
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const fragment = useSyncExternalStore(subscribeFragment, browserFragment, serverFragment);
+  const token = resolveResetToken(fragment, searchParams.get("token"));
 
-  const [newPassword, setNewPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  if (token === undefined) {
+    return (
+      <main id="main-content" tabIndex={-1} className="flex min-h-[65vh] items-center justify-center px-4 py-12">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <h1 className="font-display text-3xl font-normal">Checking reset link</h1>
+            <CardDescription role="status">Preparing your password reset form...</CardDescription>
+          </CardHeader>
+        </Card>
+      </main>
+    );
+  }
 
   if (!token) {
     return (
@@ -44,6 +65,16 @@ function ResetPasswordContent() {
       </main>
     );
   }
+
+  return <ResetPasswordForm key={token} token={token} />;
+}
+
+function ResetPasswordForm({ token }: { token: string }) {
+  const router = useRouter();
+  const [newPassword, setNewPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (successMessage) {
     return (

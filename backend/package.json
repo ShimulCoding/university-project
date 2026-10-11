@@ -31,6 +31,7 @@
     "verify:security-bootstrap": "tsx scripts/verify-security-bootstrap.ts",
     "verify:security-document-audit": "tsx scripts/verify-security-document-audit.ts",
     "verify:security-mfa-browser": "tsx scripts/verify-security-mfa-browser.ts",
+    "verify:security-reset-browser": "tsx scripts/verify-security-reset-browser.ts",
     "mfa:authorize-enrollment": "tsx scripts/authorize-mfa-enrollment.ts",
     "verify:demo:runtime": "tsx scripts/verify-demo-runtime.ts",
     "verify:demo:mfa-contract": "tsx scripts/verify-demo-mfa-contract.ts",

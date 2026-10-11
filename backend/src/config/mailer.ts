@@ -1,6 +1,7 @@
 import nodemailer, { type Transporter } from "nodemailer";
 
 import { env } from "./env";
+import { configuredSmtpOptions, etherealSmtpOptions } from "../utils/smtp-security";
 
 let transporter: Transporter | null = null;
 
@@ -10,37 +11,9 @@ async function getTransporter() {
   if (!process.env.SMTP_HOST && env.NODE_ENV !== "production") {
     // Generate a test account dynamically using Ethereal
     const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      secure: false,
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 10000,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
+    transporter = nodemailer.createTransport(etherealSmtpOptions(testAccount));
   } else {
-    // For production, you would configure real SMTP settings via env vars
-    // e.g., using SendGrid, AWS SES, or a dedicated SMTP server.
-    // For now, if these are missing, we throw an error or log a warning.
-    if (!process.env.SMTP_HOST || !process.env.SMTP_FROM) {
-      throw new Error("SMTP_HOST and SMTP_FROM are required for password recovery.");
-    }
-    transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === "true",
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 10000,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    transporter = nodemailer.createTransport(configuredSmtpOptions(process.env));
   }
 
   return transporter;

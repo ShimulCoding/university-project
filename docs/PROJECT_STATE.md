@@ -2,6 +2,8 @@
 
 ## Active Architecture
 
+- The user approved `security-mail-transport-proposal.md` after a real loopback mailer probe delivered a synthetic reset message without STARTTLS. Both configured SMTP and Ethereal now require verified TLS 1.2+ with no plaintext fallback, bounded timeouts and disabled arbitrary attachment sources. Invalid settings/incomplete credentials fail without secret diagnostics. `verify:security-mail-transport` passes 35 local policy/downgrade/certificate/encrypted-delivery checks including actual mailer wiring. Backend build, logging (7), email (26), MFA (71) and project audit (81) pass; real SMTP/provider delivery remains unverified.
+
 - Six JSX text entities were normalized without changing rendered content to remove Semgrep partial-parse gaps. The current source scan parses all 300 files with zero errors; one protected `sendFile` warning remains explicitly reviewed. Browser rerun passes workspaces (1,142), MFA (74), public design (301), plus frontend lint/types/build/client/PDF/UI.
 
 - The user approved the additional browser CSP/exact-origin CORS, non-destructive local seed, and fail-closed ClamAV integration in `docs/security-boundary-change-proposal.md`. Implement these separately on the security review branch; no production deployment, database change or secret rotation is authorized by this approval.

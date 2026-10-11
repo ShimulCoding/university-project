@@ -17,6 +17,7 @@
     "verify:security-seed": "tsx scripts/verify-security-seed.ts",
     "verify:security-scanner": "tsx scripts/verify-security-scanner.ts",
     "verify:security-financial-replay": "tsx scripts/verify-security-financial-replay.ts",
+    "verify:security-mail-transport": "tsx scripts/verify-security-mail-transport.ts",
     "verify:seed-types": "tsc -p scripts/tsconfig.seed.json",
     "verify:security-audit-metadata": "tsx scripts/verify-security-audit-metadata.ts",
     "verify:security-uploads": "tsx scripts/verify-security-uploads.ts",

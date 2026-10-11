@@ -47,7 +47,7 @@ Copy:
 | `SEED_ADMIN_EMAIL` | Yes for admin seed | Seeded admin email |
 | `SEED_ADMIN_PASSWORD` | Yes for admin seed | Seeded admin password |
 | `SMTP_HOST`, `SMTP_FROM` | Yes for production recovery | Real email transport host and sender |
-| `SMTP_PORT`, `SMTP_SECURE` | For SMTP | Transport port (default 587) and TLS flag |
+| `SMTP_PORT`, `SMTP_SECURE` | For SMTP | Default 587 requires verified STARTTLS; 465 defaults to implicit TLS. Other ports must use verified TLS too. |
 | `SMTP_USER`, `SMTP_PASS` | For authenticated SMTP | Transport credentials |
 
 Environment files do not overwrite values already supplied by the shell or deployment. Relative `UPLOADS_ROOT` resolves from the backend directory in both source and compiled runtime. SMTP is used when configured in development; otherwise development can use Ethereal. Mail errors do not reveal matching recovery details. Connection/greeting timeouts are 5 seconds and socket timeout is 10 seconds; real delivery is an integration check separate from local privacy tests.
@@ -244,6 +244,8 @@ What it verifies:
 - Health: `http://localhost:4000/health`
 
 ## Common Notes
+
+- Recovery SMTP requires verified TLS 1.2 or newer, with no plaintext/certificate fallback. Supply `SMTP_HOST`, `SMTP_FROM` and both credentials if the relay requires them. Use `SMTP_PORT=587`, `SMTP_SECURE=false` for STARTTLS or `465`/`true` for implicit TLS; insecure servers fail delivery while the public recovery response stays generic. Verify locally with `verify:security-mail-transport` (uses Git's bundled OpenSSL on Windows; override `VERIFY_OPENSSL_PATH` for another installation). Real provider delivery is not part of this fixture check.
 
 - Financial creates on the review branch require a random UUID v4 `Idempotency-Key` header on `POST /api/payments/income-records` and `POST /api/requests/expense-records`. Reuse it with identical inputs/files after a lost response; never generate a replacement key for an uncertain write. Changed content returns 409 and current authority is checked again. The migration adds only `FinancialIdempotency` and its enum/indexes/constraints. Run backend `verify:security-financial-replay` and frontend `verify:financial-submission`; browser workspaces test both lost-response forms. Forms preserve retries while mounted; check the ledger before resubmitting after closing/reloading an unconfirmed form.
 

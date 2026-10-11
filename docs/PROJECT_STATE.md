@@ -2,6 +2,7 @@
 
 ## Active Architecture
 
+- The user approved the additional browser CSP/exact-origin CORS, non-destructive local seed, and fail-closed ClamAV integration in `docs/security-boundary-change-proposal.md`. Implement these separately on the security review branch; no production deployment, database change or secret rotation is authorized by this approval.
 - A new local security review is in progress on `security/local-hardening-2026-10-11`. The user explicitly requested pushing that branch for review and leaving main unchanged. Read `docs/security-entry-point-map.md`, `docs/security-hardening-review.md`, `docs/security-auth-change-proposal.md`, and `docs/security-mfa-setup.md`. Authentication changes and additive local migration were approved. The MFA migration is applied locally (12 migrations); production is untouched.
 - Operational logging now excludes query strings, arbitrary paths, raw errors/Prisma diagnostics and development mail preview capabilities. `verify:security-logging` exercises this with synthetic values; the existing 80-check audit suite passes.
 - Multipart operations now reject forbidden roles/records before parsing and storage, retain transaction authorization checks, and share bounded upload admission and per-account rates. `verify:security-uploads` passes 11 negative/cancellation checks; the existing audit (80) and workspace (91) suites pass.

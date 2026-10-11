@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
+import { developmentOrigins } from "./src/lib/security/development-origins";
 
 const nextConfig: NextConfig = {
   agentRules: false,
   reactStrictMode: true,
   poweredByHeader: false,
+  allowedDevOrigins: developmentOrigins(process.env.NEXT_DEV_ALLOWED_ORIGINS),
   // Development request URLs, fetch warnings and server-action arguments can
   // contain recovery capabilities. Disable the framework's raw request logger.
   logging: false,

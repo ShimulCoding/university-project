@@ -17,6 +17,8 @@ Copy:
 Default:
 `http://localhost:4000/api`
 
+For a local network URL, set `NEXT_DEV_ALLOWED_ORIGINS` to the exact frontend hostname/IP (comma-separated, no wildcard/scheme/port/path). Configure `NEXT_PUBLIC_API_BASE_URL` with that same host and add the exact frontend origin to backend `FRONTEND_URL`; restart development. Always open the configured host rather than mixing localhost with a LAN API, so browser cookies and server-rendered authentication use one host. Read `local-network-sign-in-review.md`. Verification: frontend `verify:development-origins`; backend `verify:network-sign-in` with matching local `VERIFY_FRONTEND_BASE_URL`/`VERIFY_API_BASE_URL`. The latter uses only a disposable account and accepts only loopback or addresses belonging to the current machine.
+
 Recovery-email API: `PATCH /api/auth/update-email` requires both `email` (at most 255 characters) and `currentPassword` in an authenticated JSON request. A successful change expires authentication cookies and revokes all previous sessions/recovery authorizations; sign in again. It does not verify institutional ownership of the new mailbox.
 
 All password login aliases and sensitive password checks share 10 failed attempts per account in 15 minutes. These denials are persisted atomically in the audit log; do not purge recent security events to bypass a lockout. MFA has a separate persisted failure budget. The additive audit-count index must be deployed with the security branch's migrations.

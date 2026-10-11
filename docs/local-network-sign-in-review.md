@@ -1,0 +1,33 @@
+# Local network sign-in follow-up — 2026-10-12
+
+## Root cause and fix
+
+At `ecccd1b`, `frontend/next.config.ts:3` has no `allowedDevOrigins` configuration; `frontend/src/lib/api/shared.ts:3` defaults the API to localhost. The user's network-IP dashboard loads HTML but Next rejects its development HMR origin (`node_modules/next/dist/server/lib/router-utils/block-cross-site-dev.js:113`). Actual Edge reproduction found no attached React form handler and no login POST; clicking Sign In performs a native `/dashboard?` navigation. The same credentials work on localhost and reach mandatory MFA enrollment. Password, account status and global assignment were checked privately; there was no password lockout.
+
+`NEXT_DEV_ALLOWED_ORIGINS` now configures explicit hostnames in Next's supported allow-list through `frontend/src/lib/security/development-origins.ts:3`. Wildcards, schemes, credentials, ports and paths are rejected. No incoming Host/Origin header contributes trusted configuration. Unknown and opaque origins remain blocked. The ignored local frontend/API configuration now uses the user's confirmed machine address consistently, with its exact frontend origin listed in backend CORS. No password, role, session-security policy or factor key was changed.
+
+For another local machine, replace `LAN_HOST` below with its actual local interface address, then restart development:
+
+```dotenv
+# frontend/.env.local (ignored)
+NEXT_DEV_ALLOWED_ORIGINS=LAN_HOST
+NEXT_PUBLIC_API_BASE_URL=http://LAN_HOST:4000/api
+
+# backend/.env (ignored): retain other legitimate exact origins
+FRONTEND_URL=http://localhost:3000,http://LAN_HOST:3000
+```
+
+Open the frontend using the **same hostname as the configured API**. Cookies span ports on that host; switching between localhost and a network address while retaining an API on the other host does not preserve the intended authenticated browser/server-rendering boundary. To use localhost again, change the API base back to localhost and restart. Production uses the documented same-origin HTTPS proxy; this configuration is local development, not deployment or a claim of TLS protection on LAN HTTP. Reference: [Next allowedDevOrigins](https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins).
+
+## MFA handoff
+
+The existing administrator had neither an enrolled factor nor an active setup grant. The owner explicitly confirmed the account and authorized initial setup. The operator utility issued a one-use grant into a fresh ignored directory/file with owner-only Windows ACLs. Its code, password and private path are not committed. The user must enter the grant in the browser, enroll their own authenticator, verify its code and save offline recovery codes. No factor was enrolled by the agent, and no security check was bypassed. The existing password is preserved; grant lifetime is 24 hours and each password-stage challenge lasts five minutes.
+
+## Verification
+
+- `verify:development-origins`: 19 parser and installed-Next allow/deny checks pass, including a negative control reproducing the unconfigured-host block and hostile/opaque-origin denial after configuration.
+- `verify:network-sign-in`: 14 actual Edge/cookie/MFA/server-rendering/negative checks pass on the confirmed local network host with a disposable account. Hydration and password submission work; password alone remains unauthorized; MFA produces the correct host cookie; authenticated reload and logout work. No real account's factor/recovery code is used. The first fixture cookie assertion queried `/api` instead of its `/api/auth` path; it was corrected before the successful run.
+- The actual owner's password-stage browser recheck accepts the unchanged password and shows enrollment without native reload. Its test challenge is cancelled afterward; the owner's setup grant is not consumed by verification.
+- Both builds, frontend lint and standalone types, strict network-fixture types, exact-origin CORS (18), frontend client/financial (17)/PDF/UI/CSP (13)/framework logging (5)/reset parser (16) pass.
+
+The audit's previous production/browser results remain historical evidence; this follow-up specifically reproduces the user's **development network origin**. Existing records were not reseeded and production/main were not modified.

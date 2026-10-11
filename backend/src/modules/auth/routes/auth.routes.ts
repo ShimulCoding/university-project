@@ -80,6 +80,7 @@ router.get("/me", authenticate, asyncHandler(authController.getCurrentUser));
 router.patch(
   "/update-email",
   authenticate,
+  authRateLimiter,
   validateRequest(updateEmailSchema),
   asyncHandler(authController.updateEmail),
 );

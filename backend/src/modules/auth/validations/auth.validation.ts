@@ -62,7 +62,8 @@ export const resetPasswordSchema = z.object({
 
 export const updateEmailSchema = z.object({
   body: z.object({
-    email: z.string().trim().email("Please enter a valid email address."),
+    email: z.string().trim().email("Please enter a valid email address.").max(255),
+    currentPassword: passwordField,
   }),
 });
 

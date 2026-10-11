@@ -58,6 +58,8 @@ export async function authenticate(request: Request, response: Response, next: N
 
     request.auth = {
       userId: profile.id,
+      sessionId: session!.id,
+      sessionVersion: user.sessionVersion,
       roles: profile.roles,
       user: {
         id: profile.id,

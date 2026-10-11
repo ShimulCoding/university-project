@@ -7,6 +7,8 @@ declare global {
     interface Request {
       auth?: {
         userId: string;
+        sessionId: string;
+        sessionVersion: number;
         roles: RoleCode[];
         user: AuthenticatedUser;
       };

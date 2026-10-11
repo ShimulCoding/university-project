@@ -124,17 +124,16 @@ export const authController = {
 
   async updateEmail(request: Request, response: Response) {
     const user = await authService.updateEmail(
-      request.auth!.userId,
+      request.auth!,
       request.body.email,
-      {
-        ipAddress: request.ip || undefined,
-        userAgent: request.get("user-agent") || undefined,
-        route: request.originalUrl,
-        method: request.method,
-      },
+      request.body.currentPassword,
+      getRequestMetadata(request),
     );
 
-    response.status(200).json({ user });
+    response.clearCookie(authCookieNames.accessToken, clearCookieOptions);
+    response.clearCookie(authCookieNames.refreshToken, clearCookieOptions);
+    response.clearCookie(authCookieNames.mfaChallenge, { ...mfaChallengeCookieOptions, maxAge: 0 });
+    response.status(200).json({ user, message: "Recovery email updated. Sign in again to continue." });
   },
 
   async internalLogin(request: Request, response: Response) {

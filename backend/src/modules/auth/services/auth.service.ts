@@ -4,12 +4,13 @@ import { AccountStatus, RoleCode } from "@prisma/client";
 import { env } from "../../../config/env";
 import { mailer } from "../../../config/mailer";
 import type { DbClient } from "../../../types/database";
+import type { AuthenticatedSession } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { hashValue } from "../../../utils/hash";
 import { normalizeEmail } from "../../../utils/normalize-email";
 import { hashPassword, verifyPassword } from "../../../utils/password";
 import { verifyRefreshToken } from "../../../utils/tokens";
-import { issueSession, requiresPrivilegedMfa } from "./auth-session";
+import { issueSession, requiresPrivilegedMfa, hasCurrentMfaAssurance } from "./auth-session";
 import { mfaService } from "./mfa.service";
 import { eventScopedInternalRoles } from "../../../utils/event-scope";
 import type { AuditMetadata } from "../../audit/types/audit.types";
@@ -421,15 +422,32 @@ export const authService = {
     return mapUserProfile(user);
   },
 
-  async updateEmail(userId: string, newEmail: string, auditMetadata?: AuditMetadata) {
+  async updateEmail(session: AuthenticatedSession, newEmail: string, currentPassword: string, auditMetadata?: AuditMetadata) {
+    const verified = await usersRepository.findById(session.userId);
+    if (!verified || !await verifyPassword(currentPassword, verified.passwordHash)) {
+      throw new AppError(403, "The current password is incorrect.");
+    }
     return governanceTransaction(async (tx) => {
+      const userId = session.userId;
+      const user = await usersRepository.findById(userId, tx);
+      const boundSession = await tx.refreshToken.findUnique({ where: { id: session.sessionId } });
+      if (!user || user.status !== AccountStatus.ACTIVE || user.passwordHash !== verified.passwordHash ||
+          user.sessionVersion !== session.sessionVersion || !boundSession || boundSession.userId !== userId ||
+          boundSession.revokedAt || boundSession.expiresAt <= new Date() ||
+          (requiresPrivilegedMfa(user) && (!user.mfaFactor || !hasCurrentMfaAssurance(boundSession.mfaVerifiedAt)))) {
+        throw new AppError(403, "Sign in again before changing the recovery email.");
+      }
       const email = normalizeEmail(newEmail);
       const existingUser = await usersRepository.findByEmail(email, tx);
       if (existingUser && existingUser.id !== userId) {
         throw new AppError(409, "This email is already in use by another account.");
       }
       const updatedUser = await usersRepository.updateEmail(userId, email, tx);
+      await tx.user.update({ where: { id: userId }, data: { sessionVersion: { increment: 1 } } });
+      await authRepository.revokeActiveRefreshTokensForUser(userId, tx);
       await authRepository.invalidatePasswordResetTokensForUser(userId, tx);
+      await tx.mfaChallenge.updateMany({ where: { userId, consumedAt: null }, data: { consumedAt: new Date(), pendingEncryptedSecret: null } });
+      await tx.mfaEnrollmentGrant.updateMany({ where: { userId, usedAt: null, revokedAt: null }, data: { revokedAt: new Date() } });
       await auditService.record({
         actorId: userId,
         action: "auth.update_email",

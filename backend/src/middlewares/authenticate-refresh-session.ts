@@ -49,6 +49,8 @@ export async function authenticateRefreshSession(
 
     request.auth = {
       userId: profile.id,
+      sessionId: storedToken.id,
+      sessionVersion: storedToken.user.sessionVersion,
       roles: profile.roles,
       user: {
         id: profile.id,

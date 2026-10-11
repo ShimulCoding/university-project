@@ -17,6 +17,8 @@ Copy:
 Default:
 `http://localhost:4000/api`
 
+Recovery-email API: `PATCH /api/auth/update-email` requires both `email` (at most 255 characters) and `currentPassword` in an authenticated JSON request. A successful change expires authentication cookies and revokes all previous sessions/recovery authorizations; sign in again. It does not verify institutional ownership of the new mailbox.
+
 ### Backend
 Copy:
 `backend/.env.example` -> `backend/.env`

@@ -5,6 +5,12 @@ export type EventScopedRole = {
   roleCode: RoleCode;
 };
 
+export type AuthenticatedSession = {
+  userId: string;
+  sessionId: string;
+  sessionVersion: number;
+};
+
 export type AuthenticatedUser = {
   id: string;
   fullName: string;

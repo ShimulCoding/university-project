@@ -19,6 +19,8 @@ Default:
 
 Recovery-email API: `PATCH /api/auth/update-email` requires both `email` (at most 255 characters) and `currentPassword` in an authenticated JSON request. A successful change expires authentication cookies and revokes all previous sessions/recovery authorizations; sign in again. It does not verify institutional ownership of the new mailbox.
 
+All password login aliases and sensitive password checks share 10 failed attempts per account in 15 minutes. These denials are persisted atomically in the audit log; do not purge recent security events to bypass a lockout. MFA has a separate persisted failure budget. The additive audit-count index must be deployed with the security branch's migrations.
+
 ### Backend
 Copy:
 `backend/.env.example` -> `backend/.env`

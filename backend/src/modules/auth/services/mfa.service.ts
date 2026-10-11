@@ -7,7 +7,7 @@ import { AppError } from "../../../utils/app-error";
 import { hashValue } from "../../../utils/hash";
 import { encryptMfaSecret, decryptMfaSecret } from "../../../utils/mfa-crypto";
 import { governanceTransaction } from "../../../utils/governance-transaction";
-import { verifyPassword } from "../../../utils/password";
+import { assertPasswordBudget, verifyAccountPassword } from "./password-security";
 import { auditService } from "../../audit/services/audit.service";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { mapUserProfile, userWithActiveRolesInclude, type UserWithActiveRoles } from "../../users/users.mappers";
@@ -49,6 +49,7 @@ export async function createEnrollmentGrant(userId: string, issuerId: string | u
     if (!user || user.status !== "ACTIVE" || !requiresPrivilegedMfa(user)) throw new AppError(400, "Choose an active privileged account.");
     if (user.mfaFactor) throw new AppError(409, "This account already has MFA. Use an offline recovery code; enrollment cannot replace its factor.");
     if (issuerId) {
+      await assertPasswordBudget(issuerId, tx);
       const issuer = await usersRepository.findById(issuerId, tx);
       if (!issuer || issuer.status !== "ACTIVE" || !mapUserProfile(issuer).roles.includes("SYSTEM_ADMIN") ||
           !verifiedIssuer || issuer.passwordHash !== verifiedIssuer.passwordHash || issuer.sessionVersion !== verifiedIssuer.sessionVersion) throw new AppError(403, "System Admin access required.");
@@ -85,8 +86,8 @@ export const mfaService = {
   },
 
   async issueEnrollmentGrant(actor: AuthenticatedUser, userId: string, currentPassword: string, metadata?: AuditMetadata) {
-    const current = await usersRepository.findById(actor.id);
-    if (!current || current.status !== "ACTIVE" || !actor.roles.includes("SYSTEM_ADMIN") || !await verifyPassword(currentPassword, current.passwordHash)) throw new AppError(403, "Current administrator password required.");
+    const current = await verifyAccountPassword(await usersRepository.findById(actor.id), currentPassword, "Current administrator password required.", metadata, 403);
+    if (current.status !== "ACTIVE" || !actor.roles.includes("SYSTEM_ADMIN")) throw new AppError(403, "Current administrator password required.");
     // Role/status rechecked again inside the grant transaction.
     return createEnrollmentGrant(userId, actor.id, metadata, { passwordHash: current.passwordHash, sessionVersion: current.sessionVersion });
   },

@@ -8,7 +8,7 @@ import type { AuthenticatedSession } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { hashValue } from "../../../utils/hash";
 import { normalizeEmail } from "../../../utils/normalize-email";
-import { hashPassword, verifyPassword } from "../../../utils/password";
+import { hashPassword } from "../../../utils/password";
 import { verifyRefreshToken } from "../../../utils/tokens";
 import { issueSession, requiresPrivilegedMfa, hasCurrentMfaAssurance } from "./auth-session";
 import { mfaService } from "./mfa.service";
@@ -29,20 +29,15 @@ import type {
   ResetPasswordInput,
 } from "../types/auth.types";
 import { authRepository } from "../repositories/auth.repository";
+import { assertPasswordBudget, verifyAccountPassword } from "./password-security";
 
 const passwordResetRequestMessage =
   "If the details are correct, a password reset link has been sent to your email.";
 
 type LoginUser = NonNullable<Awaited<ReturnType<typeof usersRepository.findById>>>;
 
-async function verifyLoginCredentials(user: LoginUser | null, password: string, message: string) {
-  if (!user || !await verifyPassword(password, user.passwordHash)) {
-    throw new AppError(401, message);
-  }
-  return user;
-}
-
 async function currentLoginUser(verified: LoginUser, db: DbClient, message: string) {
+  await assertPasswordBudget(verified.id, db);
   const user = await usersRepository.findById(verified.id, db);
   if (!user || user.passwordHash !== verified.passwordHash || user.email !== verified.email || user.studentId !== verified.studentId) {
     throw new AppError(401, message);
@@ -168,7 +163,7 @@ export const authService = {
     // Keep expensive bcrypt work outside the write transaction.
     // Credentials and current permissions are rechecked on its snapshot.
     const message = "Invalid Student ID or password.";
-    const verified = await verifyLoginCredentials(await usersRepository.findByStudentId(input.studentId.trim()), input.password, message);
+    const verified = await verifyAccountPassword(await usersRepository.findByStudentId(input.studentId.trim()), input.password, message, auditMetadata);
     return sessionTransaction(async (tx) => {
       const user = await currentLoginUser(verified, tx, message);
       if (requiresPrivilegedMfa(user)) return mfaService.beginChallenge(user, "student", undefined, auditMetadata, tx);
@@ -191,7 +186,7 @@ export const authService = {
 
   async internalLogin(input: InternalLoginInput, auditMetadata?: AuditMetadata): Promise<LoginResult> {
     const message = "Invalid email or password.";
-    const verified = await verifyLoginCredentials(await usersRepository.findByEmail(normalizeEmail(input.email)), input.password, message);
+    const verified = await verifyAccountPassword(await usersRepository.findByEmail(normalizeEmail(input.email)), input.password, message, auditMetadata);
     return sessionTransaction(async (tx) => {
       const user = await currentLoginUser(verified, tx, message);
       const isSystemAdmin = user.roles.some((assignment) => assignment.role.code === RoleCode.SYSTEM_ADMIN);
@@ -207,7 +202,7 @@ export const authService = {
     auditMetadata?: AuditMetadata,
   ): Promise<LoginResult> {
     const message = "Invalid email or password.";
-    const verified = await verifyLoginCredentials(await usersRepository.findByEmail(normalizeEmail(input.email)), input.password, message);
+    const verified = await verifyAccountPassword(await usersRepository.findByEmail(normalizeEmail(input.email)), input.password, message, auditMetadata);
     return sessionTransaction(async (tx) => {
       const user = await currentLoginUser(verified, tx, message);
       const event = await tx.event.findFirst({
@@ -423,12 +418,10 @@ export const authService = {
   },
 
   async updateEmail(session: AuthenticatedSession, newEmail: string, currentPassword: string, auditMetadata?: AuditMetadata) {
-    const verified = await usersRepository.findById(session.userId);
-    if (!verified || !await verifyPassword(currentPassword, verified.passwordHash)) {
-      throw new AppError(403, "The current password is incorrect.");
-    }
+    const verified = await verifyAccountPassword(await usersRepository.findById(session.userId), currentPassword, "The current password is incorrect.", auditMetadata, 403);
     return governanceTransaction(async (tx) => {
       const userId = session.userId;
+      await assertPasswordBudget(userId, tx);
       const user = await usersRepository.findById(userId, tx);
       const boundSession = await tx.refreshToken.findUnique({ where: { id: session.sessionId } });
       if (!user || user.status !== AccountStatus.ACTIVE || user.passwordHash !== verified.passwordHash ||

@@ -10,7 +10,7 @@ import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
 import { paymentsController } from "../controllers/payments.controller";
 import { paymentsService } from "../services/payments.service";
-import { uploadAdmission, uploadRateLimiter } from "../../../middlewares/upload-guard";
+import { authorizeOperationalUpload, uploadAdmission, uploadRateLimiter } from "../../../middlewares/upload-guard";
 import {
   incomeRecordIdParamSchema,
   listIncomeRecordsSchema,
@@ -82,7 +82,9 @@ router.post(
 );
 router.post(
   "/income-records",
-  authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  authorizeOperationalUpload([RoleCode.FINANCIAL_CONTROLLER]),
+  uploadRateLimiter,
+  uploadAdmission,
   upload.array("evidenceFile", 15),
   asyncHandler(paymentsController.createIncomeRecord),
 );

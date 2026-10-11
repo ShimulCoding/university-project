@@ -80,6 +80,11 @@ function assertHasAnyFinanceAssignment(viewer: AuthenticatedUser) {
 }
 
 export const paymentsService = {
+  async assertIncomeRecordUploadAccess(actor: AuthenticatedUser, eventId: string): Promise<void> {
+    const event = await eventsRepository.findById(eventId);
+    if (!event) throw new AppError(404, "Event not found.");
+    assertEventFinancePermissions(actor, event.id);
+  },
   async assertPaymentProofUploadAccess(actor: AuthenticatedUser, registrationId: string): Promise<void> {
     const registration = await registrationsRepository.findById(registrationId);
     if (!registration) throw new AppError(404, "Registration not found.");
@@ -260,6 +265,10 @@ export const paymentsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
+    // Multipart body supplies the owning event. Role/admission gates precede
+    // parsing; this event check precedes scanning/persistence, with a repeat
+    // inside the financial write transaction to handle assignment changes.
+    await paymentsService.assertIncomeRecordUploadAccess(actor, input.eventId);
     const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.SUPPORTING_DOCUMENT, destinationDir: documentDirectories.SUPPORTING_DOCUMENT, rule: uploadRules.SUPPORTING_DOCUMENT });
     try {
       return await governanceTransaction(async (tx) => {

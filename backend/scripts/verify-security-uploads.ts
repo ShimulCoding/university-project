@@ -34,11 +34,14 @@ async function main() {
     storageProvider.removeFile = async () => {}; // Mocked files never touch disk.
     const buffer = Buffer.from("%PDF-1.4\n%%EOF\n");
     await assert.rejects(() => paymentsService.submitPaymentProof(actor, registration.id, { externalChannel: "Cash", referenceText: "Synthetic" }, [{ buffer, size: buffer.length, originalname: "proof.pdf", mimetype: "application/pdf" } as Express.Multer.File]), (error: { statusCode?: number }) => error.statusCode === 403); checks++;
+    for (const forbiddenActor of [actor, { ...actor, roles: ["SYSTEM_ADMIN"] }, { ...actor, eventRoles: [{ eventId: "unassigned-fixture-event", roleCode: "FINANCIAL_CONTROLLER" }] }] as AuthenticatedUser[]) {
+      await assert.rejects(() => paymentsService.createIncomeRecord(forbiddenActor, { eventId: event.id, sourceType: "DONATION", sourceLabel: "Synthetic donation", amount: "1.00", referenceText: "Unauthorized upload fixture" }, [{ buffer, size: buffer.length, originalname: "income.pdf", mimetype: "application/pdf" } as Express.Multer.File]), (error: { statusCode?: number }) => error.statusCode === 403); checks++;
+    }
     assert.equal(saves, 0, "A forbidden actor reached persistent upload storage"); checks++;
     const session = await prisma.refreshToken.create({ data: { userId: attacker.id, tokenHash: run, expiresAt: new Date(Date.now() + 60000) } });
     const token = signAccessToken(attacker.id, 0, session.id);
     const malformed = { method: "POST", headers: { authorization: `Bearer ${token}`, "content-type": "multipart/form-data; boundary=synthetic" }, body: "malformed multipart" };
-    for (const path of [`/payments/registrations/${registration.id}/proofs`, "/requests/budget-requests", "/requests/expense-requests", "/requests/expense-records"]) {
+    for (const path of [`/payments/registrations/${registration.id}/proofs`, "/payments/income-records", "/requests/budget-requests", "/requests/expense-requests", "/requests/expense-records"]) {
       assert.equal((await fetch(`${base}${path}`, malformed)).status, 403, "Forbidden multipart should be denied before parsing"); checks++;
     }
     const admission = createUploadAdmission(2);

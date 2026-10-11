@@ -2,6 +2,7 @@ import type { DocumentCategory } from "@prisma/client";
 
 import { storageProvider } from "../storage";
 import { AppError } from "./app-error";
+import { uploadScanner } from "./upload-scanner";
 
 export type StoredUpload = {
   category: DocumentCategory;
@@ -79,6 +80,7 @@ export async function storeValidatedUpload(
   },
 ): Promise<StoredUpload> {
   assertUploadMatchesRule(file, options.rule, options.documentName);
+  await uploadScanner.scan(file.buffer);
 
   const storedFile = await storageProvider.saveFile({
     buffer: file.buffer,

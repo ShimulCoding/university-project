@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { loadProjectEnv } from "./load-env";
 import { durationToMs } from "../utils/duration";
+import { isIP } from "node:net";
 
 loadProjectEnv();
 
@@ -27,6 +28,14 @@ const rawEnvSchema = z.object({
   REFRESH_TOKEN_COOKIE_NAME: z.string().default("mu_refresh_token"),
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(14).default(12),
   UPLOADS_ROOT: z.string().min(1).default("uploads"),
+  UPLOAD_SCAN_REQUIRED: z.enum(["true", "false"]).default("false"),
+  CLAMD_HOST: z.string().trim().min(1).max(253).refine((host) => isIP(host) > 0 || /^[a-zA-Z0-9](?:[a-zA-Z0-9.-]*[a-zA-Z0-9])?$/.test(host), "CLAMD_HOST must be a hostname or IP, not a URL.").optional(),
+  CLAMD_PORT: z.coerce.number().int().min(1).max(65535).default(3310),
+  CLAMD_TIMEOUT_MS: z.coerce.number().int().min(1000).max(15000).default(10000),
+}).superRefine((config, context) => {
+  if ((config.NODE_ENV === "production" || config.UPLOAD_SCAN_REQUIRED === "true") && !config.CLAMD_HOST) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["CLAMD_HOST"], message: "Enforced upload scanning requires CLAMD_HOST; production cannot disable scanning." });
+  }
 });
 
 const parsedEnv = rawEnvSchema.parse(process.env);

@@ -20,7 +20,7 @@ async function main() {
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   };
   try {
-    const results = await Promise.all([1, 2, 3].map(() => apiFetchClient<{ success: boolean }>("/protected")));
+    const results = await Promise.all(["/protected", "/protected", "/auth/mfa/enrollment-grants"].map((route) => apiFetchClient<{ success: boolean }>(route)));
     assert(results.every((result) => result.success));
     assert.equal(initial, 3);
     assert.equal(rotations, 1, "Concurrent requests rotated the same refresh token more than once");
@@ -32,7 +32,7 @@ async function main() {
       if (String(input).includes("/auth/refresh")) refreshAttempts++;
       return new Response(JSON.stringify({ message: "Unauthorized" }), { status: 401 });
     };
-    for (const path of ["/auth/login", "/auth/internal-login", "/auth/event-team-login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/auth/logout"]) {
+    for (const path of ["/auth/login", "/auth/internal-login", "/auth/event-team-login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/auth/logout", "/auth/mfa/verify", "/auth/mfa/start-enrollment"]) {
       await assert.rejects(() => apiFetchClient(path), (e: { status: number }) => e.status === 401);
     }
     assert.equal(refreshAttempts, 0, "Credential/recovery/logout failures triggered session rotation");

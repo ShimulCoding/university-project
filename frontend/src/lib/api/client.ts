@@ -77,7 +77,7 @@ export async function apiFetchClient<T>(
     if (
       response.status === 401 &&
       !options?._isRetry &&
-      (!path.startsWith("/auth/") || path === "/auth/me" || path === "/auth/update-email")
+      (!path.startsWith("/auth/") || ["/auth/me", "/auth/update-email", "/auth/mfa/enrollment-grants"].includes(path))
     ) {
       if (await waitForSession(controller.signal)) {
         if (options?.signal?.aborted) throw new DOMException("Request aborted", "AbortError");

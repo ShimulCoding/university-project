@@ -2,7 +2,7 @@
 
 ## Active Architecture
 
-- A new local security review is in progress on `security/local-hardening-2026-10-11`. The user explicitly requested pushing that branch for review and leaving main unchanged. Read `docs/security-entry-point-map.md`, `docs/security-hardening-review.md`, and `docs/security-auth-change-proposal.md`. The user approved authentication changes and an additive local migration; implementation is in progress and no new migration has been applied yet.
+- A new local security review is in progress on `security/local-hardening-2026-10-11`. The user explicitly requested pushing that branch for review and leaving main unchanged. Read `docs/security-entry-point-map.md`, `docs/security-hardening-review.md`, `docs/security-auth-change-proposal.md`, and `docs/security-mfa-setup.md`. Authentication changes and additive local migration were approved. The MFA migration is applied locally (12 migrations); production is untouched.
 - Operational logging now excludes query strings, arbitrary paths, raw errors/Prisma diagnostics and development mail preview capabilities. `verify:security-logging` exercises this with synthetic values; the existing 80-check audit suite passes.
 - Multipart operations now reject forbidden roles/records before parsing and storage, retain transaction authorization checks, and share bounded upload admission and per-account rates. `verify:security-uploads` passes 11 negative/cancellation checks; the existing audit (80) and workspace (91) suites pass.
 - One global role: `SYSTEM_ADMIN`.
@@ -50,9 +50,11 @@
 - New event audit records populate the existing `AuditLog.eventId` relation; historical audit context is retained.
 - Refresh tokens are single-use, atomically rotated, and rejected after replay.
 - Password reset consumption and session revocation happen in one transaction.
-- New access tokens bind to an active refresh session and `User.sessionVersion`. Logout invalidates the bound session; password reset and deactivation invalidate account sessions. Legacy unbound access tokens remain compatible until expiry/version invalidation.
+- All access tokens must bind to an active refresh session and `User.sessionVersion`; legacy unbound tokens are rejected. Logout invalidates the bound session; password reset and deactivation invalidate account sessions.
+- System Admin and event personnel require MFA across every login path, refresh and protected API. Enrollment needs a one-use operator/admin authorization after identity verification. Enrolled factors remain required after role removal. TOTP/recovery codes and tickets consume atomically with session/audit writes; assurance expires after 12 hours. Enrollment revokes prior sessions; email password reset preserves MFA. See the setup document for the separate encryption key and first-admin handoff.
 - Operational mutations recheck current account and role authority inside the same serializable transaction as their preconditions, changes and audit writes. Conflict retries are bounded to five attempts with exponential jitter.
 - Sign-in uses short repeatable-read transactions after bcrypt verification, rechecking credentials/status/current assignments before atomic session/audit creation. Governance, financial transitions, signup and password reset retain serializable protection.
+- Pending MFA sign-in explicitly locks its account snapshot without updating the completed-login timestamp. The bounded transaction retry handles both Prisma P2034 and tagged-query SQLSTATE 40001/40P01 conflicts.
 - Required student accounts have a unique Student ID. System Admin can repair names/Student IDs through audited account profile updates. Registration uses the current account's Student ID.
 - One registration per account/event, one pending proof per registration, and one active budget per event are enforced by database indexes. No migration deletes duplicate history automatically.
 - Individual positive monetary inputs fit Decimal(12,2); reconciliation/public aggregate totals fit Decimal(18,2).

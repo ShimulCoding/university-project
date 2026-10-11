@@ -2,6 +2,7 @@ import { Prisma, type AccountStatus, type EventStatus, type RoleCode } from "@pr
 import { eventScopedInternalRoles, globalAccountRoles } from "../../utils/event-scope";
 
 export const userWithActiveRolesInclude = Prisma.validator<Prisma.UserInclude>()({
+  mfaFactor: { select: { enrolledAt: true } },
   roles: {
     where: {
       revokedAt: null,
@@ -43,6 +44,7 @@ export type UserProfile = {
   id: string;
   fullName: string;
   email: string;
+  mfaEnrolled: boolean;
   studentId: string | null;
   batch: string | null;
   department: string | null;
@@ -70,6 +72,7 @@ export function mapUserProfile(user: UserWithActiveRoles): UserProfile {
     id: user.id,
     fullName: user.fullName,
     email: user.email,
+    mfaEnrolled: !!user.mfaFactor,
     studentId: user.studentId ?? null,
     batch: user.batch ?? null,
     department: user.department ?? null,

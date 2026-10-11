@@ -8,6 +8,7 @@ export const authRepository = {
       userId: string;
       tokenHash: string;
       expiresAt: Date;
+      mfaVerifiedAt?: Date | null;
       userAgent?: string | undefined;
       ipAddress?: string | undefined;
     },
@@ -18,6 +19,7 @@ export const authRepository = {
         userId: data.userId,
         tokenHash: data.tokenHash,
         expiresAt: data.expiresAt,
+        mfaVerifiedAt: data.mfaVerifiedAt ?? null,
         ...(data.userAgent ? { userAgent: data.userAgent } : {}),
         ...(data.ipAddress ? { ipAddress: data.ipAddress } : {}),
       },
@@ -69,6 +71,8 @@ export const authRepository = {
   async pruneStaleTokens() {
     try {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      await prisma.mfaChallenge.deleteMany({ where: { OR: [{ expiresAt: { lt: new Date() } }, { consumedAt: { lt: oneDayAgo } }] } });
 
       await prisma.refreshToken.deleteMany({
         where: {

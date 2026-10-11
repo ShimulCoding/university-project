@@ -39,3 +39,11 @@ export type AuthSessionResult = {
   accessToken: string;
   refreshToken: string;
 };
+
+export type MfaChallengeResult = {
+  mfaRequired: true;
+  mode: "ENROLL" | "VERIFY";
+  ticket: string;
+  user: UserProfile;
+};
+export type LoginResult = AuthSessionResult | MfaChallengeResult;

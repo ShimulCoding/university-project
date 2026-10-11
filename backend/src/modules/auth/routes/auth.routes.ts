@@ -1,8 +1,10 @@
 import { Router } from "express";
+import { RoleCode } from "@prisma/client";
+import { authorize } from "../../../middlewares/authorize";
 
 import { authenticate } from "../../../middlewares/authenticate";
 import { validateRequest } from "../../../middlewares/validate-request";
-import { authRateLimiter, loginRateLimiter, sessionRateLimiter } from "../../../config/rate-limit";
+import { authRateLimiter, loginRateLimiter, sessionRateLimiter, mfaRateLimiter } from "../../../config/rate-limit";
 import { asyncHandler } from "../../../utils/async-handler";
 import { authController } from "../controllers/auth.controller";
 import {
@@ -14,9 +16,17 @@ import {
   registerSchema,
   resetPasswordSchema,
   updateEmailSchema,
+  mfaVerificationSchema,
+  mfaEnrollmentSchema,
+  mfaGrantSchema,
 } from "../validations/auth.validation";
 
 const router = Router();
+
+router.use((_request, response, next) => { response.setHeader("Cache-Control", "private, no-store"); next(); });
+router.post("/mfa/enrollment-grants", authenticate, authorize(RoleCode.SYSTEM_ADMIN), mfaRateLimiter, validateRequest(mfaGrantSchema), asyncHandler(authController.issueMfaEnrollmentGrant));
+router.post("/mfa/start-enrollment", mfaRateLimiter, validateRequest(mfaEnrollmentSchema), asyncHandler(authController.startMfaEnrollment));
+router.post("/mfa/verify", mfaRateLimiter, validateRequest(mfaVerificationSchema), asyncHandler(authController.verifyMfa));
 
 router.post(
   "/bootstrap-admin",

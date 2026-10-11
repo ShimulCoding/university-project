@@ -19,6 +19,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Badge } from "@/components/ui/badge";
+import { MfaAccessPanel, type PasswordLoginResponse } from "@/components/auth/mfa-access-panel";
 
 type StudentAccessPanelProps = {
   title: string;
@@ -51,6 +52,7 @@ export function StudentAccessPanel({
   const [section, setSection] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mfaMode, setMfaMode] = useState<"ENROLL" | "VERIFY" | null>(null);
   const [fieldErrors, setFieldErrors] = useState<StudentAccessFieldErrors>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -168,10 +170,12 @@ export function StudentAccessPanel({
           router.refresh();
         });
       } else if (mode === "login") {
-        await postJson("/auth/login", {
+        const result = await postJson<PasswordLoginResponse>("/auth/login", {
           studentId: trimmedStudentId,
           password,
         });
+        setPassword("");
+        if ("mfaRequired" in result) { setMfaMode(result.mode); setIsSubmitting(false); return; }
         setSuccessMessage(
           "Signed in successfully. Loading your private session...",
         );
@@ -197,6 +201,8 @@ export function StudentAccessPanel({
       setIsSubmitting(false);
     }
   };
+
+  if (mfaMode) return <Card className="mx-auto max-w-3xl p-6 sm:p-8"><CardHeader><CardTitle>Verify your account</CardTitle></CardHeader><CardContent><MfaAccessPanel mode={mfaMode} onComplete={() => startTransition(() => router.refresh())} onCancel={() => setMfaMode(null)} /></CardContent></Card>;
 
   const modeIcon =
     mode === "register" ? (

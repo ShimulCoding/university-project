@@ -138,6 +138,11 @@ model User {
   updatedAt                      DateTime                @updatedAt
   roles                          UserRole[]
   refreshTokens                  RefreshToken[]
+  mfaFactor                      MfaFactor?
+  mfaChallenges                  MfaChallenge[]
+  mfaRecoveryCodes               MfaRecoveryCode[]
+  mfaEnrollmentGrants             MfaEnrollmentGrant[]   @relation("MfaGrantRecipient")
+  issuedMfaEnrollmentGrants       MfaEnrollmentGrant[]   @relation("MfaGrantIssuer")
   registrations                  Registration[]          @relation("RegistrationParticipant")
   createdEvents                  Event[]                 @relation("EventCreator")
   paymentProofReviews            PaymentProof[]          @relation("PaymentProofReviewer")
@@ -213,6 +218,7 @@ model RefreshToken {
   tokenHash  String    @unique
   expiresAt  DateTime
   lastUsedAt DateTime?
+  mfaVerifiedAt DateTime?
   revokedAt  DateTime?
   userAgent  String?
   ipAddress  String?
@@ -222,6 +228,65 @@ model RefreshToken {
   @@index([userId])
   @@index([expiresAt])
   @@index([revokedAt])
+}
+
+model MfaFactor {
+  userId          String   @id
+  encryptedSecret String
+  lastTimeStep    Int?
+  enrolledAt      DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MfaChallenge {
+  id                     String   @id @default(cuid())
+  tokenHash              String   @unique
+  userId                 String
+  sessionVersion         Int
+  loginScope             String
+  eventId                String?
+  mode                   String
+  pendingEncryptedSecret String?
+  enrollmentGrantId      String?
+  attempts               Int      @default(0)
+  expiresAt              DateTime
+  consumedAt             DateTime?
+  createdAt              DateTime @default(now())
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event                  Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  enrollmentGrant        MfaEnrollmentGrant? @relation(fields: [enrollmentGrantId], references: [id], onDelete: SetNull)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+}
+
+model MfaRecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String    @unique
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model MfaEnrollmentGrant {
+  id         String    @id @default(cuid())
+  userId     String
+  issuedById String?
+  tokenHash  String    @unique
+  sessionVersion Int
+  expiresAt  DateTime
+  usedAt     DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation("MfaGrantRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  issuedBy   User?     @relation("MfaGrantIssuer", fields: [issuedById], references: [id], onDelete: SetNull)
+  challenges MfaChallenge[]
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model PasswordResetToken {
@@ -252,6 +317,7 @@ model Event {
   updatedAt              DateTime                @updatedAt
   createdBy              User?                   @relation("EventCreator", fields: [createdById], references: [id])
   teamMembers            EventTeamMember[]
+  mfaChallenges          MfaChallenge[]
   registrations          Registration[]
   budgets                Budget[]
   budgetRequests         BudgetRequest[]

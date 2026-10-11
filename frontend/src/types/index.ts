@@ -83,6 +83,7 @@ export type EventRoleAssignment = {
 };
 
 export type UserProfile = {
+  mfaEnrolled?: boolean;
   id: string;
   fullName: string;
   email: string;

@@ -237,7 +237,9 @@ async function main() {
     await http("/auth/me", 401, { headers: { Cookie: `mu_access_token=${access}` } });
     const reset = `reset-${run}`, other = `other-${run}`;
     for (const token of [reset, other]) await prisma.passwordResetToken.create({ data: { userId: owner.id, tokenHash: hashValue(token), expiresAt: new Date(Date.now() + 60_000) } });
-    const oldAccess = signAccessToken(owner.id);
+    const resetSession = await prisma.refreshToken.create({ data: { userId: owner.id, tokenHash: hashValue(`pre-reset-${run}`), expiresAt: new Date(Date.now() + 60_000) } });
+    const oldAccess = signAccessToken(owner.id, 0, resetSession.id);
+    await http("/auth/me", 200, { headers: { Cookie: `mu_access_token=${oldAccess}` } });
     await authService.resetPassword({ token: reset, newPassword: `New-${run}!` });
     await http("/auth/me", 401, { headers: { Cookie: `mu_access_token=${oldAccess}` } });
     check(await prisma.passwordResetToken.count({ where: { userId: owner.id, usedAt: null } }) === 0, "Password reset left another usable reset link");

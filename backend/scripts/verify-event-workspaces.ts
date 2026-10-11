@@ -9,6 +9,7 @@ import { prisma } from "../src/config/prisma";
 import { uploadsRoot } from "../src/config/uploads";
 import { hashPassword } from "../src/utils/password";
 import { storageProvider } from "../src/storage";
+import { createFixtureMfa } from "./helpers/mfa-fixtures";
 
 // Uses uniquely named fixtures and deletes only IDs created by this run.
 // No seed account, existing event, or existing document is modified.
@@ -20,20 +21,29 @@ const platformComplaintIds: string[] = [];
 let evidencePath: string | undefined;
 let baseUrl = "";
 let checks = 0;
+const mfaCodes = new Map<string, string[]>();
 
 function cookiesFrom(response: Response) {
   return response.headers.getSetCookie().map((cookie) => cookie.split(";")[0]).join("; ");
 }
 
 async function request(route: string, cookie = "", method = "GET", body?: unknown, expected = 200) {
-  const response = await fetch(`${baseUrl}/api${route}`, {
+  let response = await fetch(`${baseUrl}/api${route}`, {
     method,
     headers: { Cookie: cookie, ...(body === undefined ? {} : { "Content-Type": "application/json" }) },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   assert.equal(response.status, expected, `${method} ${route} returned ${response.status}, expected ${expected}: ${await response.clone().text()}`);
   checks += 1;
-  return { response, data: response.status === 204 ? null : await response.json() };
+  let data = response.status === 204 ? null : await response.json();
+  if (data?.mfaRequired && ["/auth/internal-login", "/auth/event-team-login"].includes(route)) {
+    const code = mfaCodes.get((body as { email: string }).email)?.shift();
+    assert(code, "Missing fresh isolated MFA recovery code");
+    response = await fetch(`${baseUrl}/api/auth/mfa/verify`, { method: "POST", headers: { Cookie: cookiesFrom(response), "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
+    assert.equal(response.status, 200, "Isolated workspace MFA verification failed"); checks++;
+    data = await response.json();
+  }
+  return { response, data };
 }
 
 async function createAccount(label: string, passwordHash: string, systemAdmin = false) {
@@ -45,6 +55,7 @@ async function createAccount(label: string, passwordHash: string, systemAdmin = 
     ...(adminRole ? { roles: { create: { roleId: adminRole.id } } } : {}),
   } });
   userIds.push(user.id);
+  mfaCodes.set(user.email, await createFixtureMfa(user, runId));
   return user;
 }
 
@@ -226,7 +237,7 @@ async function main() {
         userIds.push(browserStudent.user.id);
         const { verifyBrowserWorkspaces } = await import("./verify-browser-workspaces");
         checks += await verifyBrowserWorkspaces({ frontend, eventSlug: eventA.slug, eventId: eventA.id, financeId: financeA.id, otherSlug: eventB.slug,
-          financeEmail: financeA.email, studentId: browserStudentId, studentUserId: browserStudent.user.id, password, adminCookie, managerCookie, approverCookie });
+          financeEmail: financeA.email, financeRecoveryCode: mfaCodes.get(financeA.email)!.shift()!, studentId: browserStudentId, studentUserId: browserStudent.user.id, password, adminCookie, managerCookie, approverCookie });
       }
     }
 

@@ -19,6 +19,7 @@ const rawEnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
+  MFA_ENCRYPTION_KEY: z.string().regex(/^[A-Za-z0-9+/]{43}=$/, "MFA_ENCRYPTION_KEY must be a separate 32-byte base64 key."),
   ACCESS_TOKEN_TTL: z.string().default("15m"),
   REFRESH_TOKEN_TTL: z.string().default("7d"),
   ACCESS_TOKEN_COOKIE_NAME: z.string().default("mu_access_token"),

@@ -14,6 +14,9 @@
     "verify:project-audit": "tsx scripts/verify-project-audit.ts",
     "verify:security-logging": "tsx scripts/verify-security-logging.ts",
     "verify:security-uploads": "tsx scripts/verify-security-uploads.ts",
+    "verify:security-mfa": "tsx scripts/verify-security-mfa.ts",
+    "verify:security-mfa-browser": "tsx scripts/verify-security-mfa-browser.ts",
+    "mfa:authorize-enrollment": "tsx scripts/authorize-mfa-enrollment.ts",
     "verify:demo:runtime": "tsx scripts/verify-demo-runtime.ts",
     "seed:demo:flows": "tsx scripts/seed-events-payments-demo.ts",
     "seed:demo:runtime": "tsx scripts/seed-demo-runtime-data.ts",
@@ -38,6 +41,7 @@
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
     "nodemailer": "^10.1.0",
+    "otplib": "13.5.0",
     "zod": "^3.24.4"
   },
   "devDependencies": {

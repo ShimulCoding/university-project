@@ -5,8 +5,12 @@ import {
   authCookieNames,
   clearCookieOptions,
   refreshTokenCookieOptions,
+  mfaChallengeCookieOptions,
 } from "../../../config/auth";
 import { authService } from "../services/auth.service";
+import { mfaService } from "../services/mfa.service";
+import type { LoginResult } from "../types/auth.types";
+import { getRequestMetadata } from "../../../utils/request-metadata";
 
 function writeSessionCookies(
   response: Response,
@@ -27,6 +31,19 @@ function writeSessionCookies(
   );
 }
 
+function writeLoginResponse(response: Response, result: LoginResult, status = 200) {
+  if ("mfaRequired" in result) {
+    response.clearCookie(authCookieNames.accessToken, clearCookieOptions);
+    response.clearCookie(authCookieNames.refreshToken, clearCookieOptions);
+    response.cookie(authCookieNames.mfaChallenge, result.ticket, mfaChallengeCookieOptions);
+    response.status(status).json({ mfaRequired: true, mode: result.mode });
+  } else {
+    response.clearCookie(authCookieNames.mfaChallenge, { ...mfaChallengeCookieOptions, maxAge: 0 });
+    writeSessionCookies(response, result);
+    response.status(status).json({ user: result.user });
+  }
+}
+
 export const authController = {
   async bootstrapAdmin(request: Request, response: Response) {
     const session = await authService.bootstrapAdmin(request.body, {
@@ -36,9 +53,7 @@ export const authController = {
       method: request.method,
     });
 
-    writeSessionCookies(response, session);
-
-    response.status(201).json({ user: session.user });
+    writeLoginResponse(response, session, 201);
   },
 
   async register(request: Request, response: Response) {
@@ -62,9 +77,7 @@ export const authController = {
       method: request.method,
     });
 
-    writeSessionCookies(response, session);
-
-    response.status(200).json({ user: session.user });
+    writeLoginResponse(response, session);
   },
 
   async refresh(request: Request, response: Response) {
@@ -84,6 +97,7 @@ export const authController = {
   },
 
   async logout(request: Request, response: Response) {
+    await mfaService.cancelChallenge(request.cookies[authCookieNames.mfaChallenge] as string | undefined, getRequestMetadata(request));
     await authService.logout(
       request.cookies[authCookieNames.refreshToken] as string | undefined,
       request.auth?.userId,
@@ -97,6 +111,7 @@ export const authController = {
 
     response.clearCookie(authCookieNames.accessToken, clearCookieOptions);
     response.clearCookie(authCookieNames.refreshToken, clearCookieOptions);
+    response.clearCookie(authCookieNames.mfaChallenge, { ...mfaChallengeCookieOptions, maxAge: 0 });
 
     response.status(204).send();
   },
@@ -130,9 +145,7 @@ export const authController = {
       method: request.method,
     });
 
-    writeSessionCookies(response, session);
-
-    response.status(200).json({ user: session.user });
+    writeLoginResponse(response, session);
   },
 
   async eventTeamLogin(request: Request, response: Response) {
@@ -143,9 +156,20 @@ export const authController = {
       method: request.method,
     });
 
-    writeSessionCookies(response, session);
+    writeLoginResponse(response, session);
+  },
 
-    response.status(200).json({ user: session.user });
+  async issueMfaEnrollmentGrant(request: Request, response: Response) {
+    response.status(201).json(await mfaService.issueEnrollmentGrant(request.auth!.user, request.body.userId, request.body.currentPassword, getRequestMetadata(request)));
+  },
+  async startMfaEnrollment(request: Request, response: Response) {
+    response.json(await mfaService.startEnrollment(request.cookies[authCookieNames.mfaChallenge] as string | undefined, request.body.enrollmentCode, getRequestMetadata(request)));
+  },
+  async verifyMfa(request: Request, response: Response) {
+    const session = await mfaService.verifyChallenge(request.cookies[authCookieNames.mfaChallenge] as string | undefined, request.body.code, getRequestMetadata(request));
+    writeSessionCookies(response, session);
+    response.clearCookie(authCookieNames.mfaChallenge, { ...mfaChallengeCookieOptions, maxAge: 0 });
+    response.json({ user: session.user, ...("recoveryCodes" in session ? { recoveryCodes: session.recoveryCodes } : {}) });
   },
 
   async forgotPassword(request: Request, response: Response) {

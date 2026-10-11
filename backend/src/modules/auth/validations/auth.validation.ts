@@ -65,3 +65,7 @@ export const updateEmailSchema = z.object({
     email: z.string().trim().email("Please enter a valid email address."),
   }),
 });
+
+export const mfaVerificationSchema = z.object({ body: z.object({ code: z.string().trim().min(6).max(80) }) });
+export const mfaEnrollmentSchema = z.object({ body: z.object({ enrollmentCode: z.string().trim().regex(/^[a-f0-9]{64}$/) }) });
+export const mfaGrantSchema = z.object({ body: z.object({ userId: z.string().cuid(), currentPassword: passwordField, identityConfirmed: z.literal(true) }) });

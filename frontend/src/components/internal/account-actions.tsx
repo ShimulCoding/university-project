@@ -8,6 +8,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Select } from "@/components/ui/select";
+import { MfaEnrollmentAuthorization } from "./mfa-enrollment-authorization";
 import {
   FeedbackMessage,
   useActionState,
@@ -31,6 +32,7 @@ export function AccountActions({
   const { feedback, isPending, runAction } = useActionState();
   return (
     <div className="space-y-5">
+      {!user.mfaEnrolled && (user.roles.includes("SYSTEM_ADMIN") || user.eventRoles.length > 0) ? <MfaEnrollmentAuthorization key={user.id} userId={user.id} /> : null}
       <form
         className="grid gap-3"
         onSubmit={(event) => {

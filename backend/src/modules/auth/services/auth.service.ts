@@ -3,14 +3,14 @@ import { AccountStatus, RoleCode } from "@prisma/client";
 
 import { env } from "../../../config/env";
 import { mailer } from "../../../config/mailer";
-import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
 import { AppError } from "../../../utils/app-error";
-import { durationToMs } from "../../../utils/duration";
 import { hashValue } from "../../../utils/hash";
 import { normalizeEmail } from "../../../utils/normalize-email";
 import { hashPassword, verifyPassword } from "../../../utils/password";
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../../../utils/tokens";
+import { verifyRefreshToken } from "../../../utils/tokens";
+import { issueSession, requiresPrivilegedMfa } from "./auth-session";
+import { mfaService } from "./mfa.service";
 import { eventScopedInternalRoles } from "../../../utils/event-scope";
 import type { AuditMetadata } from "../../audit/types/audit.types";
 import { auditService } from "../../audit/services/audit.service";
@@ -19,6 +19,7 @@ import { mapUserProfile } from "../../users/users.mappers";
 import { usersRepository } from "../../users/repositories/users.repository";
 import type {
   AuthSessionResult,
+  LoginResult,
   EventTeamLoginInput,
   ForgotPasswordInput,
   InternalLoginInput,
@@ -27,10 +28,6 @@ import type {
   ResetPasswordInput,
 } from "../types/auth.types";
 import { authRepository } from "../repositories/auth.repository";
-
-function getRefreshTokenExpiryDate() {
-  return new Date(Date.now() + durationToMs(env.REFRESH_TOKEN_TTL));
-}
 
 const passwordResetRequestMessage =
   "If the details are correct, a password reset link has been sent to your email.";
@@ -55,36 +52,12 @@ async function currentLoginUser(verified: LoginUser, db: DbClient, message: stri
   return user;
 }
 
-async function issueSession(
-  userId: string,
-  metadata?: AuditMetadata,
-  db: DbClient = prisma,
-): Promise<Pick<AuthSessionResult, "accessToken" | "refreshToken">> {
-  const refreshToken = signRefreshToken(userId);
-  const user = await usersRepository.findById(userId, db);
-  if (!user || user.status !== AccountStatus.ACTIVE) throw new AppError(401, "This account is not active.");
-
-  const session = await authRepository.createRefreshToken({
-    userId,
-    tokenHash: hashValue(refreshToken),
-    expiresAt: getRefreshTokenExpiryDate(),
-    ipAddress: metadata?.ipAddress,
-    userAgent: metadata?.userAgent,
-  }, db);
-  const accessToken = signAccessToken(userId, user.sessionVersion, session.id);
-
-  return {
-    accessToken,
-    refreshToken,
-  };
-}
-
 // In-memory flag: once bootstrap has been attempted and users exist, skip the
 // COUNT(*) query on every subsequent call.  Reset only on process restart.
 let bootstrapCompleted = false;
 
 export const authService = {
-  async bootstrapAdmin(input: RegisterInput, auditMetadata?: AuditMetadata): Promise<AuthSessionResult> {
+  async bootstrapAdmin(input: RegisterInput, auditMetadata?: AuditMetadata): Promise<LoginResult> {
     return governanceTransaction(async (tx) => {
       // The bootstrap endpoint must never be reachable in production.
       if (env.NODE_ENV === "production") {
@@ -122,11 +95,7 @@ export const authService = {
         if (!freshUser) {
           throw new AppError(500, "Failed to load the bootstrap admin user.");
         }
-        const tokens = await issueSession(user.id, auditMetadata, tx);
-        return {
-          user: mapUserProfile(freshUser),
-          ...tokens,
-        };
+        return mfaService.beginChallenge(freshUser, "system", undefined, auditMetadata, tx);
       })();
       await auditService.record({
         actorId: session.user.id,
@@ -194,13 +163,14 @@ export const authService = {
     });
   },
 
-  async login(input: LoginInput, auditMetadata?: AuditMetadata): Promise<AuthSessionResult> {
+  async login(input: LoginInput, auditMetadata?: AuditMetadata): Promise<LoginResult> {
     // Keep expensive bcrypt work outside the write transaction.
     // Credentials and current permissions are rechecked on its snapshot.
     const message = "Invalid Student ID or password.";
     const verified = await verifyLoginCredentials(await usersRepository.findByStudentId(input.studentId.trim()), input.password, message);
     return sessionTransaction(async (tx) => {
       const user = await currentLoginUser(verified, tx, message);
+      if (requiresPrivilegedMfa(user)) return mfaService.beginChallenge(user, "student", undefined, auditMetadata, tx);
       const updatedUser = await usersRepository.updateLastLogin(user.id, tx);
       const tokens = await issueSession(user.id, auditMetadata, tx);
       await auditService.record({
@@ -218,7 +188,7 @@ export const authService = {
     });
   },
 
-  async internalLogin(input: InternalLoginInput, auditMetadata?: AuditMetadata): Promise<AuthSessionResult> {
+  async internalLogin(input: InternalLoginInput, auditMetadata?: AuditMetadata): Promise<LoginResult> {
     const message = "Invalid email or password.";
     const verified = await verifyLoginCredentials(await usersRepository.findByEmail(normalizeEmail(input.email)), input.password, message);
     return sessionTransaction(async (tx) => {
@@ -227,27 +197,14 @@ export const authService = {
       if (!isSystemAdmin) {
         throw new AppError(403, "This sign-in is reserved for the System Admin. Use the sign-in link for your assigned event.");
       }
-      const updatedUser = await usersRepository.updateLastLogin(user.id, tx);
-      const tokens = await issueSession(user.id, auditMetadata, tx);
-      await auditService.record({
-        actorId: user.id,
-        action: "auth.internal_login",
-        entityType: "User",
-        entityId: user.id,
-        summary: `Internal login as ${user.email}`,
-        ...auditMetadata,
-      }, tx);
-      return {
-        user: mapUserProfile(updatedUser),
-        ...tokens,
-      };
+      return mfaService.beginChallenge(user, "system", undefined, auditMetadata, tx);
     });
   },
 
   async eventTeamLogin(
     input: EventTeamLoginInput,
     auditMetadata?: AuditMetadata,
-  ): Promise<AuthSessionResult> {
+  ): Promise<LoginResult> {
     const message = "Invalid email or password.";
     const verified = await verifyLoginCredentials(await usersRepository.findByEmail(normalizeEmail(input.email)), input.password, message);
     return sessionTransaction(async (tx) => {
@@ -273,24 +230,7 @@ export const authService = {
       if (!hasActiveEventAssignment) {
         throw new AppError(403, "This account is not assigned to the selected event.");
       }
-      const updatedUser = await usersRepository.updateLastLogin(user.id, tx);
-      const tokens = await issueSession(user.id, auditMetadata, tx);
-      await auditService.record({
-        actorId: user.id,
-        action: "auth.event_team_login",
-        entityType: "Event",
-        entityId: event.id,
-        summary: `Opened event team session for ${event.title}`,
-        context: {
-          eventId: event.id,
-          eventSlug: event.slug,
-        },
-        ...auditMetadata,
-      }, tx);
-      return {
-        user: mapUserProfile(updatedUser),
-        ...tokens,
-      };
+      return mfaService.beginChallenge(user, "event", event.id, auditMetadata, tx);
     });
   },
 
@@ -414,7 +354,7 @@ export const authService = {
         if (!refreshedUser) {
           throw new AppError(404, "User not found for refresh session.");
         }
-        const tokens = await issueSession(refreshedUser.id, auditMetadata, tx);
+        const tokens = await issueSession(refreshedUser.id, auditMetadata, tx, storedToken.mfaVerifiedAt);
         return {
           user: mapUserProfile(refreshedUser),
           ...tokens,

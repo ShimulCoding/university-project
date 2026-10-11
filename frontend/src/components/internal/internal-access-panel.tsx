@@ -18,11 +18,13 @@ import {
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { MfaAccessPanel, type PasswordLoginResponse } from "@/components/auth/mfa-access-panel";
 
 export function InternalAccessPanel() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mfaMode, setMfaMode] = useState<"ENROLL" | "VERIFY" | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,10 +38,12 @@ export function InternalAccessPanel() {
       setIsSubmitting(true);
       setErrorMessage(null);
       setSuccessMessage(null);
-      await postJson("/auth/internal-login", {
+      const result = await postJson<PasswordLoginResponse>("/auth/internal-login", {
         email: email.trim(),
         password,
       });
+      setPassword("");
+      if ("mfaRequired" in result) { setMfaMode(result.mode); setIsSubmitting(false); return; }
 
       setSuccessMessage(
         "Signed in successfully. Loading the System Admin workspace...",
@@ -72,6 +76,7 @@ export function InternalAccessPanel() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {mfaMode ? <MfaAccessPanel mode={mfaMode} onComplete={() => startTransition(() => router.refresh())} onCancel={() => setMfaMode(null)} /> : <>
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           <Field className="md:col-span-2" label="Administrator email">
             <Input
@@ -120,6 +125,7 @@ export function InternalAccessPanel() {
             </Button>
           </div>
         </form>
+        </>}
         <div className="border-t border-border pt-5 text-xs leading-6 text-muted-foreground">
           Part of an event team?{" "}
           <Link

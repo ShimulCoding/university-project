@@ -5,6 +5,7 @@ import { authCookieNames } from "../config/auth";
 import { prisma } from "../config/prisma";
 import { mapUserProfile, userWithActiveRolesInclude } from "../modules/users/users.mappers";
 import { verifyAccessToken } from "../utils/tokens";
+import { hasCurrentMfaAssurance, requiresPrivilegedMfa } from "../modules/auth/services/auth-session";
 
 function extractAccessToken(request: Request) {
   const bearerToken = request.headers.authorization?.startsWith("Bearer ")
@@ -42,9 +43,14 @@ export async function authenticate(request: Request, response: Response, next: N
     });
 
     const session = payload.sessionId ? await prisma.refreshToken.findUnique({ where: { id: payload.sessionId } }) : null;
-    const invalidSession = payload.sessionId && (!session || session.userId !== payload.sub || session.revokedAt || session.expiresAt <= new Date());
+    const invalidSession = !payload.sessionId || !session || session.userId !== payload.sub || session.revokedAt || session.expiresAt <= new Date();
     if (!user || user.status !== AccountStatus.ACTIVE || (payload.version ?? 0) !== user.sessionVersion || invalidSession) {
       response.status(401).json({ message: "Your account is not allowed to access this resource." });
+      return;
+    }
+
+    if (requiresPrivilegedMfa(user) && (!user.mfaFactor || !hasCurrentMfaAssurance(session?.mfaVerifiedAt))) {
+      response.status(401).json({ message: "Complete multifactor sign-in to access this account." });
       return;
     }
 

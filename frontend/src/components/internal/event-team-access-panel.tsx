@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { KeyRound } from "lucide-react";
 
-import type { UserProfile } from "@/types";
 import { postJson } from "@/lib/api/client";
 import { getApiErrorMessage } from "@/lib/api/shared";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import {
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { MfaAccessPanel, type PasswordLoginResponse } from "@/components/auth/mfa-access-panel";
 
 export function EventTeamAccessPanel({
   eventLookupKey,
@@ -27,6 +27,7 @@ export function EventTeamAccessPanel({
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mfaMode, setMfaMode] = useState<"ENROLL" | "VERIFY" | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,11 +41,13 @@ export function EventTeamAccessPanel({
       setErrorMessage(null);
       setSuccessMessage(null);
 
-      await postJson<{ user: UserProfile }>("/auth/event-team-login", {
+      const result = await postJson<PasswordLoginResponse>("/auth/event-team-login", {
         email: email.trim(),
         password,
         eventLookupKey,
       });
+      setPassword("");
+      if ("mfaRequired" in result) { setMfaMode(result.mode); setIsSubmitting(false); return; }
 
       setSuccessMessage(
         "Assignment confirmed. Opening this event workspace...",
@@ -74,6 +77,7 @@ export function EventTeamAccessPanel({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {mfaMode ? <MfaAccessPanel mode={mfaMode} onComplete={() => startTransition(() => router.refresh())} onCancel={() => setMfaMode(null)} /> : <>
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           <Field className="md:col-span-2" label="Assigned email">
             <Input
@@ -139,6 +143,7 @@ export function EventTeamAccessPanel({
             </span>
           </div>
         </form>
+        </>}
       </CardContent>
     </Card>
   );

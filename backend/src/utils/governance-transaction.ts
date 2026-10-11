@@ -48,7 +48,11 @@ async function transactionWithRetries<T>(
         timeout: 30_000,
       });
     } catch (error) {
-      if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2034") {
+      const retryable = error instanceof Prisma.PrismaClientKnownRequestError && (
+        error.code === "P2034" ||
+        (error.code === "P2010" && ["40001", "40P01"].includes(String(error.meta?.code)))
+      );
+      if (!retryable) {
         throw error;
       }
       // Avoid synchronized retries when independent requests contend on index pages.

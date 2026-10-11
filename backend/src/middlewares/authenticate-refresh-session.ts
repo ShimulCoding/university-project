@@ -6,6 +6,7 @@ import { authRepository } from "../modules/auth/repositories/auth.repository";
 import { mapUserProfile } from "../modules/users/users.mappers";
 import { hashValue } from "../utils/hash";
 import { verifyRefreshToken } from "../utils/tokens";
+import { hasCurrentMfaAssurance, requiresPrivilegedMfa } from "../modules/auth/services/auth-session";
 
 export async function authenticateRefreshSession(
   request: Request,
@@ -40,6 +41,10 @@ export async function authenticateRefreshSession(
       return;
     }
 
+    if (requiresPrivilegedMfa(storedToken.user) && (!storedToken.user.mfaFactor || !hasCurrentMfaAssurance(storedToken.mfaVerifiedAt))) {
+      response.status(401).json({ message: "Complete multifactor sign-in to access this account." });
+      return;
+    }
     const profile = mapUserProfile(storedToken.user);
 
     request.auth = {

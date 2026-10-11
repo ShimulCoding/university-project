@@ -11,6 +11,7 @@ type Fixture = {
   financeId: string;
   otherSlug: string;
   financeEmail: string;
+  financeRecoveryCode: string;
   studentId: string;
   studentUserId: string;
   password: string;
@@ -104,6 +105,9 @@ export async function verifyBrowserWorkspaces(fixture: Fixture) {
     await page
       .getByRole("button", { name: "Open event workspace", exact: true })
       .click();
+    await bodyIncludes("Verify your sign-in");
+    await page.getByLabel("Authenticator or recovery code").fill(fixture.financeRecoveryCode);
+    await page.getByRole("button", { name: "Verify sign-in", exact: true }).click();
     await bodyIncludes("Event Team Active");
     await reviewDesign(`/dashboard/events/${fixture.eventSlug}?signed-in`);
     await visit(

@@ -13,7 +13,10 @@ const sharedCookieOptions: CookieOptions = {
 export const authCookieNames = {
   accessToken: env.ACCESS_TOKEN_COOKIE_NAME,
   refreshToken: env.REFRESH_TOKEN_COOKIE_NAME,
+  mfaChallenge: "mu_mfa_challenge",
 } as const;
+
+export const mfaChallengeCookieOptions: CookieOptions = { ...sharedCookieOptions, path: "/api/auth", maxAge: 5 * 60 * 1000 };
 
 export const accessTokenCookieOptions = (token: string): CookieOptions => {
   const payload = JSON.parse(Buffer.from(token.split(".")[1] || "", "base64").toString("utf8"));

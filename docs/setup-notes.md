@@ -231,6 +231,9 @@ What it verifies:
 - Health: `http://localhost:4000/health`
 
 ## Common Notes
+
+- Privileged MFA is now required on the security review branch. Read `security-mfa-setup.md` before starting that branch: preserve the separate encryption key, migrate additively and authorize the first administrator through a supervised local handoff. Existing real accounts are not automatically enrolled; do not reseed them for verification.
+- Run `verify:security-logging`, `verify:security-uploads`, `verify:security-mfa` and, with both built apps and installed Edge, `verify:security-mfa-browser` in the backend workspace. The event workspace fixtures perform real MFA verification with isolated factors/recovery codes.
 - Backend root `/` is intentionally not a UI route.
 - Public API base is `/api`.
 - Uploaded files are stored locally in development, while metadata stays in PostgreSQL.

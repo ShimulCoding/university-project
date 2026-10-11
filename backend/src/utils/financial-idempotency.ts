@@ -61,6 +61,25 @@ export function recordFinancialResult(tx: Prisma.TransactionClient, submission: 
   } });
 }
 
+// A completed retry creates no upload. Recover it under fresh authority before
+// scanner/storage I/O; outages must not hide a result that already committed.
+export function readCompletedFinancialSubmission<T extends { eventId: string }>(
+  actor: AuthenticatedUser,
+  submission: FinancialSubmission,
+  authorize: () => void,
+  load: (id: string, tx: Prisma.TransactionClient) => Promise<T | null>,
+) {
+  if (submission.actorId !== actor.id) throw new AppError(403, "Financial submission access denied.");
+  return governanceTransaction(async (tx) => {
+    authorize();
+    const id = await findFinancialReplay(tx, submission);
+    if (!id) return null;
+    const record = await load(id, tx);
+    if (!record || record.eventId !== submission.eventId) throw new AppError(500, "Financial submission result is unavailable.");
+    return record;
+  }, actor);
+}
+
 // Serializable conflicts use the shared retry policy. PostgreSQL may instead
 // report a unique conflict for same-key inserts; retry only this exact marker
 // constraint, starting a fresh fully authorized governance transaction.

@@ -7,7 +7,7 @@ import {
   RequestState,
   RoleCode,
 } from "@prisma/client";
-import { financialInputHash, financialRequestKey, financialTransaction, findFinancialReplay, recordFinancialResult } from "../../../utils/financial-idempotency";
+import { financialInputHash, financialRequestKey, financialTransaction, findFinancialReplay, readCompletedFinancialSubmission, recordFinancialResult } from "../../../utils/financial-idempotency";
 
 import { documentDirectories, uploadRules } from "../../../config/uploads";
 import type { AuthenticatedUser } from "../../../types/auth";
@@ -618,6 +618,9 @@ export const requestsService = {
         input.eventId, input.expenseRequestId ?? null, new Prisma.Decimal(input.amount).toFixed(2),
         input.category, input.description, input.paidAt?.toISOString() ?? null,
       ], files) };
+    const completed = await readCompletedFinancialSubmission(actor, submission,
+      () => assertExpenseRecordManagementPermissions(actor, input.eventId), requestsRepository.findExpenseRecordById);
+    if (completed) return mapExpenseRecord(completed);
     const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.SUPPORTING_DOCUMENT, destinationDir: documentDirectories.SUPPORTING_DOCUMENT, rule: uploadRules.SUPPORTING_DOCUMENT });
     try {
       const result = await financialTransaction(actor, async (tx) => {

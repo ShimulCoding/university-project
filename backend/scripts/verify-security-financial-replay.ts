@@ -10,6 +10,7 @@ import { requestsService } from "../src/modules/requests/services/requests.servi
 import { auditService } from "../src/modules/audit/services/audit.service";
 import { signAccessToken } from "../src/utils/tokens";
 import { financialRequestKey, financialTransaction } from "../src/utils/financial-idempotency";
+import { uploadScanner } from "../src/utils/upload-scanner";
 import type { AuthenticatedUser } from "../src/types/auth";
 import { createFixtureMfa } from "./helpers/mfa-fixtures";
 
@@ -84,6 +85,15 @@ async function main() {
     check(stored.size === filesAfterCreate, "Replay left redundant files");
     check(await prisma.expenseRecord.count({ where: { eventId: event.id } }) === 1, "Expense duplicated in database");
     check(await prisma.auditLog.count({ where: { entityId: expenseOneBody.expenseRecord.id, action: "expense_records.create" } }) === 1, "Expense replay repeated audit");
+    const healthySave = storageProvider.saveFile, healthyScan = uploadScanner.scan;
+    storageProvider.saveFile = async () => { throw new Error("Synthetic storage outage"); };
+    uploadScanner.scan = async () => { throw new Error("Synthetic scanner outage"); };
+    try {
+      const completedRetry = await fetch(`${base}/requests/expense-records`, { method: "POST", headers: headers(1, expenseKey), body: form() });
+      check(completedRetry.status === 201, "Completed financial replay depended on scanner/storage availability");
+      const completedBody = await completedRetry.json() as { expenseRecord: { id: string } };
+      check(completedBody.expenseRecord.id === expenseOneBody.expenseRecord.id, "Outage retry returned another financial record");
+    } finally { storageProvider.saveFile = healthySave; uploadScanner.scan = healthyScan; }
 
     for (const [operation, input, action] of [
       [FinancialOperation.INCOME_CREATE, incomeInput, (key: string, files: Express.Multer.File[]) => paymentsService.createIncomeRecord(finance, incomeInput, files, key)],

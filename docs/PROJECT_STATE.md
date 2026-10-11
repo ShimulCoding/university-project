@@ -2,6 +2,8 @@
 
 ## Active Architecture
 
+- Completed financial retries now resolve their original record under current governance/session/event authority before scanner/storage I/O. Matching payload/file hashes and result ownership remain mandatory; new/racing operations still scan/store and clean redundant files. A synthetic outage first reproduced hidden completed results; replay verification now passes 61 checks. Read `security-completed-replay-review.md`. No migration or historical-data change was needed.
+
 - The user approved the sensitive-action quota proposal. Verified authentication now applies a shared 240-mutation/account/15-minute budget to operational/admin POST/PATCH/PUT/DELETE, while auth/recovery retain their existing budgets and read-only navigation remains available. Protected evidence allows 120 opens/account/15 minutes; report generation allows five/account/15 minutes and one active job per process until its work settles. `verify:security-action-limits` passes 32 local identity/expiry/quota/cancellation/API checks. These budgets remain per process; multi-instance/shared-store enforcement and production load capacity are unverified.
 
 - Follow-up cancellation testing reproduced release of upload admission while parsed-upload controller work was still pending after socket close. Response leases now retain the slot until the controller promise settles, prevent new work on closed responses, and release once across completion/error/cancellation. Parsing-stage cancellation still frees capacity. Read `security-upload-lifecycle-review.md`; lifecycle and existing upload regressions verify this without a memory-exhaustion load.

@@ -1,0 +1,7 @@
+# SEC-24: recovering a completed financial submission
+
+**Medium (availability/integrity recovery), fixed.** At `f1a29c1`, `backend/src/modules/payments/services/payments.service.ts:280` and `backend/src/modules/requests/services/requests.service.ts:621` perform scanner/storage I/O before looking up the completed retry marker. An isolated actual expense API test with synthetic unavailable scanner/storage returned an error for an already committed, identical submission. It did not create a duplicate; it hid the result needed to resolve an uncertain response.
+
+The approved idempotency contract now resolves a completed marker under a fresh governance/session/account/event authorization check **before** file I/O. Payload/file hashes must still match, and the returned record must belong to the owning event. No new upload is admitted or persisted on this path. New/concurrent submissions retain mandatory scanning, atomic ledger/result/audit writes and cleanup of redundant uploads after a race. Existing money and evidence are unchanged.
+
+`verify:security-financial-replay` now passes 61 local negative/concurrency/rollback checks, including recovery of the same record while both scanner and storage are mocked unavailable. Financial, governance, session-boundary and project regressions verify retained authority and rollback guarantees. This refinement stays within the approved financial replay plan; no new migration or production action is involved.

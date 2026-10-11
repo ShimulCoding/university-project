@@ -1,6 +1,6 @@
 import { governanceTransaction } from "../../../utils/governance-transaction";
 import { DocumentCategory, FinancialOperation, IncomeState, PaymentProofState, Prisma, RegistrationPaymentState, RoleCode } from "@prisma/client";
-import { financialInputHash, financialRequestKey, financialTransaction, findFinancialReplay, recordFinancialResult } from "../../../utils/financial-idempotency";
+import { financialInputHash, financialRequestKey, financialTransaction, findFinancialReplay, readCompletedFinancialSubmission, recordFinancialResult } from "../../../utils/financial-idempotency";
 
 import { documentDirectories, uploadRules } from "../../../config/uploads";
 import type { AuthenticatedUser } from "../../../types/auth";
@@ -277,6 +277,9 @@ export const paymentsService = {
         input.eventId, input.sourceType, input.sourceLabel, new Prisma.Decimal(input.amount).toFixed(2),
         referenceText ?? null, input.collectedAt?.toISOString() ?? null,
       ], files) };
+    const completed = await readCompletedFinancialSubmission(actor, submission,
+      () => assertEventFinancePermissions(actor, input.eventId), paymentsRepository.findIncomeRecordById);
+    if (completed) return mapIncomeRecord(completed);
     const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.SUPPORTING_DOCUMENT, destinationDir: documentDirectories.SUPPORTING_DOCUMENT, rule: uploadRules.SUPPORTING_DOCUMENT });
     try {
       const result = await financialTransaction(actor, async (tx) => {

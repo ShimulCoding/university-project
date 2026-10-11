@@ -7,6 +7,9 @@ import type { AuthenticatedUser } from "../../../types/auth";
 import { AppError } from "../../../utils/app-error";
 import { hasEventScopedRole, isSystemAdmin } from "../../../utils/event-scope";
 import { documentsRepository } from "../repositories/documents.repository";
+import { governanceTransaction } from "../../../utils/governance-transaction";
+import { auditService } from "../../audit/services/audit.service";
+import type { AuditMetadata } from "../../audit/types/audit.types";
 
 /** Roles allowed to open each document category (used for event-scoped checks) */
 const documentCategoryRoles: Record<DocumentCategory, RoleCode[]> = {
@@ -102,30 +105,26 @@ function resolveDocumentPath(relativePath: string) {
 }
 
 export const documentsService = {
-  async getProtectedDocument(actor: AuthenticatedUser, documentId: string) {
-    const document = await documentsRepository.findById(documentId);
-
-    if (!document) {
-      throw new AppError(404, "Protected document not found.");
-    }
-
-    assertDocumentAccess(actor, document);
-
-    const absolutePath = resolveDocumentPath(document.relativePath);
-
-    try {
-      const file = await fs.stat(absolutePath);
-      if (!file.isFile() || file.size === 0 || BigInt(file.size) !== document.sizeBytes) {
-        throw new Error("The stored evidence is incomplete.");
+  async getProtectedDocument(actor: AuthenticatedUser, documentId: string, metadata?: AuditMetadata) {
+    return governanceTransaction(async (tx) => {
+      const document = await documentsRepository.findById(documentId, tx);
+      if (!document) {
+        throw new AppError(404, "Protected document not found.");
       }
-    } catch {
-      throw new AppError(404, "Protected document file is unavailable.");
-    }
-
-    return {
-      absolutePath,
-      originalName: document.originalName,
-      mimeType: document.mimeType,
-    };
+      assertDocumentAccess(actor, document);
+      const absolutePath = resolveDocumentPath(document.relativePath);
+      try {
+        const file = await fs.stat(absolutePath);
+        if (!file.isFile() || file.size === 0 || BigInt(file.size) !== document.sizeBytes) {
+          throw new Error("The stored evidence is incomplete.");
+        }
+      } catch {
+        throw new AppError(404, "Protected document file is unavailable.");
+      }
+      // Record authorization before streaming. This is not a claim that the
+      // client completed its download; disconnects can occur after authorization.
+      await auditService.record({ actorId: actor.id, eventId: resolveDocumentEventId(document), action: "documents.access_authorized", entityType: "SupportingDocument", entityId: document.id, summary: "Authorized access to protected evidence.", context: { category: document.category }, ...metadata }, tx);
+      return { absolutePath, originalName: document.originalName, mimeType: document.mimeType };
+    }, actor);
   },
 };

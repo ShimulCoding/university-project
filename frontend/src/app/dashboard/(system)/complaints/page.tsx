@@ -69,7 +69,7 @@ export default async function ComplaintsPage({
             <div className="flex items-center gap-3 flex-wrap">
               <Badge variant="neutral" className="px-3 py-1 font-semibold tracking-wide border-primary/20 bg-primary/5 text-primary">
                 <Gavel className="w-3.5 h-3.5 mr-1.5 inline-block" />
-                Disciplinary & Grievance
+                Disciplinary &amp; Grievance
               </Badge>
               <Badge variant="neutral" className="px-3 py-1 font-medium tracking-wide border-muted-foreground/20 bg-muted/50 text-muted-foreground">
                 <ShieldCheck className="w-3.5 h-3.5 mr-1.5 inline-block" />

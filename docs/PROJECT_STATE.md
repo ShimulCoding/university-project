@@ -2,6 +2,8 @@
 
 ## Active Architecture
 
+- Six JSX text entities were normalized without changing rendered content to remove Semgrep partial-parse gaps. The current source scan parses all 300 files with zero errors; one protected `sendFile` warning remains explicitly reviewed. Browser rerun passes workspaces (1,142), MFA (74), public design (301), plus frontend lint/types/build/client/PDF/UI.
+
 - The user approved the additional browser CSP/exact-origin CORS, non-destructive local seed, and fail-closed ClamAV integration in `docs/security-boundary-change-proposal.md`. Implement these separately on the security review branch; no production deployment, database change or secret rotation is authorized by this approval.
 - Next HTML now uses fresh server nonces and strict script CSP, frame denial/no-referrer/nosniff and private/no-store caching. Inline styles remain supported; eval is development-only. Credentialed CORS accepts only configured frontend origins; list legitimate alternate ports explicitly. CORS (18), policy (13), production Edge attack/hydration (15), public design (301), workspaces (1,142) and MFA browser (74) checks passed.
 - Approved local seed hardening preserves existing identities, credentials, status, events and revoked assignments. Initial admin/new demo setup uses the shared governance transaction with atomic audit. All seed commands refuse production/non-loopback targets; demo generators require explicit opt-in/private passwords and a new dataset, with create-only account/event/team writes. `verify:security-seed` passes 35 policy/mocked checks; `verify:seed-types` checks all three entry points. The existing database was never seeded.

@@ -103,7 +103,7 @@ export default async function BudgetRequestsPage({
               <div>
                 <div className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-1">Quick Access</div>
                 <div className="text-base font-semibold text-foreground group-hover:text-primary transition-colors">Final Budgets</div>
-                <div className="text-xs text-muted-foreground font-normal mt-1">View approved & active budgets</div>
+                <div className="text-xs text-muted-foreground font-normal mt-1">View approved &amp; active budgets</div>
               </div>
               <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
             </Link>

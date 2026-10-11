@@ -252,7 +252,7 @@ export default async function EventExpenseRequestsPage({
                     {/* PURPOSE & JUSTIFICATION */}
                     <div className="rounded-xl border border-border/50 bg-panel p-5 shadow-sm">
                       <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-3">
-                        <FileText className="h-3 w-3" /> Purpose & Justification
+                        <FileText className="h-3 w-3" /> Purpose &amp; Justification
                       </div>
                       <div className="text-base font-semibold text-foreground">
                         {selectedRequest.purpose}

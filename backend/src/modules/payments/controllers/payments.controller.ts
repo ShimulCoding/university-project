@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 
 import { getRequestMetadata } from "../../../utils/request-metadata";
+import { getFinancialRequestKey } from "../../../utils/financial-idempotency";
 import { paymentsService } from "../services/payments.service";
 import {
   createIncomeRecordSchema,
@@ -52,6 +53,7 @@ export const paymentsController = {
       request.auth!.user,
       parsedRequest.body,
       request.files as Express.Multer.File[] | undefined,
+      getFinancialRequestKey(request),
       getRequestMetadata(request),
     );
 

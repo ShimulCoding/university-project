@@ -8,6 +8,7 @@ import { authenticate } from "../../../middlewares/authenticate";
 import { authorizeEventScoped } from "../../../middlewares/authorize";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
+import { requireFinancialRequestKey } from "../../../utils/financial-idempotency";
 import { paymentsController } from "../controllers/payments.controller";
 import { paymentsService } from "../services/payments.service";
 import { authorizeOperationalUpload, uploadAdmission, uploadRateLimiter } from "../../../middlewares/upload-guard";
@@ -83,6 +84,7 @@ router.post(
 router.post(
   "/income-records",
   authorizeOperationalUpload([RoleCode.FINANCIAL_CONTROLLER]),
+  requireFinancialRequestKey,
   uploadRateLimiter,
   uploadAdmission,
   upload.array("evidenceFile", 15),

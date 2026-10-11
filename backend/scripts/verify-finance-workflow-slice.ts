@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   AccountStatus,
   ApprovalDecisionType,
@@ -359,12 +360,18 @@ async function expectAppError(
   throw new Error(`${label}: expected service call to fail.`);
 }
 
+function mockGovernanceClient() {
+  return { user: { count: async () => 1 }, financialIdempotency: {
+    findUnique: async () => null, create: async () => ({}),
+  } };
+}
+
 async function withPatches<T>(entries: PatchEntry[], runner: () => Promise<T>) {
   const { prisma } = await import("../src/config/prisma");
   // Unit fixtures supply a current actor; database authority races are tested separately.
   if (!entries.some((entry) => entry.target === prisma && entry.key === "$transaction")) {
     entries = [{ target: prisma as unknown as Record<string, unknown>, key: "$transaction",
-      value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
+      value: async (callback: (client: unknown) => Promise<unknown>) => callback(mockGovernanceClient()),
     }, ...entries];
   }
   const originals = entries.map((entry) => ({
@@ -715,7 +722,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback(mockGovernanceClient()),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -806,7 +813,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback(mockGovernanceClient()),
           },
           {
             target: reconciliationRepository as unknown as Record<string, unknown>,
@@ -922,7 +929,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback(mockGovernanceClient()),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -1033,7 +1040,7 @@ async function main() {
         () =>
           withPatches([
             { target: eventsRepository as unknown as Record<string, unknown>, key: "findById", value: async () => createEventSummary({ id: makeCuid("event5") }) },
-            { target: prisma as unknown as Record<string, unknown>, key: "$transaction", value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }) },
+            { target: prisma as unknown as Record<string, unknown>, key: "$transaction", value: async (callback: (client: unknown) => Promise<unknown>) => callback(mockGovernanceClient()) },
           ], () => requestsService.createExpenseRequest(
             eventManagerActor,
             {
@@ -1113,7 +1120,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback(mockGovernanceClient()),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -1164,7 +1171,7 @@ async function main() {
                   category: "Food",
                   description: "Volunteer snacks",
                 },
-                undefined,
+                undefined, randomUUID(),
               ),
           ),
         400,
@@ -1204,7 +1211,7 @@ async function main() {
                   category: "Food",
                   description: "Volunteer snacks",
                 },
-                undefined,
+                undefined, randomUUID(),
               ),
           ),
         409,
@@ -1273,7 +1280,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback(mockGovernanceClient()),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -1291,7 +1298,7 @@ async function main() {
               category: "Transport",
               description: "Van rental settled",
             },
-            undefined,
+            undefined, randomUUID(),
           ),
       );
 
@@ -1351,7 +1358,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback(mockGovernanceClient()),
           },
           {
             target: reconciliationRepository as unknown as Record<string, unknown>,
@@ -1379,7 +1386,7 @@ async function main() {
             },
             [createUploadFile({
               originalname: "expense-record-proof.pdf",
-            })],
+            })], randomUUID(),
           ),
       );
 
@@ -1519,7 +1526,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback(mockGovernanceClient()),
           },
           {
             target: auditService as unknown as Record<string, unknown>,
@@ -1638,7 +1645,7 @@ async function main() {
           {
             target: prisma as unknown as Record<string, unknown>,
             key: "$transaction",
-            value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
+            value: async (callback: (client: unknown) => Promise<unknown>) => callback(mockGovernanceClient()),
           },
           {
             target: auditService as unknown as Record<string, unknown>,

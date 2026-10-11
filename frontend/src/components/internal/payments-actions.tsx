@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 
 import type { EventSummary } from "@/types";
-import { postFormData, postJson } from "@/lib/api/client";
+import { postJson } from "@/lib/api/client";
+import { FinancialSubmission } from "@/lib/api/financial-submission";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -94,6 +95,8 @@ export function IncomeRecordForm({
   events: EventOption[];
 }) {
   const formRef = useRef<HTMLFormElement | null>(null);
+  const submission = useRef(new FinancialSubmission());
+  const [unconfirmed, setUnconfirmed] = useState(false);
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
 
   return (
@@ -113,11 +116,13 @@ export function IncomeRecordForm({
             const formData = new FormData(event.currentTarget);
 
             void runAction(async () => {
-              await postFormData("/payments/income-records", formData);
+              try { await submission.current.submit("/payments/income-records", formData); }
+              finally { setUnconfirmed(submission.current.isUnresolved); }
               formRef.current?.reset();
             }, "Income record created.");
           }}
         >
+          <fieldset disabled={isPending || unconfirmed} className="grid min-w-0 gap-4">
           <Field label="Event">
             <Select
               name="eventId"
@@ -182,9 +187,11 @@ export function IncomeRecordForm({
               onChange={clearFeedback}
             />
           </Field>
+          </fieldset>
+          {unconfirmed ? <p role="status" className="text-sm text-muted-foreground">This submission is unconfirmed. Retry it before recording another entry; its details are preserved.</p> : null}
           <FeedbackMessage feedback={feedback} />
           <Button type="submit" disabled={isPending}>
-            {isPending ? "Recording income..." : "Create income record"}
+            {isPending ? "Recording income..." : unconfirmed ? "Retry same submission" : "Create income record"}
           </Button>
         </form>
       </CardContent>

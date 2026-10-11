@@ -8,6 +8,7 @@ import { authenticate } from "../../../middlewares/authenticate";
 import { authorizeEventScoped } from "../../../middlewares/authorize";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
+import { requireFinancialRequestKey } from "../../../utils/financial-idempotency";
 import { requestsController } from "../controllers/requests.controller";
 import { assertRequestUploadAccess } from "../services/requests.service";
 import { authorizeOperationalUpload, uploadAdmission, uploadRateLimiter } from "../../../middlewares/upload-guard";
@@ -169,6 +170,7 @@ router.post(
   "/expense-records",
   requireFinanceUpload,
   authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  requireFinancialRequestKey,
   uploadRateLimiter,
   uploadAdmission,
   upload.array("supportingDocument", 15),

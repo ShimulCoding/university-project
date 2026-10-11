@@ -35,7 +35,7 @@ async function main() {
     const buffer = Buffer.from("%PDF-1.4\n%%EOF\n");
     await assert.rejects(() => paymentsService.submitPaymentProof(actor, registration.id, { externalChannel: "Cash", referenceText: "Synthetic" }, [{ buffer, size: buffer.length, originalname: "proof.pdf", mimetype: "application/pdf" } as Express.Multer.File]), (error: { statusCode?: number }) => error.statusCode === 403); checks++;
     for (const forbiddenActor of [actor, { ...actor, roles: ["SYSTEM_ADMIN"] }, { ...actor, eventRoles: [{ eventId: "unassigned-fixture-event", roleCode: "FINANCIAL_CONTROLLER" }] }] as AuthenticatedUser[]) {
-      await assert.rejects(() => paymentsService.createIncomeRecord(forbiddenActor, { eventId: event.id, sourceType: "DONATION", sourceLabel: "Synthetic donation", amount: "1.00", referenceText: "Unauthorized upload fixture" }, [{ buffer, size: buffer.length, originalname: "income.pdf", mimetype: "application/pdf" } as Express.Multer.File]), (error: { statusCode?: number }) => error.statusCode === 403); checks++;
+      await assert.rejects(() => paymentsService.createIncomeRecord(forbiddenActor, { eventId: event.id, sourceType: "DONATION", sourceLabel: "Synthetic donation", amount: "1.00", referenceText: "Unauthorized upload fixture" }, [{ buffer, size: buffer.length, originalname: "income.pdf", mimetype: "application/pdf" } as Express.Multer.File], randomUUID()), (error: { statusCode?: number }) => error.statusCode === 403); checks++;
     }
     assert.equal(saves, 0, "A forbidden actor reached persistent upload storage"); checks++;
     const session = await prisma.refreshToken.create({ data: { userId: attacker.id, tokenHash: run, expiresAt: new Date(Date.now() + 60000) } });

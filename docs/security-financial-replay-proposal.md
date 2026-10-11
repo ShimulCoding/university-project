@@ -1,4 +1,6 @@
-# Financial replay control requiring approval
+# Approved financial replay control
+
+The user approved implementation and the additive local migration on 2026-10-12. Main, production and existing financial records remain untouched. The source evidence below records the pre-fix behavior.
 
 Local isolated HTTP probe, 2026-10-12: two identical `POST /api/payments/income-records` requests carrying the **same** `Idempotency-Key` both returned 201 and created two records. The owning Finance Controller was properly authenticated/authorized; the endpoint ignores the header. This is a lost-response/retry integrity risk, not an unauthenticated money-writing bypass. The fixture was removed; existing records were untouched.
 

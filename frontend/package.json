@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "verify:client": "tsx scripts/verify-client-api.ts",
+    "verify:financial-submission": "tsx scripts/verify-financial-submission.ts",
     "verify:pdf": "tsx --tsconfig tsconfig.json scripts/verify-pdf.ts",
     "verify:ui": "tsx --tsconfig scripts/tsconfig.json scripts/verify-ui.tsx",
     "verify:design": "tsx scripts/verify-design.ts",

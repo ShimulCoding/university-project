@@ -2,9 +2,12 @@ import { governanceTransaction } from "../../../utils/governance-transaction";
 import {
   DocumentCategory,
   ExpenseRecordState,
+  FinancialOperation,
+  Prisma,
   RequestState,
   RoleCode,
 } from "@prisma/client";
+import { financialInputHash, financialRequestKey, financialTransaction, findFinancialReplay, recordFinancialResult } from "../../../utils/financial-idempotency";
 
 import { documentDirectories, uploadRules } from "../../../config/uploads";
 import type { AuthenticatedUser } from "../../../types/auth";
@@ -606,17 +609,29 @@ export const requestsService = {
     actor: AuthenticatedUser,
     input: CreateExpenseRecordInput,
     files: Express.Multer.File[] | undefined,
+    requestKey: string,
     auditMetadata?: AuditMetadata,
   ) {
     await assertRequestUploadAccess(actor, { kind: "record", eventId: input.eventId });
+    const submission = { actorId: actor.id, eventId: input.eventId, operation: FinancialOperation.EXPENSE_CREATE,
+      key: financialRequestKey(requestKey), inputHash: financialInputHash([
+        input.eventId, input.expenseRequestId ?? null, new Prisma.Decimal(input.amount).toFixed(2),
+        input.category, input.description, input.paidAt?.toISOString() ?? null,
+      ], files) };
     const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.SUPPORTING_DOCUMENT, destinationDir: documentDirectories.SUPPORTING_DOCUMENT, rule: uploadRules.SUPPORTING_DOCUMENT });
     try {
-      return await governanceTransaction(async (tx) => {
+      const result = await financialTransaction(actor, async (tx) => {
         const event = await eventsRepository.findById(input.eventId, tx);
         if (!event) {
           throw new AppError(404, "Event not found.");
         }
         assertExpenseRecordManagementPermissions(actor, event.id);
+        const replayId = await findFinancialReplay(tx, submission);
+        if (replayId) {
+          const original = await requestsRepository.findExpenseRecordById(replayId, tx);
+          if (!original || original.eventId !== event.id) throw new AppError(500, "Financial submission result is unavailable.");
+          return { record: mapExpenseRecord(original), created: false };
+        }
         let linkedExpenseRequest: Awaited<ReturnType<typeof requestsRepository.findExpenseRequestById>> | null | undefined = undefined;
         if (input.expenseRequestId) {
           linkedExpenseRequest = await requestsRepository.findExpenseRequestById(input.expenseRequestId, tx);
@@ -679,8 +694,11 @@ export const requestsService = {
           },
           ...auditMetadata,
         }, tx);
-        return mapExpenseRecord(record);
-      }, actor);
+        await recordFinancialResult(tx, submission, record.id);
+        return { record: mapExpenseRecord(record), created: true };
+      });
+      if (!result.created) await cleanupStoredUploads(storedUploads);
+      return result.record;
     }
     catch (error) {
       if (storedUploads && storedUploads.length > 0) {

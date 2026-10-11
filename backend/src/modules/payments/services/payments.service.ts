@@ -1,5 +1,6 @@
 import { governanceTransaction } from "../../../utils/governance-transaction";
-import { DocumentCategory, IncomeState, PaymentProofState, RegistrationPaymentState, RoleCode } from "@prisma/client";
+import { DocumentCategory, FinancialOperation, IncomeState, PaymentProofState, Prisma, RegistrationPaymentState, RoleCode } from "@prisma/client";
+import { financialInputHash, financialRequestKey, financialTransaction, findFinancialReplay, recordFinancialResult } from "../../../utils/financial-idempotency";
 
 import { documentDirectories, uploadRules } from "../../../config/uploads";
 import type { AuthenticatedUser } from "../../../types/auth";
@@ -263,22 +264,34 @@ export const paymentsService = {
     actor: AuthenticatedUser,
     input: CreateIncomeRecordInput,
     files: Express.Multer.File[] | undefined,
+    requestKey: string,
     auditMetadata?: AuditMetadata,
   ) {
     // Multipart body supplies the owning event. Role/admission gates precede
     // parsing; this event check precedes scanning/persistence, with a repeat
     // inside the financial write transaction to handle assignment changes.
     await paymentsService.assertIncomeRecordUploadAccess(actor, input.eventId);
+    const referenceText = sanitizeOptionalText(input.referenceText);
+    const submission = { actorId: actor.id, eventId: input.eventId, operation: FinancialOperation.INCOME_CREATE,
+      key: financialRequestKey(requestKey), inputHash: financialInputHash([
+        input.eventId, input.sourceType, input.sourceLabel, new Prisma.Decimal(input.amount).toFixed(2),
+        referenceText ?? null, input.collectedAt?.toISOString() ?? null,
+      ], files) };
     const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.SUPPORTING_DOCUMENT, destinationDir: documentDirectories.SUPPORTING_DOCUMENT, rule: uploadRules.SUPPORTING_DOCUMENT });
     try {
-      return await governanceTransaction(async (tx) => {
+      const result = await financialTransaction(actor, async (tx) => {
         const event = await eventsRepository.findById(input.eventId, tx);
         if (!event) {
           throw new AppError(404, "Event not found.");
         }
         // Only event-scoped Finance Controller can create income records
         assertEventFinancePermissions(actor, event.id);
-        const referenceText = sanitizeOptionalText(input.referenceText);
+        const replayId = await findFinancialReplay(tx, submission);
+        if (replayId) {
+          const original = await paymentsRepository.findIncomeRecordById(replayId, tx);
+          if (!original || original.eventId !== event.id) throw new AppError(500, "Financial submission result is unavailable.");
+          return { record: mapIncomeRecord(original), created: false };
+        }
         if (!referenceText && (!files || files.length === 0)) {
           throw new AppError(400, "Provide a reference note or an evidence file for the income record.");
         }
@@ -323,8 +336,11 @@ export const paymentsService = {
           },
           ...auditMetadata,
         }, tx);
-        return mapIncomeRecord(incomeRecord);
-      }, actor);
+        await recordFinancialResult(tx, submission, incomeRecord.id);
+        return { record: mapIncomeRecord(incomeRecord), created: true };
+      });
+      if (!result.created) await cleanupStoredUploads(storedUploads);
+      return result.record;
     }
     catch (error) {
       if (storedUploads && storedUploads.length > 0) {

@@ -123,7 +123,7 @@ async function main() {
     check(decisions.filter((r) => r.status === "fulfilled").length === 1, "Concurrent payment decisions both succeeded");
     check(await prisma.auditLog.count({ where: { entityId: proof.id, action: "payments.proof.review" } }) === 1, "Payment audit was duplicated");
 
-    const income = await paymentsService.createIncomeRecord(finance, { eventId: event.id, amount: "20.00", sourceType: "DONATION", sourceLabel: "Audit donation", referenceText: "Evidence note" }, []);
+    const income = await paymentsService.createIncomeRecord(finance, { eventId: event.id, amount: "20.00", sourceType: "DONATION", sourceLabel: "Audit donation", referenceText: "Evidence note" }, [], randomUUID());
     await Promise.allSettled([paymentsService.voidIncomeRecord(finance, income.id, { reason: "Audit void" }), paymentsService.verifyIncomeRecord(finance, income.id)]);
     check((await prisma.incomeRecord.findUniqueOrThrow({ where: { id: income.id } })).state === "REJECTED", "A concurrent verify resurrected a voided income");
     await conflict(() => paymentsService.verifyIncomeRecord(finance, income.id));
@@ -135,7 +135,7 @@ async function main() {
     check(await prisma.budget.count({ where: { eventId: event.id, isActive: true } }) === 1, "Active budget invariant failed");
 
     const expenseRequest = await prisma.expenseRequest.create({ data: { eventId: event.id, requestedById: manager.id, amount: "10.00", category: "Operations", purpose: "Audit expense", state: "APPROVED" } });
-    const expense = await requestsService.createExpenseRecord(finance, { eventId: event.id, expenseRequestId: expenseRequest.id, amount: "10.00", category: "Operations", description: "Audit expense" }, []);
+    const expense = await requestsService.createExpenseRecord(finance, { eventId: event.id, expenseRequestId: expenseRequest.id, amount: "10.00", category: "Operations", description: "Audit expense" }, [], randomUUID());
     await Promise.allSettled([requestsService.voidExpenseRecord(finance, expense.id, { reason: "Audit void" }), requestsService.settleExpenseRecord(finance, expense.id, {})]);
     check((await prisma.expenseRecord.findUniqueOrThrow({ where: { id: expense.id } })).state === "VOIDED", "Concurrent settlement resurrected a voided expense");
 
@@ -152,7 +152,7 @@ async function main() {
     await reconciliationService.generateReport(finance, { eventId: event.id });
     await conflict(() => publicService.publishFinancialSummary(approver, report.id));
     const currentReport = await reconciliationService.generateReport(finance, { eventId: event.id });
-    const unverified = await paymentsService.createIncomeRecord(finance, { eventId: event.id, amount: "1.00", sourceType: "DONATION", sourceLabel: "Warning freshness", referenceText: "Unverified fixture" }, []);
+    const unverified = await paymentsService.createIncomeRecord(finance, { eventId: event.id, amount: "1.00", sourceType: "DONATION", sourceLabel: "Warning freshness", referenceText: "Unverified fixture" }, [], randomUUID());
     check((await prisma.reconciliationReport.findUniqueOrThrow({ where: { id: currentReport.id } })).isStale, "Unverified income left reconciliation warnings current");
     const beforeVoid = await reconciliationService.generateReport(finance, { eventId: event.id });
     await paymentsService.voidIncomeRecord(finance, unverified.id, { reason: "Warning removal" });
@@ -188,7 +188,7 @@ async function main() {
     const before = await prisma.incomeRecord.count({ where: { eventId: event.id } });
     auditService.record = async () => { throw new Error("Injected audit failure"); };
     try {
-      await assert.rejects(() => paymentsService.createIncomeRecord(finance, { eventId: event.id, amount: "1.00", sourceType: "DONATION", sourceLabel: "Rollback fixture", referenceText: "Audit rollback" }, []));
+      await assert.rejects(() => paymentsService.createIncomeRecord(finance, { eventId: event.id, amount: "1.00", sourceType: "DONATION", sourceLabel: "Rollback fixture", referenceText: "Audit rollback" }, [], randomUUID()));
     } finally { auditService.record = record; }
     check(await prisma.incomeRecord.count({ where: { eventId: event.id } }) === before, "Audit failure left a committed income record");
 
@@ -274,7 +274,7 @@ async function main() {
     check((await publicService.listPublishedFinancialSummaries({ search: `%${run}`, latestOnly: true })).pagination.totalItems === 0, "Public search treated literal percent as a wildcard");
     const incomesBeforeRevocation = await prisma.incomeRecord.count({ where: { eventId: event.id } });
     await prisma.eventTeamMember.updateMany({ where: { eventId: event.id, userId: finance.id }, data: { revokedAt: new Date() } });
-    await assert.rejects(() => paymentsService.createIncomeRecord(finance, { eventId: event.id, amount: "1.00", sourceType: "DONATION", sourceLabel: "Revoked actor", referenceText: "Must be rejected" }, []), (error: { statusCode?: number }) => error.statusCode === 403); checks++;
+    await assert.rejects(() => paymentsService.createIncomeRecord(finance, { eventId: event.id, amount: "1.00", sourceType: "DONATION", sourceLabel: "Revoked actor", referenceText: "Must be rejected" }, [], randomUUID()), (error: { statusCode?: number }) => error.statusCode === 403); checks++;
     check(await prisma.incomeRecord.count({ where: { eventId: event.id } }) === incomesBeforeRevocation, "An actor revoked after authentication could still write");
     console.log(`Project audit regression verification passed (${checks} checks).`);
   } finally {

@@ -164,6 +164,7 @@ model User {
   eventTeamMemberships           EventTeamMember[]       @relation("EventTeamMemberUser")
   eventTeamAssignmentsCreated    EventTeamMember[]       @relation("EventTeamMemberAssigner")
   passwordResetTokens            PasswordResetToken[]
+  financialOperations            FinancialIdempotency[]
 }
 
 model Role {
@@ -324,6 +325,7 @@ model Event {
   expenseRequests        ExpenseRequest[]
   expenseRecords         ExpenseRecord[]
   incomeRecords          IncomeRecord[]
+  financialOperations    FinancialIdempotency[]
   complaints             Complaint[]
   reconciliationReports  ReconciliationReport[]
   publicSummarySnapshots PublicSummarySnapshot[]
@@ -455,6 +457,7 @@ model ExpenseRecord {
   expenseRequest   ExpenseRequest?      @relation(fields: [expenseRequestId], references: [id], onDelete: SetNull)
   recordedBy       User?                @relation("ExpenseRecordRecorder", fields: [recordedById], references: [id])
   documents        SupportingDocument[] @relation("ExpenseRecordDocuments")
+  creationOperation FinancialIdempotency?
 
   @@index([eventId])
 }
@@ -476,7 +479,33 @@ model IncomeRecord {
   recordedBy    User?                @relation("IncomeRecordRecorder", fields: [recordedById], references: [id])
   verifiedBy    User?                @relation("IncomeRecordVerifier", fields: [verifiedById], references: [id])
   documents     SupportingDocument[] @relation("IncomeRecordDocuments")
+  creationOperation FinancialIdempotency?
 
+  @@index([eventId])
+}
+
+enum FinancialOperation {
+  INCOME_CREATE
+  EXPENSE_CREATE
+}
+
+// Kept for the result's lifetime; never prune on an arbitrary retry expiry.
+model FinancialIdempotency {
+  id              String             @id @default(cuid())
+  actorId         String
+  eventId         String
+  operation       FinancialOperation
+  key             String             @db.Uuid
+  inputHash       String             @db.Char(64)
+  incomeRecordId  String?            @unique
+  expenseRecordId String?            @unique
+  createdAt       DateTime           @default(now())
+  actor           User               @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  event           Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  incomeRecord    IncomeRecord?      @relation(fields: [incomeRecordId], references: [id], onDelete: Cascade)
+  expenseRecord   ExpenseRecord?     @relation(fields: [expenseRecordId], references: [id], onDelete: Cascade)
+
+  @@unique([actorId, operation, key])
   @@index([eventId])
 }
 

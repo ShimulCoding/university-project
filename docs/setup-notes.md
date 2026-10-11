@@ -245,6 +245,8 @@ What it verifies:
 
 ## Common Notes
 
+- Financial creates on the review branch require a random UUID v4 `Idempotency-Key` header on `POST /api/payments/income-records` and `POST /api/requests/expense-records`. Reuse it with identical inputs/files after a lost response; never generate a replacement key for an uncertain write. Changed content returns 409 and current authority is checked again. The migration adds only `FinancialIdempotency` and its enum/indexes/constraints. Run backend `verify:security-financial-replay` and frontend `verify:financial-submission`; browser workspaces test both lost-response forms. Forms preserve retries while mounted; check the ledger before resubmitting after closing/reloading an unconfirmed form.
+
 - Privileged MFA is now required on the security review branch. Read `security-mfa-setup.md` before starting that branch: preserve the separate encryption key, migrate additively and authorize the first administrator through a supervised local handoff. Existing real accounts are not automatically enrolled; do not reseed them for verification.
 - Run `verify:security-logging`, `verify:security-uploads`, `verify:security-mfa` and, with both built apps and installed Edge, `verify:security-mfa-browser` in the backend workspace. The event workspace fixtures perform real MFA verification with isolated factors/recovery codes.
 - Backend root `/` is intentionally not a UI route.

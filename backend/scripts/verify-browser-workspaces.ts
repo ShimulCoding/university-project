@@ -122,19 +122,33 @@ export async function verifyBrowserWorkspaces(fixture: Fixture) {
     const form = page
       .locator("form")
       .filter({
-        has: page.getByRole("button", {
-          name: "Create income record",
-          exact: true,
-        }),
+        has: page.locator('[name="sourceLabel"]'),
       });
     await form.locator('[name="amount"]').fill("2.00");
     await form.locator('[name="sourceLabel"]').fill(label);
     await form
       .locator('[name="referenceText"]')
       .fill("Isolated browser verification evidence");
+    const retryKeys: string[] = [];
+    await page.route("**/api/payments/income-records", async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      retryKeys.push(route.request().headers()["idempotency-key"]!);
+      const response = await route.fetch();
+      assert.equal(response.status(), 201, "Income submission failed before response-loss simulation");
+      if (retryKeys.length === 1) await route.abort("failed");
+      else await route.fulfill({ response });
+    });
     await form
       .getByRole("button", { name: "Create income record", exact: true })
       .click();
+    await bodyIncludes("This submission is unconfirmed");
+    assert(await form.locator('[name="amount"]').isDisabled(), "Uncertain financial details remained editable"); checks++;
+    assert.equal(await prisma.incomeRecord.count({ where: { eventId: fixture.eventId, sourceLabel: label } }), 1, "Lost response did not commit exactly one record"); checks++;
+    await form.getByRole("button", { name: "Retry same submission", exact: true }).click();
+    await bodyIncludes("Income record created.");
+    assert.equal(retryKeys.length, 2); assert.equal(retryKeys[0], retryKeys[1]); checks += 2;
+    assert.equal(await prisma.incomeRecord.count({ where: { eventId: fixture.eventId, sourceLabel: label } }), 1, "Browser retry duplicated income"); checks++;
+    await page.unroute("**/api/payments/income-records");
     await bodyIncludes(label);
     await prisma.incomeRecord.createMany({
       data: Array.from({ length: 25 }, (_, index) => ({
@@ -164,6 +178,33 @@ export async function verifyBrowserWorkspaces(fixture: Fixture) {
       `/dashboard/events/${fixture.eventSlug}/payments`,
       "Scope participant",
     );
+
+    await visit(`/dashboard/events/${fixture.eventSlug}/expense-records`, "Create expense record");
+    const expenseForm = page.locator("form").filter({ has: page.locator('[name="description"]') });
+    const expenseDescription = `Browser replay expense ${fixture.eventSlug}`;
+    await expenseForm.locator('[name="amount"]').fill("2.00");
+    await expenseForm.locator('[name="category"]').fill("Operations");
+    await expenseForm.locator('[name="description"]').fill(expenseDescription);
+    await expenseForm.locator('[name="supportingDocument"]').setInputFiles({ name: "browser-expense.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\n%%EOF\n") });
+    const expenseKeys: string[] = [];
+    await page.route("**/api/requests/expense-records", async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      expenseKeys.push(route.request().headers()["idempotency-key"]!);
+      const response = await route.fetch();
+      assert.equal(response.status(), 201, "Expense submission failed before response-loss simulation");
+      if (expenseKeys.length === 1) await route.abort("failed");
+      else await route.fulfill({ response });
+    });
+    await expenseForm.getByRole("button", { name: "Create expense record", exact: true }).click();
+    await bodyIncludes("This submission is unconfirmed");
+    assert(await expenseForm.locator('[name="description"]').isDisabled()); checks++;
+    await expenseForm.getByRole("button", { name: "Retry same submission", exact: true }).click();
+    await bodyIncludes("Expense record created.");
+    assert.equal(expenseKeys.length, 2); assert.equal(expenseKeys[0], expenseKeys[1]); checks += 2;
+    assert.equal(await prisma.expenseRecord.count({ where: { eventId: fixture.eventId, description: expenseDescription } }), 1, "Browser retry duplicated standalone expense"); checks++;
+    const newExpense = await prisma.expenseRecord.findFirstOrThrow({ where: { eventId: fixture.eventId, description: expenseDescription }, include: { documents: true } });
+    assert.equal(newExpense.documents.length, 1, "Browser retry duplicated supporting evidence"); checks++;
+    await page.unroute("**/api/requests/expense-records");
 
     await setSession(context, fixture.managerCookie);
     await visit("/dashboard/my-events", "Event Workspaces");

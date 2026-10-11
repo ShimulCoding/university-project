@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 
 import { getRequestMetadata } from "../../../utils/request-metadata";
+import { getFinancialRequestKey } from "../../../utils/financial-idempotency";
 import { requestsService } from "../services/requests.service";
 
 export const requestsController = {
@@ -135,6 +136,7 @@ export const requestsController = {
       request.auth!.user,
       request.body,
       request.files as Express.Multer.File[] | undefined,
+      getFinancialRequestKey(request),
       getRequestMetadata(request),
     );
 

@@ -5,6 +5,7 @@ import { Send, ShieldCheck } from "lucide-react";
 
 import type { BudgetRecord, BudgetRequestRecord, EventSummary, ExpenseRequestRecord } from "@/types";
 import { apiFetchClient, postEmpty, postFormData, postJson } from "@/lib/api/client";
+import { FinancialSubmission } from "@/lib/api/financial-submission";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -301,6 +302,8 @@ export function ExpenseRecordForm({
   budgets: Pick<BudgetRecord, "event" | "items">[];
 }) {
   const formRef = useRef<HTMLFormElement | null>(null);
+  const submission = useRef(new FinancialSubmission());
+  const [unconfirmed, setUnconfirmed] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?.id ?? "");
   const { feedback, isPending, clearFeedback, runAction } = useActionState();
 
@@ -330,11 +333,13 @@ export function ExpenseRecordForm({
             }
 
             void runAction(async () => {
-              await postFormData("/requests/expense-records", formData);
+              try { await submission.current.submit("/requests/expense-records", formData); }
+              finally { setUnconfirmed(submission.current.isUnresolved); }
               formRef.current?.reset();
             }, "Expense record created.");
           }}
         >
+          <fieldset disabled={isPending || unconfirmed} className="grid min-w-0 gap-4">
           <Field label="Event">
             <Select
               name="eventId"
@@ -410,9 +415,11 @@ export function ExpenseRecordForm({
               required
             />
           </Field>
+          </fieldset>
+          {unconfirmed ? <p role="status" className="text-sm text-muted-foreground">This submission is unconfirmed. Retry it before recording another entry; its details are preserved.</p> : null}
           <FeedbackMessage feedback={feedback} />
           <Button type="submit" disabled={isPending}>
-            {isPending ? "Creating expense record..." : "Create expense record"}
+            {isPending ? "Creating expense record..." : unconfirmed ? "Retry same submission" : "Create expense record"}
           </Button>
         </form>
       </CardContent>

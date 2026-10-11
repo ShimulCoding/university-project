@@ -117,10 +117,11 @@ export function postJson<T>(path: string, body: unknown) {
   });
 }
 
-export function postFormData<T>(path: string, formData: FormData) {
+export function postFormData<T>(path: string, formData: FormData, headers?: HeadersInit) {
   return apiFetchClient<T>(path, {
     method: "POST",
     body: formData,
+    ...(headers ? { headers } : {}),
   });
 }
 

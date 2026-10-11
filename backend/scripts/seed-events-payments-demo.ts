@@ -2,15 +2,18 @@ import bcrypt from "bcryptjs";
 import {
   AccountStatus,
   EventStatus,
-  PrismaClient,
   RegistrationPaymentState,
   RoleCode,
 } from "@prisma/client";
 
 import { roleCatalog } from "../src/modules/roles/role-catalog";
-import { normalizeEmail } from "../src/utils/normalize-email";
+import { prisma } from "../src/config/prisma";
+import { requireDemoSeedPassword, demoTeam } from "../src/utils/local-seed-policy";
+import { assertFreshDemoDataset, createSeedAccount } from "../src/utils/local-seed";
+import { governanceTransaction } from "../src/utils/governance-transaction";
+import { auditService } from "../src/modules/audit/services/audit.service";
 
-const prisma = new PrismaClient();
+let seedAdministratorId: string;
 
 async function ensureRoleCatalog() {
   for (const role of roleCatalog) {
@@ -31,84 +34,9 @@ async function ensureRoleCatalog() {
   }
 }
 
-async function ensureUser(input: {
-  fullName: string;
-  email: string;
-  password: string;
-  roles: RoleCode[];
-}) {
-  const normalizedEmail = normalizeEmail(input.email);
+async function ensureUser(input: { fullName: string; email: string; password: string; roles: RoleCode[] }) {
   const passwordHash = await bcrypt.hash(input.password, 12);
-
-  const user = await prisma.user.upsert({
-    where: { email: normalizedEmail },
-    update: {
-      fullName: input.fullName,
-      passwordHash,
-      status: AccountStatus.ACTIVE,
-    },
-    create: {
-      fullName: input.fullName,
-      email: normalizedEmail,
-      passwordHash,
-      status: AccountStatus.ACTIVE,
-    },
-  });
-
-  const globalRoleCodes = input.roles.filter(
-    (roleCode) => roleCode === RoleCode.SYSTEM_ADMIN || roleCode === RoleCode.GENERAL_STUDENT,
-  );
-  const operationalRoles = await prisma.role.findMany({
-    where: {
-      code: {
-        in: [
-          RoleCode.EVENT_ADMIN,
-          RoleCode.FINANCIAL_CONTROLLER,
-          RoleCode.ORGANIZATIONAL_APPROVER,
-          RoleCode.EVENT_MANAGEMENT_USER,
-          RoleCode.COMPLAINT_REVIEW_AUTHORITY,
-        ],
-      },
-    },
-  });
-
-  await prisma.userRole.updateMany({
-    where: {
-      userId: user.id,
-      roleId: { in: operationalRoles.map((role) => role.id) },
-      revokedAt: null,
-    },
-    data: { revokedAt: new Date() },
-  });
-
-  for (const roleCode of globalRoleCodes) {
-    const role = await prisma.role.findUnique({
-      where: { code: roleCode },
-    });
-
-    if (!role) {
-      throw new Error(`Role ${roleCode} was not found during demo seeding.`);
-    }
-
-    const existingAssignment = await prisma.userRole.findFirst({
-      where: {
-        userId: user.id,
-        roleId: role.id,
-        revokedAt: null,
-      },
-    });
-
-    if (!existingAssignment) {
-      await prisma.userRole.create({
-        data: {
-          userId: user.id,
-          roleId: role.id,
-        },
-      });
-    }
-  }
-
-  return user;
+  return governanceTransaction((tx) => createSeedAccount(tx, input, passwordHash, seedAdministratorId), { id: seedAdministratorId, roles: [RoleCode.SYSTEM_ADMIN], eventRoles: [] });
 }
 
 async function requireSystemAdmin() {
@@ -135,32 +63,16 @@ async function requireSystemAdmin() {
 }
 
 async function ensureEventTeamMember(eventId: string, userId: string, roleCode: RoleCode) {
-  return prisma.eventTeamMember.upsert({
-    where: {
-      eventId_userId_roleCode: { eventId, userId, roleCode },
-    },
-    update: { assignedAt: new Date(), revokedAt: null },
-    create: { eventId, userId, roleCode },
-  });
+  return governanceTransaction(async (tx) => {
+    const member = await tx.eventTeamMember.create({ data: { eventId, userId, roleCode, assignedById: seedAdministratorId } });
+    await auditService.record({ actorId: seedAdministratorId, eventId, action: "seed.demo_team_assignment", entityType: "EventTeamMember", entityId: member.id, summary: "Local operator assigned a new demo account to its new event." }, tx);
+    return member;
+  }, { id: seedAdministratorId, roles: [RoleCode.SYSTEM_ADMIN], eventRoles: [] });
 }
 
 async function ensureDemoEvent(createdById: string) {
-  return prisma.event.upsert({
-    where: {
-      slug: "demo-finance-transparency-workshop",
-    },
-    update: {
-      title: "Demo Finance Transparency Workshop",
-      description: "Demo event for verifying registration, payment proof, and manual income flow.",
-      status: EventStatus.PUBLISHED,
-      registrationOpensAt: new Date("2026-01-01T00:00:00.000Z"),
-      registrationClosesAt: new Date("2026-12-31T23:59:59.000Z"),
-      startsAt: new Date("2026-11-20T09:00:00.000Z"),
-      endsAt: new Date("2026-11-20T17:00:00.000Z"),
-      capacity: 200,
-      createdById,
-    },
-    create: {
+  return prisma.event.create({
+    data: {
       title: "Demo Finance Transparency Workshop",
       slug: "demo-finance-transparency-workshop",
       description: "Demo event for verifying registration, payment proof, and manual income flow.",
@@ -251,41 +163,44 @@ async function ensureManualIncome(eventId: string, recordedById: string) {
 }
 
 async function main() {
+  const demoPassword = requireDemoSeedPassword(process.env);
+  await assertFreshDemoDataset(prisma, [...demoTeam.map((member) => member.email), "demo.student@example.com"], ["demo-finance-transparency-workshop"]);
   await ensureRoleCatalog();
   const demoSystemAdmin = await requireSystemAdmin();
+  seedAdministratorId = demoSystemAdmin.id;
 
   const demoManager = await ensureUser({
     fullName: "Demo Event Manager",
     email: "demo.event.manager@example.com",
-    password: "DemoPass123!",
+    password: demoPassword,
     roles: [RoleCode.EVENT_MANAGEMENT_USER],
   });
 
   const demoFinance = await ensureUser({
     fullName: "Demo Finance Controller",
     email: "demo.finance@example.com",
-    password: "DemoPass123!",
+    password: demoPassword,
     roles: [RoleCode.FINANCIAL_CONTROLLER],
   });
 
   const demoEventAdmin = await ensureUser({
     fullName: "Demo Event Admin",
     email: "demo.event.admin@example.com",
-    password: "DemoPass123!",
+    password: demoPassword,
     roles: [RoleCode.EVENT_ADMIN],
   });
 
   const demoApprover = await ensureUser({
     fullName: "Demo Organizational Approver",
     email: "demo.approver@example.com",
-    password: "DemoPass123!",
+    password: demoPassword,
     roles: [RoleCode.ORGANIZATIONAL_APPROVER],
   });
 
   const demoStudent = await ensureUser({
     fullName: "Demo Student",
     email: "demo.student@example.com",
-    password: "DemoPass123!",
+    password: demoPassword,
     roles: [RoleCode.GENERAL_STUDENT],
   });
 
@@ -313,9 +228,9 @@ async function main() {
 }
 
 void main()
-  .catch((error) => {
-    console.error("Demo flow seed failed.", error);
-    process.exit(1);
+  .catch(() => {
+    console.error("Demo flow seed refused or failed; check local opt-in, private password and a new dataset. Private details suppressed.");
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();

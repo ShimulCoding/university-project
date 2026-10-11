@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "module": "CommonJS", "moduleResolution": "Node", "noEmit": true },
+  "include": ["../prisma/seed.ts", "seed-demo-runtime-data.ts", "seed-events-payments-demo.ts", "verify-security-seed.ts", "../src/**/*.d.ts"]
+}

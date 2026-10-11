@@ -24,9 +24,13 @@ import { reconciliationService } from "../src/modules/reconciliation/services/re
 import { roleCatalog } from "../src/modules/roles/role-catalog";
 import { storageProvider } from "../src/storage";
 import type { AuthenticatedUser } from "../src/types/auth";
-import { normalizeEmail } from "../src/utils/normalize-email";
+import { requireDemoSeedPassword, demoTeam } from "../src/utils/local-seed-policy";
+import { assertFreshDemoDataset, createSeedAccount } from "../src/utils/local-seed";
+import { governanceTransaction } from "../src/utils/governance-transaction";
+import { auditService } from "../src/modules/audit/services/audit.service";
 
-const demoPassword = "DemoPass123!";
+let demoPassword: string;
+let seedAdministratorId: string;
 const demoActiveEventSlug = "demo-open-finance-workshop-2026";
 const demoClosedEventSlug = "demo-cse-annual-tech-symposium-2026";
 
@@ -122,81 +126,8 @@ async function ensureRoleCatalog() {
 }
 
 async function ensureUser(input: DemoUserInput) {
-  const normalizedEmail = normalizeEmail(input.email);
   const passwordHash = await bcrypt.hash(input.password ?? demoPassword, 12);
-
-  const user = await prisma.user.upsert({
-    where: { email: normalizedEmail },
-    update: {
-      fullName: input.fullName,
-      passwordHash,
-      status: AccountStatus.ACTIVE,
-      ...(input.studentId ? { studentId: input.studentId } : {}),
-    },
-    create: {
-      fullName: input.fullName,
-      email: normalizedEmail,
-      passwordHash,
-      status: AccountStatus.ACTIVE,
-      ...(input.studentId ? { studentId: input.studentId } : {}),
-    },
-  });
-
-  const globalRoleCodes = input.roles.filter(
-    (roleCode) => roleCode === RoleCode.SYSTEM_ADMIN || roleCode === RoleCode.GENERAL_STUDENT,
-  );
-
-  const operationalRoles = await prisma.role.findMany({
-    where: {
-      code: {
-        in: [
-          RoleCode.EVENT_ADMIN,
-          RoleCode.FINANCIAL_CONTROLLER,
-          RoleCode.ORGANIZATIONAL_APPROVER,
-          RoleCode.EVENT_MANAGEMENT_USER,
-          RoleCode.COMPLAINT_REVIEW_AUTHORITY,
-        ],
-      },
-    },
-  });
-
-  await prisma.userRole.updateMany({
-    where: {
-      userId: user.id,
-      roleId: { in: operationalRoles.map((role) => role.id) },
-      revokedAt: null,
-    },
-    data: { revokedAt: new Date() },
-  });
-
-  for (const roleCode of globalRoleCodes) {
-    const role = await prisma.role.findUnique({
-      where: { code: roleCode },
-    });
-
-    if (!role) {
-      throw new Error(`Role ${roleCode} was not found while seeding demo data.`);
-    }
-
-    const existingAssignment = await prisma.userRole.findFirst({
-      where: {
-        userId: user.id,
-        roleId: role.id,
-        revokedAt: null,
-      },
-    });
-
-    if (!existingAssignment) {
-      await prisma.userRole.create({
-        data: {
-          userId: user.id,
-          roleId: role.id,
-        },
-      });
-    }
-  }
-
-  return user;
+  return governanceTransaction((tx) => createSeedAccount(tx, input, passwordHash, seedAdministratorId), { id: seedAdministratorId, roles: [RoleCode.SYSTEM_ADMIN], eventRoles: [] });
 }
 
 async function requireSystemAdmin() {
@@ -227,16 +158,11 @@ async function ensureEventTeamMember(
   userId: string,
   roleCode: RoleCode,
 ) {
-  return prisma.eventTeamMember.upsert({
-    where: {
-      eventId_userId_roleCode: { eventId, userId, roleCode },
-    },
-    update: {
-      assignedAt: new Date(),
-      revokedAt: null,
-    },
-    create: { eventId, userId, roleCode },
-  });
+  return governanceTransaction(async (tx) => {
+    const member = await tx.eventTeamMember.create({ data: { eventId, userId, roleCode, assignedById: seedAdministratorId } });
+    await auditService.record({ actorId: seedAdministratorId, eventId, action: "seed.demo_team_assignment", entityType: "EventTeamMember", entityId: member.id, summary: "Local operator assigned a new demo account to its new event." }, tx);
+    return member;
+  }, { id: seedAdministratorId, roles: [RoleCode.SYSTEM_ADMIN], eventRoles: [] });
 }
 
 async function ensureEvent(input: {
@@ -251,21 +177,7 @@ async function ensureEvent(input: {
   capacity: number | null;
   createdById: string;
 }) {
-  return prisma.event.upsert({
-    where: { slug: input.slug },
-    update: {
-      title: input.title,
-      description: input.description,
-      status: input.status,
-      registrationOpensAt: input.registrationOpensAt,
-      registrationClosesAt: input.registrationClosesAt,
-      startsAt: input.startsAt,
-      endsAt: input.endsAt,
-      capacity: input.capacity,
-      createdById: input.createdById,
-    },
-    create: input,
-  });
+  return prisma.event.create({ data: input });
 }
 
 async function ensureRegistration(input: {
@@ -325,7 +237,7 @@ async function ensureLinkedDemoDocument(input: DemoSupportingDocumentInput) {
       storedName: storedFile.storedName,
       relativePath: storedFile.relativePath,
       sizeBytes: BigInt(buffer.length),
-      uploadedById: input.uploadedById,
+      ...(input.uploadedById ? { uploadedById: input.uploadedById } : {}),
       [input.relationField]: input.relationId,
     },
   });
@@ -373,9 +285,9 @@ async function ensurePaymentProof(input: {
       referenceText: input.referenceText,
       amount: input.amount,
       state: input.state,
-      reviewedAt: input.reviewedAt,
-      reviewerRemark: input.reviewerRemark,
-      reviewedById: input.reviewedById,
+      ...(input.reviewedAt ? { reviewedAt: input.reviewedAt } : {}),
+      ...(input.reviewerRemark ? { reviewerRemark: input.reviewerRemark } : {}),
+      ...(input.reviewedById ? { reviewedById: input.reviewedById } : {}),
     },
   });
 }
@@ -574,8 +486,8 @@ async function ensureApprovalDecision(input: {
     where: {
       actorId: input.actorId,
       decision: input.decision,
-      budgetRequestId: input.budgetRequestId,
-      expenseRequestId: input.expenseRequestId,
+      ...(input.budgetRequestId ? { budgetRequestId: input.budgetRequestId } : {}),
+      ...(input.expenseRequestId ? { expenseRequestId: input.expenseRequestId } : {}),
     },
   });
 
@@ -651,8 +563,11 @@ async function ensureDerivedClosureArtifacts(
 }
 
 async function main() {
+  demoPassword = requireDemoSeedPassword(process.env);
+  await assertFreshDemoDataset(prisma, [...demoTeam.map((member) => member.email), "demo.active.student@example.com", "demo.verified.student@example.com", "demo.verified.student.two@example.com"], [demoActiveEventSlug, demoClosedEventSlug]);
   await ensureRoleCatalog();
   const demoSystemAdmin = await requireSystemAdmin();
+  seedAdministratorId = demoSystemAdmin.id;
 
   const demoEventManager = await ensureUser({
     fullName: "Demo Event Manager",
@@ -1005,9 +920,9 @@ async function main() {
 }
 
 void main()
-  .catch((error) => {
-    console.error("Backend runtime demo seed failed.", error);
-    process.exit(1);
+  .catch(() => {
+    console.error("Runtime demo seed refused or failed; check local opt-in, private password and a new dataset. Private details suppressed.");
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();

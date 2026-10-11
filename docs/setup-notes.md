@@ -105,11 +105,17 @@ WHERE "isActive" = true GROUP BY "eventId" HAVING COUNT(*) > 1;
 All must return no rows. If duplicates exist, review the records and preserve their decision/evidence history before proceeding; the migration intentionally does not delete them. Apply migrations before starting the updated backend. The local database had no duplicates and all 11 migrations are applied.
 
 ### Seed roles and system admin
+
+For a new local installation only, provide all three private admin inputs. Keep `ENABLE_LOCAL_DEMO_SEED=false` when preparing the runtime generator below. The base seed will preserve an existing matching active System Admin, refuse promotion/reactivation, and refuse adding a new administrator when one already exists.
+
 ```powershell
 npm run prisma:seed --workspace backend
 ```
 
 ### Seed safe demo runtime data
+
+Use only a new local dataset. Enable `ENABLE_LOCAL_DEMO_SEED=true` and provide a private `SEED_DEMO_PASSWORD`; do not paste the password into shell history. This command refuses any existing demo identity/event and never restores revoked assignments. Disable opt-in after setup. All privileged demo users still require supervised MFA enrollment.
+
 ```powershell
 npm run seed:demo:runtime --workspace backend
 ```
@@ -244,4 +250,4 @@ What it verifies:
 - Backend root `/` is intentionally not a UI route.
 - Public API base is `/api`.
 - Uploaded files are stored locally in development, while metadata stays in PostgreSQL.
-- Demo seed data is safe to rerun and designed for presentation use.
+- Seeds only support loopback development/test databases. Admin creation is for the first administrator; existing accounts are never reset, promoted or reactivated by seed. Demo creation requires `ENABLE_LOCAL_DEMO_SEED=true` and a private `SEED_DEMO_PASSWORD` (16+ characters, maximum 72 UTF-8 bytes). Demo generators refuse an existing dataset, preserving data and revoked assignments. Use isolated verification fixtures instead of reseeding.

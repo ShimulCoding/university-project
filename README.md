@@ -208,8 +208,7 @@ the System Admin.
 
 ## Demo Credentials
 ### Demo accounts seeded by `seed-demo-runtime-data.ts`
-All of these use:
-`DemoPass123!`
+New local demo accounts use the private `SEED_DEMO_PASSWORD` supplied by the operator. There is no built-in password. Demo creation requires `ENABLE_LOCAL_DEMO_SEED=true`, development/test mode and a loopback database. Existing accounts are preserved; change old credentials through the normal recovery/account process.
 
 - Event manager: `demo.event.manager@example.com`
 - Event admin: `demo.event.admin@example.com`
@@ -235,7 +234,7 @@ Use the credentials configured in your local environment.
 - Older published snapshots remain available only as protected internal history.
 
 ## Demo Data Notes
-The demo seed is idempotent and prepares realistic academic demo scenarios:
+The runtime demo generator creates a new local dataset and refuses to overwrite an existing one. Do not enable the base seed's demo team and then run a second generator using the same identities. For runtime demo data, seed only the initial admin/role catalog first with demo opt-in disabled; then opt in to the runtime generator. It prepares:
 - 2 public events
 - at least 1 active registration flow
 - pending and verified payment proofs

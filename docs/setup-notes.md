@@ -21,6 +21,8 @@ Recovery-email API: `PATCH /api/auth/update-email` requires both `email` (at mos
 
 All password login aliases and sensitive password checks share 10 failed attempts per account in 15 minutes. These denials are persisted atomically in the audit log; do not purge recent security events to bypass a lockout. MFA has a separate persisted failure budget. The additive audit-count index must be deployed with the security branch's migrations.
 
+New recovery links use `/reset-password#token=...`; the browser reads the fragment after hydration and submits it in the existing reset JSON body. Unexpired old `?token=...` links still work but remain sensitive in URL traces/proxy logs. Next raw request/action/fetch logging is disabled. Never enable body/query capture for authentication requests in external logging or email click tracking. Browser history/extensions and mail-provider rewriting remain outside the code guarantees.
+
 The **existing-demo** `verify:demo:runtime` script requires supervised MFA enrollment first and private `VERIFY_DEMO_MFA_CODES_JSON` input mapping the configured seed-admin email and `demo.finance@example.com`, `demo.event.manager@example.com`, `demo.approver@example.com` to current authenticator or one-use recovery codes. If the demo student has an enrolled factor, also provide `student:demo-act-001`. Read the JSON from a private ignored file into the environment (do not type codes into shell history), run the loopback-only script, then remove the environment variable. It refuses to enroll existing accounts and stops before requests when prerequisites are absent. The isolated `verify:event-workspaces` suite requires none of these real-account codes.
 
 ### Backend
@@ -144,6 +146,15 @@ npm run build --workspace backend
 ```
 
 ## Runtime Verification
+
+The security branch's approved reset flow has isolated verification; start the built frontend on local port 3000 before the browser script. It creates only disposable local accounts, captures mail privately in process and forwards reset POSTs to its own loopback API:
+
+```powershell
+npm run verify:reset-token --workspace frontend
+npm run verify:framework-logging --workspace frontend
+npm run verify:security-reset-browser --workspace backend
+```
+
 Before the live demo check, run the isolated event-workspace verification against a migrated database with the role catalog initialized:
 
 ```powershell
@@ -244,6 +255,8 @@ What it verifies:
 - Health: `http://localhost:4000/health`
 
 ## Common Notes
+
+- The complete local security result and limits are in `security-hardening-review.md`; current routes/sinks in `security-current-entry-point-map.md`; operator actions in `security-operator-handoff.md`. Additional backend verification: `verify:security-admission-lifecycle` and `verify:security-action-limits`. Account-based budgets are 240 operational/admin mutations, 120 protected opens and five report generations per 15 minutes, with one aggregation job/two upload leases held until actual work settles. These remain per process; configure shared enforcement before adding replicas.
 
 - Recovery SMTP requires verified TLS 1.2 or newer, with no plaintext/certificate fallback. Supply `SMTP_HOST`, `SMTP_FROM` and both credentials if the relay requires them. Use `SMTP_PORT=587`, `SMTP_SECURE=false` for STARTTLS or `465`/`true` for implicit TLS; insecure servers fail delivery while the public recovery response stays generic. Verify locally with `verify:security-mail-transport` (uses Git's bundled OpenSSL on Windows; override `VERIFY_OPENSSL_PATH` for another installation). Real provider delivery is not part of this fixture check.
 

@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
+import { beginAdmittedWork } from "../middlewares/resource-admission";
 
-type AsyncRequestHandler = (
+export type AsyncRequestHandler = (
   request: Request,
   response: Response,
   next: NextFunction,
@@ -8,7 +9,9 @@ type AsyncRequestHandler = (
 
 export function asyncHandler(handler: AsyncRequestHandler) {
   return (request: Request, response: Response, next: NextFunction) => {
-    void handler(request, response, next).catch(next);
+    const finish = beginAdmittedWork(response);
+    if (!finish) return;
+    void Promise.resolve().then(() => handler(request, response, next)).catch(next).finally(finish);
   };
 }
 

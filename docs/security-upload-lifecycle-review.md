@@ -1,0 +1,7 @@
+# SEC-23: upload admission after client cancellation
+
+**High (resource admission), fixed.** Evidence at `6b42ee6`: `backend/src/middlewares/upload-guard.ts:40` releases capacity on response close, while `backend/src/utils/async-handler.ts:11` can continue awaiting a controller after that close. A deterministic loopback test admitted a third controller after two clients disconnected, while their parsed-upload service work remained pending. Tiny synthetic requests only; no memory-exhaustion load or production request was run.
+
+Root fix: response leases track active controller promises. Close/completion releases a lease only after those promises settle; an already closed response cannot begin new controller work. Parsing-stage cancellation with no controller still releases capacity. Errors and duplicate close/finish events release once. A separate work-admission wrapper keeps aggregation jobs bounded until actual completion as well.
+
+This preserves the two-upload allowance in the approved resource-control plan and strengthens its cancellation invariant. Verification passes lifecycle (12), existing uploads (15) and trusted session-context boundary (18) checks and backend build. Complete operational/browser regressions are also required after integrating the action quotas. Resource deadlines and distributed/aggregate storage limits remain deployment responsibilities; no claim of load capacity is made.

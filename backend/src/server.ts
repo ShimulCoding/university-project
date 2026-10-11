@@ -3,6 +3,7 @@ import { env } from "./config/env";
 import { connectDatabase, disconnectDatabase } from "./config/prisma";
 import { rolesService } from "./modules/roles/services/roles.service";
 import { authRepository } from "./modules/auth/repositories/auth.repository";
+import { logInternalFailure } from "./utils/security-logging";
 
 async function startServer() {
   await connectDatabase();
@@ -35,8 +36,8 @@ async function startServer() {
   });
 }
 
-void startServer().catch(async (error) => {
-  console.error("Failed to start backend server.", error);
+void startServer().catch(async () => {
+  logInternalFailure("startup.failure");
   await disconnectDatabase();
   process.exit(1);
 });

@@ -22,7 +22,6 @@ async function getTransporter() {
         pass: testAccount.pass,
       },
     });
-    console.log("Ethereal test email account created:", testAccount.user);
   } else {
     // For production, you would configure real SMTP settings via env vars
     // e.g., using SendGrid, AWS SES, or a dedicated SMTP server.
@@ -51,7 +50,7 @@ export const mailer = {
   async sendPasswordResetEmail(to: string, resetLink: string) {
     const t = await getTransporter();
 
-    const info = await t.sendMail({
+    await t.sendMail({
       from: process.env.SMTP_FROM || '"MU CSE Transparency" <noreply@mucse.org>',
       to,
       subject: "Password Reset Request",
@@ -69,8 +68,5 @@ export const mailer = {
       `,
     });
 
-    if (env.NODE_ENV === "development" || env.NODE_ENV === "test") {
-      console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-    }
   },
 };

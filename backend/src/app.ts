@@ -2,13 +2,13 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
-import morgan from "morgan";
 
 import { corsOptions } from "./config/cors";
 import { env } from "./config/env";
 import { notFoundHandler } from "./middlewares/not-found";
 import { errorHandler } from "./middlewares/error-handler";
 import { apiRouter } from "./routes";
+import { requestLogger, requestReference } from "./utils/security-logging";
 
 export function createApp() {
   const app = express();
@@ -16,9 +16,10 @@ export function createApp() {
   app.disable("x-powered-by");
   app.set("trust proxy", env.TRUST_PROXY_HOPS || false);
 
+  app.use(requestReference);
+  app.use(requestLogger);
   app.use(helmet());
   app.use(cors(corsOptions));
-  app.use(morgan("dev"));
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());

@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import { MulterError } from "multer";
 import { ZodError } from "zod";
 import { AppError } from "../utils/app-error";
+import { logInternalFailure } from "../utils/security-logging";
 
 export function errorHandler(
   error: unknown,
@@ -54,6 +55,6 @@ export function errorHandler(
     response.status(413).json({ message: "Request body is too large." });
     return;
   }
-  console.error("Unhandled API error", error);
+  logInternalFailure("api.failure", response.locals.requestId);
   response.status(500).json({ message: "Internal server error." });
 }

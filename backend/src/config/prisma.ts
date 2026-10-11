@@ -9,10 +9,9 @@ const globalForPrisma = globalThis as typeof globalThis & {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log:
-      env.NODE_ENV === "development"
-        ? ["error", "warn"]
-        : ["error"],
+    // Prisma error text can include query arguments or connection details.
+    // Application failures use the redacted, request-correlated logger instead.
+    log: [],
   });
 
 if (env.NODE_ENV !== "production") {

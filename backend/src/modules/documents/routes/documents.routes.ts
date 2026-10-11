@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { authenticate } from "../../../middlewares/authenticate";
+import { sensitiveActionLimits } from "../../../middlewares/sensitive-action-limits";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
 import { documentsController } from "../controllers/documents.controller";
@@ -12,6 +13,7 @@ router.use(authenticate);
 
 router.get(
   "/:documentId/open",
+  sensitiveActionLimits.documents,
   validateRequest(protectedDocumentParamSchema),
   asyncHandler(documentsController.openProtectedDocument),
 );

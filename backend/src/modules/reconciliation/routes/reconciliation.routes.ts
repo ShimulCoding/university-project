@@ -3,6 +3,7 @@ import { Router } from "express";
 import { RoleCode } from "@prisma/client";
 
 import { authenticate } from "../../../middlewares/authenticate";
+import { admitReport, sensitiveActionLimits } from "../../../middlewares/sensitive-action-limits";
 import { authorizeEventScoped } from "../../../middlewares/authorize";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
@@ -33,7 +34,8 @@ router.post(
   "/generate",
   authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
   validateRequest(generateReconciliationReportSchema),
-  asyncHandler(reconciliationController.generateReport),
+  sensitiveActionLimits.reports,
+  admitReport(reconciliationController.generateReport),
 );
 router.get(
   "/:reportId",

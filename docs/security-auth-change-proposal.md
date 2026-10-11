@@ -14,6 +14,8 @@ These are source-confirmed controls/gaps. Compromise of a real account, exposure
 
 ## Proposed change
 
+The user approved this proposal and the additive local migration on 2026-10-11. Main and production remain unchanged; authentication implementation is in progress on the review branch.
+
 1. Require authenticator-code MFA for System Admin and every active event operational account, regardless of which login endpoint they use. Enforce assurance again in backend authentication, so role promotion, student login and refresh cannot bypass it.
 2. Add nullable MFA/session-assurance fields and dedicated short-lived challenge/recovery-code records through an additive local migration. Preserve existing users, money, documents, revision history and team assignments. Existing privileged accounts must enroll before receiving operational access.
 3. Use a maintained TOTP library. Encrypt enrolled/pending factor secrets with Node's authenticated AES-256-GCM API and a separate 32-byte environment key; store only hashes of random recovery codes. Never place secrets or codes in logs. Enrollment proves a current authenticator code; authentication/recovery challenges expire, limit attempts, are single-use and consume counters/codes atomically with session/audit writes.

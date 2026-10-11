@@ -2,8 +2,9 @@
 
 ## Active Architecture
 
-- A new local security review is in progress on `security/local-hardening-2026-10-11`. The user explicitly requested pushing that branch for review and leaving main unchanged. Read `docs/security-entry-point-map.md`, `docs/security-hardening-review.md`, and the pending `docs/security-auth-change-proposal.md`. No authentication change or migration is approved/applied by this review yet.
+- A new local security review is in progress on `security/local-hardening-2026-10-11`. The user explicitly requested pushing that branch for review and leaving main unchanged. Read `docs/security-entry-point-map.md`, `docs/security-hardening-review.md`, and `docs/security-auth-change-proposal.md`. The user approved authentication changes and an additive local migration; implementation is in progress and no new migration has been applied yet.
 - Operational logging now excludes query strings, arbitrary paths, raw errors/Prisma diagnostics and development mail preview capabilities. `verify:security-logging` exercises this with synthetic values; the existing 80-check audit suite passes.
+- Multipart operations now reject forbidden roles/records before parsing and storage, retain transaction authorization checks, and share bounded upload admission and per-account rates. `verify:security-uploads` passes 11 negative/cancellation checks; the existing audit (80) and workspace (91) suites pass.
 - One global role: `SYSTEM_ADMIN`.
 - Event operational roles are stored in `EventTeamMember`: Event Admin, Event Manager, Finance Controller, Organizational Approver, and optional Complaint Review Authority.
 - A user can hold roles in multiple events, but every API list, detail, document, and mutation is constrained to active event assignments.

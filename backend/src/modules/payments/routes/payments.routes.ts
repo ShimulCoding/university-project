@@ -9,6 +9,8 @@ import { authorizeEventScoped } from "../../../middlewares/authorize";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
 import { paymentsController } from "../controllers/payments.controller";
+import { paymentsService } from "../services/payments.service";
+import { uploadAdmission, uploadRateLimiter } from "../../../middlewares/upload-guard";
 import {
   incomeRecordIdParamSchema,
   listIncomeRecordsSchema,
@@ -33,6 +35,12 @@ router.use(authenticate);
 
 router.post(
   "/registrations/:registrationId/proofs",
+  asyncHandler(async (request, _response, next) => {
+    await paymentsService.assertPaymentProofUploadAccess(request.auth!.user, String(request.params.registrationId));
+    next();
+  }),
+  uploadRateLimiter,
+  uploadAdmission,
   upload.array("proofFile", 15),
   asyncHandler(paymentsController.submitPaymentProof),
 );

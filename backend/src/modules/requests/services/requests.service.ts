@@ -146,6 +146,25 @@ function getRequestSubmissionState(submit: boolean | undefined) {
   return submit === false ? RequestState.DRAFT : RequestState.SUBMITTED;
 }
 
+export async function assertRequestUploadAccess(
+  actor: AuthenticatedUser,
+  target: { kind: "budget" | "expense"; requestId: string } | { kind: "create" | "record"; eventId: string },
+) {
+  if ("requestId" in target) {
+    const request = target.kind === "budget"
+      ? await requestsRepository.findBudgetRequestById(target.requestId)
+      : await requestsRepository.findExpenseRequestById(target.requestId);
+    if (!request) throw new AppError(404, "Request not found.");
+    assertRequestOwnership(actor, request.eventId, request.requestedById);
+    assertEditableRequestState(request.state);
+  } else {
+    const event = await eventsRepository.findById(target.eventId);
+    if (!event) throw new AppError(404, "Event not found.");
+    if (target.kind === "record") assertExpenseRecordManagementPermissions(actor, event.id);
+    else assertRequestSubmissionPermissions(actor, event.id);
+  }
+}
+
 export const requestsService = {
   async listMyBudgetRequests(actor: AuthenticatedUser, filters: RequestFilters) {
     assertHasAnyRequestSubmissionAssignment(actor);
@@ -196,6 +215,7 @@ export const requestsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
+    await assertRequestUploadAccess(actor, { kind: "create", eventId: input.eventId });
     const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.SUPPORTING_DOCUMENT, destinationDir: documentDirectories.SUPPORTING_DOCUMENT, rule: uploadRules.SUPPORTING_DOCUMENT });
     try {
       return await governanceTransaction(async (tx) => {
@@ -258,6 +278,7 @@ export const requestsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
+    await assertRequestUploadAccess(actor, { kind: "budget", requestId: budgetRequestId });
     const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.SUPPORTING_DOCUMENT, destinationDir: documentDirectories.SUPPORTING_DOCUMENT, rule: uploadRules.SUPPORTING_DOCUMENT });
     try {
       return await governanceTransaction(async (tx) => {
@@ -394,6 +415,7 @@ export const requestsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
+    await assertRequestUploadAccess(actor, { kind: "create", eventId: input.eventId });
     const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.SUPPORTING_DOCUMENT, destinationDir: documentDirectories.SUPPORTING_DOCUMENT, rule: uploadRules.SUPPORTING_DOCUMENT });
     try {
       return await governanceTransaction(async (tx) => {
@@ -458,6 +480,7 @@ export const requestsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
+    await assertRequestUploadAccess(actor, { kind: "expense", requestId: expenseRequestId });
     const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.SUPPORTING_DOCUMENT, destinationDir: documentDirectories.SUPPORTING_DOCUMENT, rule: uploadRules.SUPPORTING_DOCUMENT });
     try {
       return await governanceTransaction(async (tx) => {
@@ -585,6 +608,7 @@ export const requestsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
+    await assertRequestUploadAccess(actor, { kind: "record", eventId: input.eventId });
     const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.SUPPORTING_DOCUMENT, destinationDir: documentDirectories.SUPPORTING_DOCUMENT, rule: uploadRules.SUPPORTING_DOCUMENT });
     try {
       return await governanceTransaction(async (tx) => {

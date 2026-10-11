@@ -9,6 +9,7 @@ import { authorizeEventScoped } from "../../../middlewares/authorize";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
 import { complaintsController } from "../controllers/complaints.controller";
+import { uploadAdmission, uploadRateLimiter } from "../../../middlewares/upload-guard";
 import {
   closeComplaintSchema,
   complaintIdParamSchema,
@@ -48,6 +49,8 @@ router.get(
 );
 router.post(
   "/",
+  uploadRateLimiter,
+  uploadAdmission,
   upload.array("evidence", 15),
   validateRequest(createComplaintSchema),
   asyncHandler(complaintsController.createComplaint),

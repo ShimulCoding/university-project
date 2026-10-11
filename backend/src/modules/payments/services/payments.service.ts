@@ -80,6 +80,13 @@ function assertHasAnyFinanceAssignment(viewer: AuthenticatedUser) {
 }
 
 export const paymentsService = {
+  async assertPaymentProofUploadAccess(actor: AuthenticatedUser, registrationId: string): Promise<void> {
+    const registration = await registrationsRepository.findById(registrationId);
+    if (!registration) throw new AppError(404, "Registration not found.");
+    if (registration.participantId !== actor.id) assertEventFinancePermissions(actor, registration.eventId);
+    if (registration.paymentState === RegistrationPaymentState.VERIFIED) throw new AppError(409, "This registration has already been verified.");
+  },
+
   async submitPaymentProof(
     actor: AuthenticatedUser,
     registrationId: string,
@@ -87,6 +94,7 @@ export const paymentsService = {
     files: Express.Multer.File[] | undefined,
     auditMetadata?: AuditMetadata,
   ) {
+    await paymentsService.assertPaymentProofUploadAccess(actor, registrationId);
     const storedUploads = await storeValidatedUploads(files, { category: DocumentCategory.PAYMENT_PROOF, destinationDir: documentDirectories.PAYMENT_PROOF, rule: uploadRules.PAYMENT_PROOF });
     try {
       return await governanceTransaction(async (tx) => {

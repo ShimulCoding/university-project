@@ -9,6 +9,8 @@ import { authorizeEventScoped } from "../../../middlewares/authorize";
 import { validateRequest } from "../../../middlewares/validate-request";
 import { asyncHandler } from "../../../utils/async-handler";
 import { requestsController } from "../controllers/requests.controller";
+import { assertRequestUploadAccess } from "../services/requests.service";
+import { authorizeOperationalUpload, uploadAdmission, uploadRateLimiter } from "../../../middlewares/upload-guard";
 import {
   budgetRequestIdParamSchema,
   createBudgetRequestSchema,
@@ -38,6 +40,9 @@ const upload = multer({
 
 router.use(authenticate);
 
+const requireRequestUpload = authorizeOperationalUpload([RoleCode.EVENT_ADMIN, RoleCode.EVENT_MANAGEMENT_USER]);
+const requireFinanceUpload = authorizeOperationalUpload([RoleCode.FINANCIAL_CONTROLLER]);
+
 router.get(
   "/budget-requests/mine",
   validateRequest(listRequestsSchema),
@@ -62,12 +67,21 @@ router.get(
 );
 router.post(
   "/budget-requests",
+  requireRequestUpload,
+  uploadRateLimiter,
+  uploadAdmission,
   upload.array("supportingDocument", 15),
   validateRequest(createBudgetRequestSchema),
   asyncHandler(requestsController.createBudgetRequest),
 );
 router.patch(
   "/budget-requests/:budgetRequestId",
+  requireRequestUpload,
+  asyncHandler(async (request, _response, next) => {
+    await assertRequestUploadAccess(request.auth!.user, { kind: "budget", requestId: String(request.params.budgetRequestId) }); next();
+  }),
+  uploadRateLimiter,
+  uploadAdmission,
   upload.array("supportingDocument", 15),
   validateRequest(updateBudgetRequestSchema),
   asyncHandler(requestsController.updateBudgetRequest),
@@ -102,12 +116,21 @@ router.get(
 );
 router.post(
   "/expense-requests",
+  requireRequestUpload,
+  uploadRateLimiter,
+  uploadAdmission,
   upload.array("supportingDocument", 15),
   validateRequest(createExpenseRequestSchema),
   asyncHandler(requestsController.createExpenseRequest),
 );
 router.patch(
   "/expense-requests/:expenseRequestId",
+  requireRequestUpload,
+  asyncHandler(async (request, _response, next) => {
+    await assertRequestUploadAccess(request.auth!.user, { kind: "expense", requestId: String(request.params.expenseRequestId) }); next();
+  }),
+  uploadRateLimiter,
+  uploadAdmission,
   upload.array("supportingDocument", 15),
   validateRequest(updateExpenseRequestSchema),
   asyncHandler(requestsController.updateExpenseRequest),
@@ -144,7 +167,10 @@ router.get(
 );
 router.post(
   "/expense-records",
+  requireFinanceUpload,
   authorizeEventScoped([RoleCode.SYSTEM_ADMIN, RoleCode.FINANCIAL_CONTROLLER]),
+  uploadRateLimiter,
+  uploadAdmission,
   upload.array("supportingDocument", 15),
   validateRequest(createExpenseRecordSchema),
   asyncHandler(requestsController.createExpenseRecord),

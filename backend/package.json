@@ -13,6 +13,7 @@
     "verify:event-workspaces": "tsx scripts/verify-event-workspaces.ts",
     "verify:project-audit": "tsx scripts/verify-project-audit.ts",
     "verify:security-logging": "tsx scripts/verify-security-logging.ts",
+    "verify:security-uploads": "tsx scripts/verify-security-uploads.ts",
     "verify:demo:runtime": "tsx scripts/verify-demo-runtime.ts",
     "seed:demo:flows": "tsx scripts/seed-events-payments-demo.ts",
     "seed:demo:runtime": "tsx scripts/seed-demo-runtime-data.ts",

@@ -1,5 +1,6 @@
 import { postFormData } from "./client";
 import { ApiError } from "./shared";
+import { v4 as uuidv4 } from "uuid";
 
 // Keep the exact body/key after a timeout or lost response. Retrying must never
 // silently turn edited fields into another financial operation.
@@ -13,7 +14,9 @@ export class FinancialSubmission {
     if (!this.pending) {
       const snapshot = new FormData();
       for (const [name, value] of body) snapshot.append(name, value);
-      this.pending = { key: crypto.randomUUID(), body: snapshot, path };
+      // getRandomValues remains available on HTTP LAN origins. Let the proven
+      // UUID library encode those cryptographic bytes with the required v4 bits.
+      this.pending = { key: uuidv4({ random: crypto.getRandomValues(new Uint8Array(16)) }), body: snapshot, path };
     }
     if (path !== this.pending.path) throw new ApiError("Retry the original financial submission first.", 409);
     try {

@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   agentRules: false,
   reactStrictMode: true,
   poweredByHeader: false,
+  // Development request URLs, fetch warnings and server-action arguments can
+  // contain recovery capabilities. Disable the framework's raw request logger.
+  logging: false,
   async headers() {
     return [{ source: "/:path*", headers: [
       { key: "X-Content-Type-Options", value: "nosniff" },

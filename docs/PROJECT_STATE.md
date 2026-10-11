@@ -2,6 +2,8 @@
 
 ## Active Architecture
 
+- Next raw framework logging is disabled through its supported `logging: false` option. A synthetic test first reproduced a reset-query capability in the installed development logger; `verify:framework-logging` now passes five real-wrapper/configuration/request/negative-control checks, covering request URLs, action arguments and fetch warnings. This does not sanitize framework trace files or external proxy logs; the approved reset-fragment transport is tracked separately. Read `security-framework-logging-review.md`.
+
 - Completed financial retries now resolve their original record under current governance/session/event authority before scanner/storage I/O. Matching payload/file hashes and result ownership remain mandatory; new/racing operations still scan/store and clean redundant files. A synthetic outage first reproduced hidden completed results; replay verification now passes 61 checks. Read `security-completed-replay-review.md`. No migration or historical-data change was needed.
 
 - The user approved the sensitive-action quota proposal. Verified authentication now applies a shared 240-mutation/account/15-minute budget to operational/admin POST/PATCH/PUT/DELETE, while auth/recovery retain their existing budgets and read-only navigation remains available. Protected evidence allows 120 opens/account/15 minutes; report generation allows five/account/15 minutes and one active job per process until its work settles. `verify:security-action-limits` passes 32 local identity/expiry/quota/cancellation/API checks. These budgets remain per process; multi-instance/shared-store enforcement and production load capacity are unverified.

@@ -13,6 +13,7 @@
     "verify:ui": "tsx --tsconfig scripts/tsconfig.json scripts/verify-ui.tsx",
     "verify:design": "tsx scripts/verify-design.ts",
     "verify:security-policy": "tsx scripts/verify-browser-policy.ts",
+    "verify:framework-logging": "tsx scripts/verify-framework-logging.ts",
     "verify:security-browser": "tsx scripts/verify-security-browser.ts"
   },
   "dependencies": {

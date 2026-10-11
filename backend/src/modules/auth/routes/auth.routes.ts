@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { RoleCode } from "@prisma/client";
 import { authorize } from "../../../middlewares/authorize";
+import { requireLocalBootstrap } from "../../../middlewares/local-bootstrap";
 
 import { authenticate } from "../../../middlewares/authenticate";
 import { validateRequest } from "../../../middlewares/validate-request";
@@ -30,6 +31,7 @@ router.post("/mfa/verify", mfaRateLimiter, validateRequest(mfaVerificationSchema
 
 router.post(
   "/bootstrap-admin",
+  requireLocalBootstrap,
   authRateLimiter,
   validateRequest(bootstrapAdminSchema),
   asyncHandler(authController.bootstrapAdmin),

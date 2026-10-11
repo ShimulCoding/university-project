@@ -13,7 +13,7 @@ async function startServer() {
   tokenCleanup.unref();
 
   const app = createApp();
-  const server = app.listen(env.PORT, () => {
+  const server = app.listen({ port: env.PORT, ...(env.ENABLE_LOCAL_ADMIN_BOOTSTRAP === "true" ? { host: "127.0.0.1" } : {}) }, () => {
     console.log(`Backend listening on http://localhost:${env.PORT}`);
   });
 

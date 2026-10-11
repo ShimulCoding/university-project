@@ -31,6 +31,7 @@ Copy:
 | `PORT` | Yes | Backend port |
 | `FRONTEND_URL` | Yes | Allowed HTTP(S) frontend origins for CORS, separated with commas; first origin hosts recovery links |
 | `TRUST_PROXY_HOPS` | No | Trusted reverse-proxy hop count, 0 by default; set only for the actual proxy topology |
+| `ENABLE_LOCAL_ADMIN_BOOTSTRAP` | No | Default false. Explicit empty-database operator mode; true binds only to 127.0.0.1. Production/browser/proxy/remote requests remain denied. Disable and restart after setup. |
 | `DATABASE_URL` | Yes | PostgreSQL connection string |
 | `JWT_ACCESS_SECRET` | Yes | Access token signing secret |
 | `JWT_REFRESH_SECRET` | Yes | Refresh token signing secret |

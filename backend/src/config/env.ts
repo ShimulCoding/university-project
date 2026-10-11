@@ -16,6 +16,7 @@ const rawEnvSchema = z.object({
     "FRONTEND_URL must contain HTTP(S) URLs separated by commas.",
   ),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(10).default(0),
+  ENABLE_LOCAL_ADMIN_BOOTSTRAP: z.enum(["true", "false"]).default("false"),
   DATABASE_URL: z.string().min(1),
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),

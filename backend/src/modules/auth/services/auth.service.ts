@@ -54,11 +54,10 @@ let bootstrapCompleted = false;
 
 export const authService = {
   async bootstrapAdmin(input: RegisterInput, auditMetadata?: AuditMetadata): Promise<LoginResult> {
+    if (env.NODE_ENV === "production" || env.ENABLE_LOCAL_ADMIN_BOOTSTRAP !== "true") {
+      throw new AppError(404, "Not found.");
+    }
     return governanceTransaction(async (tx) => {
-      // The bootstrap endpoint must never be reachable in production.
-      if (env.NODE_ENV === "production") {
-        throw new AppError(404, "Not found.");
-      }
       // Fast reject once we know the system has already been bootstrapped.
       if (bootstrapCompleted) {
         throw new AppError(404, "Not found.");

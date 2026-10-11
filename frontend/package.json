@@ -10,7 +10,9 @@
     "verify:client": "tsx scripts/verify-client-api.ts",
     "verify:pdf": "tsx --tsconfig tsconfig.json scripts/verify-pdf.ts",
     "verify:ui": "tsx --tsconfig scripts/tsconfig.json scripts/verify-ui.tsx",
-    "verify:design": "tsx scripts/verify-design.ts"
+    "verify:design": "tsx scripts/verify-design.ts",
+    "verify:security-policy": "tsx scripts/verify-browser-policy.ts",
+    "verify:security-browser": "tsx scripts/verify-security-browser.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.2",

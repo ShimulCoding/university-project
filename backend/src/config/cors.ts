@@ -3,19 +3,11 @@ import type { CorsOptions } from "cors";
 import { env } from "./env";
 import { AppError } from "../utils/app-error";
 
-// Allow known development ports (frontend: 3000–3009, backend: 4000) instead
-// of any localhost port, to prevent cookie theft via port-sharing attacks.
-const localDevelopmentOriginPattern = /^https?:\/\/(localhost|127\.0\.0\.1):(300[0-9]|4000)$/;
-
 export const corsOptions: CorsOptions = {
   origin(origin, callback) {
-    const isConfiguredOrigin = !origin || env.corsOrigins.includes(origin);
-    const isAllowedLocalDevelopmentOrigin =
-      env.NODE_ENV !== "production" &&
-      typeof origin === "string" &&
-      localDevelopmentOriginPattern.test(origin);
-
-    if (isConfiguredOrigin || isAllowedLocalDevelopmentOrigin) {
+    // Origins sharing a hostname still have different browser trust boundaries.
+    // Native/server clients without Origin retain their existing access checks.
+    if (!origin || env.corsOrigins.includes(origin)) {
       callback(null, true);
       return;
     }

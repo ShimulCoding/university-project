@@ -16,6 +16,7 @@
     "verify:security-audit-metadata": "tsx scripts/verify-security-audit-metadata.ts",
     "verify:security-uploads": "tsx scripts/verify-security-uploads.ts",
     "verify:security-mfa": "tsx scripts/verify-security-mfa.ts",
+    "verify:security-mfa-crypto": "tsx scripts/verify-security-mfa-crypto.ts",
     "verify:security-email": "tsx scripts/verify-security-email.ts",
     "verify:security-login": "tsx scripts/verify-security-login.ts",
     "verify:security-session-boundary": "tsx scripts/verify-security-session-boundary.ts",

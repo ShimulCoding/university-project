@@ -1,4 +1,5 @@
 import { loadProjectEnv } from "../src/config/load-env";
+import { completeDemoLogin, assertLocalDemoPrerequisites, DemoMfaPrerequisiteError } from "./helpers/demo-mfa";
 
 loadProjectEnv();
 
@@ -80,18 +81,7 @@ async function loginAsSeedAdmin() {
 
   const body = await readJson(response);
 
-  if (!response.ok) {
-    throw new Error(`Admin login failed with ${response.status}. Body: ${JSON.stringify(body)}`);
-  }
-
-  const cookieHeader = buildCookieHeader(response);
-
-  assertCondition(cookieHeader, "Admin login did not return authentication cookies.");
-
-  return {
-    cookieHeader,
-    body,
-  };
+  return completeDemoLogin(baseUrl, email, response, body, buildCookieHeader);
 }
 
 async function loginAsEventTeam(email: string, eventLookupKey: string) {
@@ -108,16 +98,7 @@ async function loginAsEventTeam(email: string, eventLookupKey: string) {
   });
   const body = await readJson(response);
 
-  if (!response.ok) {
-    throw new Error(
-      `Event team login for ${email} failed with ${response.status}. Body: ${JSON.stringify(body)}`,
-    );
-  }
-
-  const cookieHeader = buildCookieHeader(response);
-  assertCondition(cookieHeader, `Event team login for ${email} did not return cookies.`);
-
-  return { cookieHeader, body };
+  return completeDemoLogin(baseUrl, email, response, body, buildCookieHeader);
 }
 
 async function loginAsStudent() {
@@ -133,14 +114,7 @@ async function loginAsStudent() {
   });
   const body = await readJson(response);
 
-  if (!response.ok) {
-    throw new Error(`Demo student login failed with ${response.status}. Body: ${JSON.stringify(body)}`);
-  }
-
-  const cookieHeader = buildCookieHeader(response);
-  assertCondition(cookieHeader, "Demo student login did not return authentication cookies.");
-
-  return { cookieHeader, body };
+  return completeDemoLogin(baseUrl, "student:DEMO-ACT-001", response, body, buildCookieHeader);
 }
 
 async function verifyRefreshReplayProtection(cookieHeader: string) {
@@ -199,6 +173,7 @@ async function verifyPasswordRecoveryPrivacy() {
 }
 
 async function main() {
+  assertLocalDemoPrerequisites(baseUrl, [process.env.SEED_ADMIN_EMAIL?.trim() || "", "demo.finance@example.com", "demo.event.manager@example.com", "demo.approver@example.com"]);
   const health = await fetchJson("/health");
   assertCondition(health.status === "ok", "Health endpoint did not return ok status.");
 
@@ -471,6 +446,6 @@ async function main() {
 }
 
 void main().catch((error) => {
-  console.error("Backend demo runtime verification failed.", error);
-  process.exit(1);
+  console.error(error instanceof DemoMfaPrerequisiteError ? `Demo runtime prerequisites unmet: ${error.message}` : "Backend demo runtime verification failed. Private response details suppressed.");
+  process.exitCode = 1;
 });

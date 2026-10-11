@@ -21,6 +21,8 @@ Recovery-email API: `PATCH /api/auth/update-email` requires both `email` (at mos
 
 All password login aliases and sensitive password checks share 10 failed attempts per account in 15 minutes. These denials are persisted atomically in the audit log; do not purge recent security events to bypass a lockout. MFA has a separate persisted failure budget. The additive audit-count index must be deployed with the security branch's migrations.
 
+The **existing-demo** `verify:demo:runtime` script requires supervised MFA enrollment first and private `VERIFY_DEMO_MFA_CODES_JSON` input mapping the configured seed-admin email and `demo.finance@example.com`, `demo.event.manager@example.com`, `demo.approver@example.com` to current authenticator or one-use recovery codes. If the demo student has an enrolled factor, also provide `student:demo-act-001`. Read the JSON from a private ignored file into the environment (do not type codes into shell history), run the loopback-only script, then remove the environment variable. It refuses to enroll existing accounts and stops before requests when prerequisites are absent. The isolated `verify:event-workspaces` suite requires none of these real-account codes.
+
 ### Backend
 Copy:
 `backend/.env.example` -> `backend/.env`

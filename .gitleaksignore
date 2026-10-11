@@ -1,0 +1,3 @@
+# Reviewed false positive: public prose describing recovery-email regression tests.
+# Exact historical fingerprint only; future changes and real secrets remain scanned.
+c4163122877c74c19445de7dbeb6aeac59a9f0a0:docs/security-hardening-review.md:generic-api-key:29

@@ -46,23 +46,13 @@ function writeLoginResponse(response: Response, result: LoginResult, status = 20
 
 export const authController = {
   async bootstrapAdmin(request: Request, response: Response) {
-    const session = await authService.bootstrapAdmin(request.body, {
-      ipAddress: request.ip || undefined,
-      userAgent: request.get("user-agent") || undefined,
-      route: request.originalUrl,
-      method: request.method,
-    });
+    const session = await authService.bootstrapAdmin(request.body, getRequestMetadata(request));
 
     writeLoginResponse(response, session, 201);
   },
 
   async register(request: Request, response: Response) {
-    const session = await authService.register(request.body, {
-      ipAddress: request.ip || undefined,
-      userAgent: request.get("user-agent") || undefined,
-      route: request.originalUrl,
-      method: request.method,
-    });
+    const session = await authService.register(request.body, getRequestMetadata(request));
 
     writeSessionCookies(response, session);
 
@@ -70,12 +60,7 @@ export const authController = {
   },
 
   async login(request: Request, response: Response) {
-    const session = await authService.login(request.body, {
-      ipAddress: request.ip || undefined,
-      userAgent: request.get("user-agent") || undefined,
-      route: request.originalUrl,
-      method: request.method,
-    });
+    const session = await authService.login(request.body, getRequestMetadata(request));
 
     writeLoginResponse(response, session);
   },
@@ -83,12 +68,7 @@ export const authController = {
   async refresh(request: Request, response: Response) {
     const session = await authService.refreshSession(
       request.cookies[authCookieNames.refreshToken] as string | undefined,
-      {
-        ipAddress: request.ip || undefined,
-        userAgent: request.get("user-agent") || undefined,
-        route: request.originalUrl,
-        method: request.method,
-      },
+      getRequestMetadata(request),
     );
 
     writeSessionCookies(response, session);
@@ -101,12 +81,7 @@ export const authController = {
     await authService.logout(
       request.cookies[authCookieNames.refreshToken] as string | undefined,
       request.auth?.userId,
-      {
-        ipAddress: request.ip || undefined,
-        userAgent: request.get("user-agent") || undefined,
-        route: request.originalUrl,
-        method: request.method,
-      },
+      getRequestMetadata(request),
     );
 
     response.clearCookie(authCookieNames.accessToken, clearCookieOptions);
@@ -137,23 +112,13 @@ export const authController = {
   },
 
   async internalLogin(request: Request, response: Response) {
-    const session = await authService.internalLogin(request.body, {
-      ipAddress: request.ip || undefined,
-      userAgent: request.get("user-agent") || undefined,
-      route: request.originalUrl,
-      method: request.method,
-    });
+    const session = await authService.internalLogin(request.body, getRequestMetadata(request));
 
     writeLoginResponse(response, session);
   },
 
   async eventTeamLogin(request: Request, response: Response) {
-    const session = await authService.eventTeamLogin(request.body, {
-      ipAddress: request.ip || undefined,
-      userAgent: request.get("user-agent") || undefined,
-      route: request.originalUrl,
-      method: request.method,
-    });
+    const session = await authService.eventTeamLogin(request.body, getRequestMetadata(request));
 
     writeLoginResponse(response, session);
   },
@@ -172,23 +137,13 @@ export const authController = {
   },
 
   async forgotPassword(request: Request, response: Response) {
-    const result = await authService.forgotPassword(request.body, {
-      ipAddress: request.ip || undefined,
-      userAgent: request.get("user-agent") || undefined,
-      route: request.originalUrl,
-      method: request.method,
-    });
+    const result = await authService.forgotPassword(request.body, getRequestMetadata(request));
 
     response.status(200).json(result);
   },
 
   async resetPassword(request: Request, response: Response) {
-    const result = await authService.resetPassword(request.body, {
-      ipAddress: request.ip || undefined,
-      userAgent: request.get("user-agent") || undefined,
-      route: request.originalUrl,
-      method: request.method,
-    });
+    const result = await authService.resetPassword(request.body, getRequestMetadata(request));
 
     response.status(200).json(result);
   },

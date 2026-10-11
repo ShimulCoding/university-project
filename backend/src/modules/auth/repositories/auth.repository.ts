@@ -1,6 +1,7 @@
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
 import { userWithActiveRolesInclude } from "../../users/users.mappers";
+import { sanitizeAuditMetadata } from "../../../utils/audit-metadata";
 
 export const authRepository = {
   async createRefreshToken(
@@ -14,14 +15,15 @@ export const authRepository = {
     },
     db: DbClient = prisma,
   ) {
+    const metadata = sanitizeAuditMetadata(data);
     return db.refreshToken.create({
       data: {
         userId: data.userId,
         tokenHash: data.tokenHash,
         expiresAt: data.expiresAt,
         mfaVerifiedAt: data.mfaVerifiedAt ?? null,
-        ...(data.userAgent ? { userAgent: data.userAgent } : {}),
-        ...(data.ipAddress ? { ipAddress: data.ipAddress } : {}),
+        ...(metadata.userAgent ? { userAgent: metadata.userAgent } : {}),
+        ...(metadata.ipAddress ? { ipAddress: metadata.ipAddress } : {}),
       },
     });
   },

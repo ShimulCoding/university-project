@@ -1,3 +1,4 @@
+import { getRequestMetadata } from "../../../utils/request-metadata";
 import type { Request, Response } from "express";
 
 import { rolesService } from "../services/roles.service";
@@ -23,12 +24,7 @@ export const rolesController = {
       request.auth!.userId,
       request.body.userId,
       request.body.roleCode,
-      {
-        ipAddress: request.ip || undefined,
-        userAgent: request.get("user-agent") || undefined,
-        route: request.originalUrl,
-        method: request.method,
-      },
+      getRequestMetadata(request),
     );
 
     response.status(201).json({ assignment });
@@ -38,12 +34,7 @@ export const rolesController = {
     const assignment = await rolesService.revokeAssignment(
       request.auth!.userId,
       String(request.params.assignmentId),
-      {
-        ipAddress: request.ip || undefined,
-        userAgent: request.get("user-agent") || undefined,
-        route: request.originalUrl,
-        method: request.method,
-      },
+      getRequestMetadata(request),
     );
 
     response.status(200).json({ assignment });

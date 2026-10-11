@@ -1,3 +1,4 @@
+import { getRequestMetadata } from "../../../utils/request-metadata";
 import type { Request, Response } from "express";
 
 import { usersService } from "../services/users.service";
@@ -22,12 +23,7 @@ export const usersController = {
   },
 
   async createUser(request: Request, response: Response) {
-    const user = await usersService.createUser(request.auth!.userId, request.body, {
-      ipAddress: request.ip || undefined,
-      userAgent: request.get("user-agent") || undefined,
-      route: request.originalUrl,
-      method: request.method,
-    });
+    const user = await usersService.createUser(request.auth!.userId, request.body, getRequestMetadata(request));
 
     response.status(201).json({ user });
   },
@@ -37,20 +33,13 @@ export const usersController = {
       request.auth!.userId,
       String(request.params.userId),
       request.body.status,
-      {
-        ipAddress: request.ip || undefined,
-        userAgent: request.get("user-agent") || undefined,
-        route: request.originalUrl,
-        method: request.method,
-      },
+      getRequestMetadata(request),
     );
 
     response.status(200).json({ user });
   },
   async updateProfile(request: Request, response: Response) {
-    const user = await usersService.updateProfile(request.auth!.userId, String(request.params.userId), request.body, {
-      ipAddress: request.ip || undefined, userAgent: request.get("user-agent") || undefined, route: request.originalUrl, method: request.method,
-    });
+    const user = await usersService.updateProfile(request.auth!.userId, String(request.params.userId), request.body, getRequestMetadata(request));
     response.status(200).json({ user });
   },
 };

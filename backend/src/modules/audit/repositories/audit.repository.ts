@@ -4,6 +4,7 @@ import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
 import type { PaginationOptions } from "../../../utils/pagination";
 import type { AuditFilters, CreateAuditLogInput } from "../types/audit.types";
+import { sanitizeAuditMetadata } from "../../../utils/audit-metadata";
 
 function buildAuditWhere(filters: AuditFilters): Prisma.AuditLogWhereInput {
   const where: Prisma.AuditLogWhereInput = {};
@@ -25,6 +26,7 @@ function buildAuditWhere(filters: AuditFilters): Prisma.AuditLogWhereInput {
 
 export const auditRepository = {
   create(input: CreateAuditLogInput, db: DbClient = prisma) {
+    const metadata = sanitizeAuditMetadata(input);
     const eventId = input.eventId ??
       (typeof input.context?.eventId === "string" ? input.context.eventId : undefined) ??
       (input.entityType === "Event" ? input.entityId : undefined);
@@ -37,10 +39,10 @@ export const auditRepository = {
       ...(input.actorId ? { actorId: input.actorId } : {}),
       ...(input.summary ? { summary: input.summary } : {}),
       ...(input.context ? { context: input.context as Prisma.InputJsonValue } : {}),
-      ...(input.ipAddress ? { ipAddress: input.ipAddress } : {}),
-      ...(input.userAgent ? { userAgent: input.userAgent } : {}),
-      ...(input.route ? { route: input.route } : {}),
-      ...(input.method ? { method: input.method } : {}),
+      ...(metadata.ipAddress ? { ipAddress: metadata.ipAddress } : {}),
+      ...(metadata.userAgent ? { userAgent: metadata.userAgent } : {}),
+      ...(metadata.route ? { route: metadata.route } : {}),
+      ...(metadata.method ? { method: metadata.method } : {}),
     };
 
     return db.auditLog.create({

@@ -13,6 +13,7 @@
     "verify:event-workspaces": "tsx scripts/verify-event-workspaces.ts",
     "verify:project-audit": "tsx scripts/verify-project-audit.ts",
     "verify:security-logging": "tsx scripts/verify-security-logging.ts",
+    "verify:security-audit-metadata": "tsx scripts/verify-security-audit-metadata.ts",
     "verify:security-uploads": "tsx scripts/verify-security-uploads.ts",
     "verify:security-mfa": "tsx scripts/verify-security-mfa.ts",
     "verify:security-email": "tsx scripts/verify-security-email.ts",

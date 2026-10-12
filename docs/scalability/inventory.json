@@ -12,7 +12,7 @@
     "recurringSchedulers": 1,
     "timers": 9,
     "inputSinkCandidates": 224,
-    "operatorSources": 100,
+    "operatorSources": 102,
     "npmCommands": 63
   },
   "coverage": {
@@ -19922,6 +19922,42 @@
           "scripts/scalability/provision-local-database.mjs:129",
           "scripts/scalability/provision-local-database.mjs:130",
           "scripts/scalability/provision-local-database.mjs:132"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/recover-local-wsl-storage.ps1",
+        "source": "scripts/scalability/recover-local-wsl-storage.ps1:1",
+        "kind": "verification/profiling tool",
+        "lines": 82,
+        "sha256": "6195b122ecadd98fb82194a20b40d269c5b648227d76f8ac9aca32c8a6d780cb",
+        "effects": [],
+        "guardCandidates": [
+          "scripts/scalability/recover-local-wsl-storage.ps1:22",
+          "scripts/scalability/recover-local-wsl-storage.ps1:26",
+          "scripts/scalability/recover-local-wsl-storage.ps1:27",
+          "scripts/scalability/recover-local-wsl-storage.ps1:28"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/verify-host-recovery-contracts.ps1",
+        "source": "scripts/scalability/verify-host-recovery-contracts.ps1:1",
+        "kind": "verification/profiling tool",
+        "lines": 106,
+        "sha256": "9197e96d33ba7984c7d1f7a007b12bace94d8180fa62d6c4386d926becc8f128",
+        "effects": [],
+        "guardCandidates": [
+          "scripts/scalability/verify-host-recovery-contracts.ps1:40",
+          "scripts/scalability/verify-host-recovery-contracts.ps1:84"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",

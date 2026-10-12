@@ -4,31 +4,33 @@ Base: `816d7d6`. Review branch: `security/local-hardening-2026-10-11`. The user 
 
 ## Scope and method
 
-The pre-assessment inventory is preserved in [security-entry-point-map.md](security-entry-point-map.md): 88 HTTP endpoints, 39 page files, 22 Prisma models and 163 database/filesystem call sites. [security-current-entry-point-map.md](security-current-entry-point-map.md) adds the current route/middleware/sink inventory and complete application source index after hardening. Approved change proposals record the intentional authentication, browser/scanner/seed, financial and action-limit contracts. Only loopback PostgreSQL and isolated fixtures are used. Existing records are not reseeded.
+The pre-assessment inventory is preserved in [security-entry-point-map.md](security-entry-point-map.md): 88 HTTP endpoints, 39 page files, 22 Prisma models and 163 database/filesystem call sites. [security-current-entry-point-map.md](security-current-entry-point-map.md) adds the current route/middleware/sink inventory and complete application source index after hardening. Approved change proposals record the intentional authentication, browser/scanner/seed, financial and action-limit contracts. Automated attacks/regressions use loopback PostgreSQL and isolated fixtures. Subsequent owner support uses the authorized local account's password stage and a separately approved private initial MFA grant. Existing records are not reseeded; no real password/role was reset and no real factor was enrolled by the agent.
 
 Evidence locations below refer to the base commit unless a later finding explicitly names its commit. Findings are source-confirmed or locally reproduced; production exposure is unverified. Current fixes and verification limits are recorded separately from the historical evidence.
 
 ## Final verification (2026-10-12)
 
-Current coverage: **91 HTTP routes, 39 Next page files / 40 compiled routes, 27 Prisma models, 306 application source files, 206 backend database/filesystem call sites and 13 explicit browser network/PDF/DOM sinks**. The index includes every application source file; it is a coverage aid, not proof that every conceivable attack was exercised. Of 26 findings, 24 code/tooling controls are addressed; SEC-05 and SEC-22 remain open. Real scanner, mail and deployment acceptance remains pending even where the integration is fixed.
+Current coverage after the local-network follow-up: **91 HTTP routes, 39 Next page files / 40 compiled routes, 27 Prisma models, 307 application source files, 206 backend database/filesystem call sites and 13 explicit browser network/PDF/DOM sinks**. The index includes every application source file; it is a coverage aid, not proof that every conceivable attack was exercised. Of 26 security findings, 24 code/tooling controls are addressed; SEC-05 and SEC-22 remain open. Three subsequent network/financial/verification defects are recorded in the linked follow-ups below. Real scanner, mail and deployment acceptance remains pending even where the integration is fixed.
 
 | Verification | Actual result |
 | --- | --- |
 | Prisma validate/generate/migration status; backend build | Passed; backend stopped for Windows client generation; 14 local migrations up to date. |
 | Frontend lint, standalone types, production build | Passed; zero lint warnings, 40 compiled routes and Next proxy. |
-| Backend security scripts | Logging 7; CORS 18; metadata 19; uploads 15; admission lifecycle 12; financial replay 61; mail TLS 35; MFA 71; envelope 15; email 26; password budget 37; session boundary 18; local bootstrap 15; document audit 14; seed policy 35; scanner 48; demo MFA contract 16; action limits 32. All passed. |
+| Backend security scripts | Logging 7; CORS 18; metadata 19; uploads 15; admission lifecycle 12; financial replay now 62 (repeated); mail TLS 35; MFA 71; envelope 15; email 26; password budget 37; session boundary 18; local bootstrap 15; document audit 14; seed policy 35; scanner 48; demo MFA contract 16; action limits 32. All passed. Unchanged suites retain the original audit evidence; affected CORS/project/replay/browser checks were repeated in the network follow-up. |
 | Backend operational regressions | Flow, finance, governance and event-scope passed; project audit 81 checks passed. All seed entry points pass strict seed type checking. No existing database reseed occurred. |
-| Frontend regressions | Client/session, financial submission (17), PDF, UI, CSP policy (13), framework logging (5) and reset-capability parser (16) passed. |
-| Actual Edge browser / HTTP | Workspace/API/rendered/design 1,157; MFA 74; public design 301; production CSP attack/hydration 15; isolated reset service/API/browser/design 91. All passed against built local apps, including lost committed responses for both ledger forms and fragment/legacy recovery. |
+| Frontend regressions | Client/session, financial submission now 26, PDF, UI, CSP policy 13, framework logging 5, reset-capability parser 16 and development-origin parser/installed-framework gate 19 passed. |
+| Actual Edge browser / HTTP | Latest confirmed HTTP-LAN development workspace/API/design 1,157 and network sign-in/cookie/MFA/reload/logout 14 passed. Original built-app MFA 74, public design 301, production CSP attack/hydration 15 and reset service/API/browser/design 91 passed. Lost committed responses for both ledger forms and fragment/legacy recovery are covered. This distinguishes development-origin reproduction from production-build browser evidence. |
 | Dependency audits | Registry production audit exit 0 / zero advisories; full audit exit 1 / seven high development entries (SEC-05). Failure is documented, not hidden or force-fixed. |
-| Gitleaks 8.30.1 | All refs: 151 commits scanned before final documentation, zero leaks, full redaction. One exact historical prose false-positive fingerprint is documented in `.gitleaksignore`; no broad exclusion. Final documentation is also scanned before commit. |
-| Semgrep 1.180.0 | Official `p/typescript` / `p/nodejs`, 74 rules on 361 application/operator/config files selected by Git-aware scanning, telemetry off. One unsuppressed protected `sendFile` review warning, zero parse errors. See the scan review below. |
+| Gitleaks 8.30.1 | Latest all refs: 155 commits before this follow-up documentation, zero leaks, full redaction. One exact historical prose false-positive fingerprint is documented in `.gitleaksignore`; no broad exclusion. Final documentation is also scanned before commit. |
+| Semgrep 1.180.0 | Official `p/typescript` / `p/nodejs`, 74 rules on 364 application/operator/config files selected by Git-aware scanning, telemetry off. One unsuppressed protected `sendFile` review warning, zero parse errors. See the scan review below. |
 
 The `sendFile` warning is at `backend/src/modules/documents/controllers/documents.controller.ts:20`. Source review and negative tests confirm current owner/event/category checks, local path containment, stored-file size/type checks and atomic access audit before that call. It is a reviewed scanner warning, not a suppressed finding or a reproduced traversal. Filesystem tampering/symlinks under a compromised storage account remain outside these application guarantees.
 
 The recorded application-code regressions pass. SEC-05 and SEC-22 remain open; approved legacy reset-query compatibility retains URL-log risk until expiry, and real deployment controls are unverified. Verification does not establish absence of undiscovered defects.
 
 ## Findings
+
+The subsequent sign-in support traced and fixed three additional project/tool defects: [unconfigured development host and cookie-host alignment](local-network-sign-in-review.md), [HTTP-LAN financial UUID generation](local-network-financial-review.md), and [nondeterministic invalid UUID fixture](financial-replay-fixture-review.md). Their reviews contain historical file:line evidence and current verification. The owner approved a private initial MFA grant; no real factor was enrolled by the agent and no password/role was reset.
 
 | ID | Severity | Evidence | Attack / consequence | Fix and status |
 | --- | --- | --- | --- | --- |
@@ -159,3 +161,7 @@ Every commit was pushed immediately to `origin/security/local-hardening-2026-10-
 | `dfff62e` | Shimul | Shimul: Fixed completed financial retries during scanner and storage outages |
 | `1c23833` | Nayem | Nayem: Fixed raw recovery URLs and action arguments in framework logging |
 | `27fe2a8` | Shimul | Shimul: Fixed recovery capabilities in request URLs with browser fragments |
+| `ecccd1b` | Nayem | Nayem: Added verified security findings scope and operator handoff |
+| `f46c11d` | Shimul | Shimul: Fixed local network sign-in hydration and explicit origin setup |
+| `0bca1d2` | Nayem | Nayem: Fixed financial request keys on HTTP network origins |
+| `6defc9a` | Shimul | Shimul: Fixed nondeterministic invalid UUID replay fixtures |

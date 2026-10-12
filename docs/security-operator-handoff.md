@@ -1,6 +1,6 @@
 # Security operator handoff (local evidence, 2026-10-12)
 
-These steps have **not** been executed. Main and production remain unchanged. Changes to database users, credentials, PostgreSQL/firewall settings, backups or deployment require operator review. The application changes are on `security/local-hardening-2026-10-11`.
+The database/network/backup/deployment steps below have **not** been executed. The subsequent local sign-in support configured the owner's confirmed development origin and issued an owner-authorized initial MFA grant privately; human authenticator enrollment remains required. Main and production remain unchanged. Changes to database users, credentials, PostgreSQL/firewall settings, backups or deployment require operator review. The application changes are on `security/local-hardening-2026-10-11`.
 
 ## Confirmed local configuration
 

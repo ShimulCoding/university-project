@@ -1,6 +1,6 @@
 # Security entry-point and trust-boundary map
 
-Current review branch after approved controls, 2026-10-12. The original pre-assessment inventory remains in security-entry-point-map.md. Local repository/loopback fixtures only; production configuration and data are outside this review.
+Current review branch after approved controls and local-network follow-up, 2026-10-12. The original pre-assessment inventory remains in security-entry-point-map.md. Local repository, loopback database and loopback/confirmed-machine-interface browser fixtures only; production configuration and data are outside this review. The application source index now contains 307 files.
 
 ## Stack, roles and data stores
 
@@ -17,7 +17,8 @@ Current review branch after approved controls, 2026-10-12. The original pre-asse
 - All privileged paths require supervised MFA enrollment and current bound sessions; encrypted factor secrets, hashed one-use tickets/recovery codes and assurance enter the database. The shared governance transaction rechecks trusted HTTP session context.
 - Next proxy supplies fresh CSP nonces; exact configured CORS origins are accepted. Multipart admission/role/record checks precede storage; ClamAV INSTREAM adds a private scanner transport boundary before persistence.
 - Manual income and expense creates require UUID retry keys before multipart. Only normalized request/file hashes and linked result IDs enter FinancialIdempotency; result/audit/ledger commit together. Replays recheck current authority.
-- Reset email requires verified TLS for configured SMTP and Ethereal; no raw message, credential or preview URL enters application logs. New reset capabilities use browser URL fragments, read after hydration and submitted only in the API JSON body. Valid legacy query links remain supported and log-sensitive. Next raw request/action/fetch logging is disabled.
+- Reset email requires verified TLS for configured SMTP and Ethereal; no raw message, credential or preview URL enters application logs. New reset capabilities use browser fragments, read after hydration and submitted only in the API JSON body. Valid legacy query links remain supported and log-sensitive; raw Next stdout diagnostics are disabled.
+- Development hostnames are explicitly configured through `NEXT_DEV_ALLOWED_ORIGINS`, never request-derived or wildcard-enabled. Configured frontend/API hosts must match for browser/server-rendered cookie scope. Financial UUID v4 keys use Web Crypto bytes and pinned UUID encoding even on local HTTP network origins. The owner-confirmed first-admin setup grant is held in a private ignored file; actual factor enrollment remains a human step.
 - All seed entry points require loopback nonproduction targets and create-only governed identities/teams. Existing accounts/data are never reseeded by verification.
 
 ## Trust boundaries
@@ -721,6 +722,7 @@ React escapes page/component text and attributes. The explicit sinks below consu
 - `frontend/src/lib/public-summary.ts`
 - `frontend/src/lib/reset-token.ts`
 - `frontend/src/lib/security/browser-policy.ts`
+- `frontend/src/lib/security/development-origins.ts`
 - `frontend/src/lib/session.ts`
 - `frontend/src/lib/utils.ts`
 - `frontend/src/proxy.ts`

@@ -1,0 +1,79 @@
+# Fake-only local verification infrastructure; never attach an existing database.
+# Prepare fresh private files using scripts/scalability/prepare-local-container.mjs.
+services:
+  postgres:
+    image: postgres:16.15-bookworm@sha256:0ea6700a3b4f0ae6ce746519073558aed4d88a79d8d07622a9a644946c7319c4
+    platform: linux/amd64
+    user: "999:999"
+    restart: "no"
+    environment:
+      POSTGRES_USER: mu_scale_operator
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_operator
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-local=scram-sha-256 --auth-host=scram-sha-256
+    secrets:
+      - postgres_operator
+    ports:
+      - "127.0.0.1:${SCALE_PG_PORT:?Prepare the private local fixture environment}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    tmpfs:
+      - /var/run/postgresql:uid=999,gid=999,mode=0770,size=16m
+      - /tmp:uid=999,gid=999,mode=0700,size=32m
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: "0.75"
+    mem_limit: 768m
+    memswap_limit: 768m
+    pids_limit: 128
+    shm_size: 128m
+    stop_grace_period: 60s
+    command:
+      - postgres
+      - -c
+      - password_encryption=scram-sha-256
+      - -c
+      - max_connections=50
+      - -c
+      - shared_buffers=128MB
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=64MB
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - statement_timeout=35000
+      - -c
+      - idle_in_transaction_session_timeout=35000
+      - -c
+      - log_statement=none
+      - -c
+      - log_min_error_statement=panic
+      - -c
+      - log_error_verbosity=terse
+      - -c
+      - log_connections=off
+      - -c
+      - log_disconnections=off
+    healthcheck:
+      # pg_isready tests availability, not application permissions/authentication.
+      test: [CMD, pg_isready, -h, "127.0.0.1", -U, mu_scale_operator, -d, postgres]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    logging:
+      driver: local
+      options: { max-size: 5m, max-file: "2" }
+    networks: [database]
+secrets:
+  postgres_operator:
+    file: ${SCALE_PG_PASSWORD_FILE:?Prepare fresh fake-only private credentials}
+volumes:
+  postgres_data:
+networks:
+  database:
+    internal: true

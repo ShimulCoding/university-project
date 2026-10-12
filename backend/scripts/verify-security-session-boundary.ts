@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createApp } from "../src/app";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { hashPassword } from "../src/utils/password";
 import { authService } from "../src/modules/auth/services/auth.service";
 import { mfaService } from "../src/modules/auth/services/mfa.service";
@@ -13,6 +14,7 @@ import type { AuthSessionResult } from "../src/modules/auth/types/auth.types";
 
 const run = randomUUID(); const users: string[] = []; let step = "setup"; let checks = 0;
 async function main() {
+  await verifyFixtureDatabase();
   const server = createApp().listen(0, "127.0.0.1"); const update = usersService.updateProfile;
   let release: (() => void) | undefined;
   try {
@@ -76,7 +78,7 @@ async function main() {
   } finally {
     release?.(); usersService.updateProfile = update;
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
-    await prisma.auditLog.deleteMany({ where: { actorId: { in: users } } }); await prisma.user.deleteMany({ where: { id: { in: users } } }); await prisma.$disconnect();
+    await fixturePrisma.auditLog.deleteMany({ where: { actorId: { in: users } } }); await fixturePrisma.user.deleteMany({ where: { id: { in: users } } }); await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-void main().catch(() => { console.error(`Session boundary verification failed at: ${step}. Private details suppressed.`); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

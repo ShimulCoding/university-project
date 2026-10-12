@@ -6,6 +6,7 @@ import { AccountStatus, DocumentCategory, EventStatus, RoleCode } from "@prisma/
 
 import { createApp } from "../src/app";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { uploadsRoot } from "../src/config/uploads";
 import { hashPassword } from "../src/utils/password";
 import { storageProvider } from "../src/storage";
@@ -60,6 +61,7 @@ async function createAccount(label: string, passwordHash: string, systemAdmin = 
 }
 
 async function main() {
+  await verifyFixtureDatabase();
   const server = createApp().listen(0, "127.0.0.1");
   await new Promise<void>((resolve) => server.once("listening", resolve));
   const address = server.address();
@@ -285,9 +287,9 @@ async function main() {
     console.log(`Event workspace verification passed (${checks} combined API, boundary${frontend ? ", rendered-route and browser" : ""} checks).`);
   } finally {
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
-    const uploadedFixtures = await prisma.supportingDocument.findMany({ where: { uploadedById: { in: userIds } }, select: { relativePath: true } });
+    const uploadedFixtures = await fixturePrisma.supportingDocument.findMany({ where: { uploadedById: { in: userIds } }, select: { relativePath: true } });
     for (const document of uploadedFixtures) await storageProvider.removeFile(document.relativePath);
-    await prisma.$transaction(async (tx) => {
+    await fixturePrisma.$transaction(async (tx) => {
       // Event deletion cascades event records; audit rows are removed first.
       await tx.auditLog.deleteMany({ where: { OR: [{ eventId: { in: eventIds } }, { actorId: { in: userIds } }] } });
       await tx.complaint.deleteMany({ where: { id: { in: platformComplaintIds } } });
@@ -295,8 +297,8 @@ async function main() {
       await tx.user.deleteMany({ where: { id: { in: userIds } } });
     });
     if (evidencePath) await unlink(evidencePath);
-    await prisma.$disconnect();
+    await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
 
-main().catch((error) => { console.error("Event workspace verification failed.", error); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

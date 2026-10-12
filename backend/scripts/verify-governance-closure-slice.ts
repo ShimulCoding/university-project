@@ -452,7 +452,7 @@ async function main() {
   const admin = createUser(makeCuid("admin"), [RoleCode.SYSTEM_ADMIN], "System Admin");
 
   const app = createApp();
-  const server = app.listen(0);
+  const server = app.listen(0, "127.0.0.1");
 
   await new Promise<void>((resolve) => {
     server.once("listening", () => resolve());

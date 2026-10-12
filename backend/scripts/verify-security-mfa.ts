@@ -4,6 +4,7 @@ import { generate, generateSecret } from "otplib";
 import { RoleCode } from "@prisma/client";
 import { createApp } from "../src/app";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { hashPassword } from "../src/utils/password";
 import { hashValue } from "../src/utils/hash";
 import { signAccessToken, signRefreshToken } from "../src/utils/tokens";
@@ -18,6 +19,7 @@ function check(value: unknown, label: string) { step = label; assert(value, labe
 async function denied(action: () => Promise<unknown>, status = 401) { step = "negative service authorization"; await assert.rejects(action, (error: { statusCode?: number }) => error.statusCode === status); checks++; }
 function cookies(response: Response) { return response.headers.getSetCookie().map((value) => value.split(";")[0]).join("; "); }
 async function main() {
+  await verifyFixtureDatabase();
   const server = createApp().listen(0, "127.0.0.1");
   const record = auditService.record;
   try {
@@ -127,8 +129,8 @@ async function main() {
   } finally {
     auditService.record = record;
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
-    await prisma.auditLog.deleteMany({ where: { OR: [{ actorId: { in: users } }, { entityId: { in: users } }, { eventId: { in: events } }] } });
-    await prisma.event.deleteMany({ where: { id: { in: events } } }); await prisma.user.deleteMany({ where: { id: { in: users } } }); await prisma.$disconnect();
+    await fixturePrisma.auditLog.deleteMany({ where: { OR: [{ actorId: { in: users } }, { entityId: { in: users } }, { eventId: { in: events } }] } });
+    await fixturePrisma.event.deleteMany({ where: { id: { in: events } } }); await fixturePrisma.user.deleteMany({ where: { id: { in: users } } }); await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-void main().catch(() => { console.error(`MFA verification failed at: ${step}. Private details suppressed.`); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

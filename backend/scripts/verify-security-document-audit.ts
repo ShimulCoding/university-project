@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createApp } from "../src/app";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { documentDirectories } from "../src/config/uploads";
 import { storageProvider } from "../src/storage";
 import { hashPassword } from "../src/utils/password";
@@ -10,6 +11,7 @@ import { auditService } from "../src/modules/audit/services/audit.service";
 
 const run = randomUUID(); const users: string[] = []; let complaintId: string | undefined; let relativePath: string | undefined; let step = "setup";
 async function main() {
+  await verifyFixtureDatabase();
   const server = createApp().listen(0, "127.0.0.1");
   const record = auditService.record;
   try {
@@ -55,11 +57,11 @@ async function main() {
   } finally {
     auditService.record = record;
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
-    await prisma.auditLog.deleteMany({ where: { actorId: { in: users } } });
-    if (complaintId) await prisma.complaint.delete({ where: { id: complaintId } });
-    await prisma.user.deleteMany({ where: { id: { in: users } } });
+    await fixturePrisma.auditLog.deleteMany({ where: { actorId: { in: users } } });
+    if (complaintId) await fixturePrisma.complaint.delete({ where: { id: complaintId } });
+    await fixturePrisma.user.deleteMany({ where: { id: { in: users } } });
     if (relativePath) await storageProvider.removeFile(relativePath);
-    await prisma.$disconnect();
+    await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-void main().catch(() => { console.error(`Protected document audit verification failed at: ${step}. Private details suppressed.`); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

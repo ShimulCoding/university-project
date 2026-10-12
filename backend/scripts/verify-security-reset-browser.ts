@@ -3,6 +3,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { chromium } from "playwright";
 import { createApp } from "../src/app";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { mailer } from "../src/config/mailer";
 import { env } from "../src/config/env";
 import { authService } from "../src/modules/auth/services/auth.service";
@@ -15,6 +16,7 @@ const run = randomUUID(); const users: string[] = [];
 let step = "local setup"; let checks = 0;
 function check(value: unknown, label: string) { step = label; assert(value, label); checks++; }
 async function main() {
+  await verifyFixtureDatabase();
   const frontend = process.env.VERIFY_FRONTEND_BASE_URL || "http://localhost:3000";
   const api = process.env.VERIFY_API_BASE_URL || "http://localhost:4000/api";
   if (env.NODE_ENV === "production" || ![frontend, api, env.DATABASE_URL].every((value) => ["localhost", "127.0.0.1"].includes(new URL(value).hostname))) throw new Error("Local nonproduction browser/database targets required.");
@@ -113,9 +115,9 @@ async function main() {
     mailer.sendPasswordResetEmail = originalMailer;
     await browser?.close();
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
-    await prisma.auditLog.deleteMany({ where: { actorId: { in: users } } });
-    await prisma.user.deleteMany({ where: { id: { in: users } } });
-    await prisma.$disconnect();
+    await fixturePrisma.auditLog.deleteMany({ where: { actorId: { in: users } } });
+    await fixturePrisma.user.deleteMany({ where: { id: { in: users } } });
+    await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-void main().catch(() => { console.error(`Reset-link verification failed at ${step}; private details suppressed.`); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

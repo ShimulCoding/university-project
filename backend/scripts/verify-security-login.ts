@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { env } from "../src/config/env";
 import { hashPassword } from "../src/utils/password";
 import { authService } from "../src/modules/auth/services/auth.service";
@@ -10,6 +11,7 @@ import { auditService } from "../src/modules/audit/services/audit.service";
 
 const run = randomUUID(); const users: string[] = []; let step = "setup"; let checks = 0;
 async function main() {
+  await verifyFixtureDatabase();
   const compare = bcrypt.compare; const record = auditService.record;
   try {
     const password = `Synthetic-${run}!`;
@@ -27,7 +29,7 @@ async function main() {
     await denied(() => verifyAccountPassword(user, password, "Denied", undefined, 403), 429);
     check(await prisma.refreshToken.count({ where: { userId: user.id } }) === 0, "Locked identity issues no session");
     check(await prisma.mfaChallenge.count({ where: { userId: user.id } }) === 0, "Locked identity issues no MFA ticket");
-    await prisma.auditLog.updateMany({ where: { actorId: user.id, action: "auth.password.denied" }, data: { createdAt: new Date(Date.now() - PASSWORD_FAILURE_WINDOW_MS - 1000) } });
+    await fixturePrisma.auditLog.updateMany({ where: { actorId: user.id, action: "auth.password.denied" }, data: { createdAt: new Date(Date.now() - PASSWORD_FAILURE_WINDOW_MS - 1000) } });
     check("mfaRequired" in await authService.internalLogin({ email: user.email, password }), "Budget expires without permanently locking legitimate users");
     let comparedHash: string | undefined;
     bcrypt.compare = ((value: string, digest: string) => { comparedHash = digest; return compare(value, digest); }) as typeof bcrypt.compare;
@@ -55,7 +57,7 @@ async function main() {
     console.log(`Password guessing security: ${checks} checks passed.`);
   } finally {
     bcrypt.compare = compare; auditService.record = record;
-    await prisma.auditLog.deleteMany({ where: { actorId: { in: users } } }); await prisma.user.deleteMany({ where: { id: { in: users } } }); await prisma.$disconnect();
+    await fixturePrisma.auditLog.deleteMany({ where: { actorId: { in: users } } }); await fixturePrisma.user.deleteMany({ where: { id: { in: users } } }); await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-void main().catch(() => { console.error(`Password guessing verification failed at: ${step}. Private details suppressed.`); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

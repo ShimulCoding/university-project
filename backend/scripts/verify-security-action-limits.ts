@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import express from "express";
 import { createApp } from "../src/app";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { env } from "../src/config/env";
 import { storageProvider } from "../src/storage";
 import { documentDirectories } from "../src/config/uploads";
@@ -15,6 +16,7 @@ import { createFixtureMfa } from "./helpers/mfa-fixtures";
 let checks = 0;
 function check(condition: unknown, message: string) { assert(condition, message); checks++; }
 async function main() {
+  await verifyFixtureDatabase();
   assert(env.NODE_ENV !== "production" && ["localhost", "127.0.0.1"].includes(new URL(env.DATABASE_URL).hostname), "Local database required");
   const run = randomUUID(), users: string[] = [];
   let eventId: string | undefined, complaintId: string | undefined, filePath: string | undefined;
@@ -114,12 +116,12 @@ async function main() {
     releases.splice(0).forEach(release => release());
     unitServer.closeAllConnections(); server.closeAllConnections();
     await Promise.all([new Promise<void>(resolve => unitServer.close(() => resolve())), new Promise<void>(resolve => server.close(() => resolve()))]);
-    if (users.length) await prisma.auditLog.deleteMany({ where: { actorId: { in: users } } });
-    if (complaintId) await prisma.complaint.deleteMany({ where: { id: complaintId } });
-    if (eventId) await prisma.event.deleteMany({ where: { id: eventId } });
-    if (users.length) await prisma.user.deleteMany({ where: { id: { in: users } } });
+    if (users.length) await fixturePrisma.auditLog.deleteMany({ where: { actorId: { in: users } } });
+    if (complaintId) await fixturePrisma.complaint.deleteMany({ where: { id: complaintId } });
+    if (eventId) await fixturePrisma.event.deleteMany({ where: { id: eventId } });
+    if (users.length) await fixturePrisma.user.deleteMany({ where: { id: { in: users } } });
     if (filePath) await storageProvider.removeFile(filePath);
-    await prisma.$disconnect();
+    await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-void main().catch((error) => { console.error(error instanceof assert.AssertionError ? error.message : "Sensitive action limit verification failed; private diagnostics suppressed."); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

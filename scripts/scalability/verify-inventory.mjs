@@ -146,8 +146,18 @@ await asyncCheck("shell and Docker entrypoints are source-covered without execut
   assert(operators.entries.some((entry) => entry.path === 'infra/entrypoint.sh'));
   assert(operators.entries.some((entry) => entry.path === 'infra/Dockerfile'));
 });
+await asyncCheck("generated Python bytecode is excluded without weakening source-format checks", async () => {
+  await mkdir(join(fixtureRoot, 'infra/__pycache__'), { recursive: true });
+  await writeFile(join(fixtureRoot, 'infra/__pycache__/fixture.cpython.pyc'), 'generated fixture bytes; do not read as source');
+  const operators = await operatorInventory(fixtureRoot, 'fake');
+  assert(!operators.entries.some((entry) => entry.path.includes('__pycache__')));
+  const badRoot = join(fixtureRoot, 'unexpected-bytecode-fixture');
+  await mkdir(join(badRoot, 'infra'), { recursive: true });
+  await writeFile(join(badRoot, 'infra/bytecode-outside-cache.pyc'), 'unexpected binary requires review');
+  await assert.rejects(operatorInventory(badRoot, 'fake'), /Uncovered operator\/config format.*bytecode-outside-cache\.pyc/);
+});
 await asyncCheck("unmodeled operator formats fail before reading/executing them", async () => {
   await writeFile(join(fixtureRoot, 'infra/entrypoint.unmodeled'), 'must-not-be-executed');
-  await assert.rejects(operatorInventory(fixtureRoot, 'fake'), /Uncovered operator\/config format/);
+  await assert.rejects(operatorInventory(fixtureRoot, 'fake'), /Uncovered operator\/config format.*entrypoint\.unmodeled/);
 });
 console.log(JSON.stringify({ status: "passed", checks, ...inventory.counts, fixturePolicy: "Fresh ignored local fixture outputs retained; no project data modified or deleted" }));

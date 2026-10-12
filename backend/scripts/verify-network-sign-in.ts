@@ -4,6 +4,7 @@ import { networkInterfaces } from "node:os";
 import { chromium } from "playwright";
 import { env } from "../src/config/env";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { hashPassword } from "../src/utils/password";
 import { createFixtureMfa } from "./helpers/mfa-fixtures";
 
@@ -14,6 +15,7 @@ const localHosts = new Set(["localhost", "127.0.0.1", "[::1]", ...Object.values(
 function check(condition: unknown, label: string) { step = label; assert(condition, label); checks++; }
 
 async function main() {
+  await verifyFixtureDatabase();
   if (env.NODE_ENV === "production" || !["localhost", "127.0.0.1", "[::1]"].includes(new URL(env.DATABASE_URL).hostname) ||
       ![frontend, api].every((value) => localHosts.has(new URL(value).hostname)) || new URL(frontend).hostname !== new URL(api).hostname) throw new Error("Local database and same-host local app targets required.");
   const browser = await chromium.launch({ channel: process.env.VERIFY_BROWSER_CHANNEL || "msedge", headless: true });
@@ -57,10 +59,10 @@ async function main() {
   } finally {
     await browser.close();
     if (userId) {
-      await prisma.auditLog.deleteMany({ where: { actorId: userId } });
-      await prisma.user.delete({ where: { id: userId } });
+      await fixturePrisma.auditLog.deleteMany({ where: { actorId: userId } });
+      await fixturePrisma.user.delete({ where: { id: userId } });
     }
-    await prisma.$disconnect();
+    await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-void main().catch(() => { console.error(`Network sign-in verification failed at ${step}; private details suppressed.`); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

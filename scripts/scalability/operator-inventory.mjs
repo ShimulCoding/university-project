@@ -12,7 +12,7 @@ export async function operatorInventory(root, evidenceCommit) {
     try { entries = await readdir(join(root, directory), { withFileTypes: true }); }
     catch (error) { if (error.code === 'ENOENT') return; throw error; }
     for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name, 'en'))) {
-      if (entry.name.startsWith('.') || ['node_modules', 'dist', 'uploads', 'public', 'src', 'secrets'].includes(entry.name)) continue;
+      if (entry.name.startsWith('.') || ['node_modules', 'dist', 'uploads', 'public', 'src', 'secrets', '__pycache__'].includes(entry.name)) continue;
       const file = directory ? `${directory}/${entry.name}` : entry.name;
       if (entry.isSymbolicLink()) throw new Error(`Operator source symlink requires review: ${file}`);
       if (entry.isDirectory() && recursive) await collect(file);
@@ -43,6 +43,8 @@ export async function operatorInventory(root, evidenceCommit) {
       if (/\b(?:prisma|db|tx)\b|\$queryRaw|\$executeRaw|CREATE\s+(?:TABLE|ROLE|INDEX)|ALTER\s+TABLE/i.test(line)) effects.push({ kind: 'database candidate', source });
       if (/\b(?:writeFile|unlink|rm|rename|mkdir|createWriteStream|writeFileSync)\b/.test(line)) effects.push({ kind: 'filesystem write candidate', source });
       if (/\b(?:fetch|https?\.request|urlopen|sendMail|createTestAccount)\s*\(/.test(line)) effects.push({ kind: 'network candidate', source });
+      if (/PQconnectdbParams|PQexecParams|\bpg\.query\s*\(/.test(line)) effects.push({ kind: 'libpq database/network candidate', source });
+      if (/\b(?:spawn|spawnSync|subprocess\.run)\s*\(/.test(line)) effects.push({ kind: 'subprocess candidate; inspect argument/environment boundaries', source });
       if (/console\.(?:log|error)|print\s*\(/.test(line)) effects.push({ kind: 'output candidate; inspect PII/capabilities', source });
       if (/NODE_ENV|DATABASE_URL|localhost|127\.0\.0\.1|confirm-supervised|ENABLE_LOCAL|fixture|\.cache/.test(line)) guards.push(source);
     }

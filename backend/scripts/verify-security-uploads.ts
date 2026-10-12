@@ -6,12 +6,14 @@ import type { Request, Response } from "express";
 import { createUploadAdmission } from "../src/middlewares/upload-guard";
 import { createApp } from "../src/app";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { storageProvider } from "../src/storage";
 import { paymentsService } from "../src/modules/payments/services/payments.service";
 import { signAccessToken } from "../src/utils/tokens";
 import type { AuthenticatedUser } from "../src/types/auth";
 
 async function main() {
+  await verifyFixtureDatabase();
   const run = randomUUID(); const userIds: string[] = []; let eventId: string | undefined;
   const save = storageProvider.saveFile; const remove = storageProvider.removeFile;
   const server = createApp().listen(0, "127.0.0.1");
@@ -59,11 +61,11 @@ async function main() {
     second.emit("finish"); enter(response()); assert.equal(admitted, 4); checks++;
   } finally {
     storageProvider.saveFile = save; storageProvider.removeFile = remove;
-    if (eventId) await prisma.event.deleteMany({ where: { id: eventId } });
-    await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+    if (eventId) await fixturePrisma.event.deleteMany({ where: { id: eventId } });
+    await fixturePrisma.user.deleteMany({ where: { id: { in: userIds } } });
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
-    await prisma.$disconnect();
+    await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
   console.log(`Upload security: ${checks} checks passed.`);
 }
-void main().catch((error: unknown) => { console.error(error instanceof assert.AssertionError ? error.message : "Upload security verification failed; details suppressed."); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

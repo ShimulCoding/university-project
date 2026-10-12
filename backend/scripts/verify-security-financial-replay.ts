@@ -4,6 +4,7 @@ import { FinancialOperation, Prisma } from "@prisma/client";
 import { createApp } from "../src/app";
 import { env } from "../src/config/env";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { storageProvider } from "../src/storage";
 import { paymentsService } from "../src/modules/payments/services/payments.service";
 import { requestsService } from "../src/modules/requests/services/requests.service";
@@ -22,6 +23,7 @@ const evidence = (text = "%PDF-1.4\n%%EOF\n", name = "synthetic.pdf") => {
   return { buffer, size: buffer.length, originalname: name, mimetype: "application/pdf" } as Express.Multer.File;
 };
 async function main() {
+  await verifyFixtureDatabase();
   assert(env.NODE_ENV !== "production" && ["localhost", "127.0.0.1", "[::1]"].includes(new URL(env.DATABASE_URL).hostname), "Local database required");
   const users: string[] = [], events: string[] = [];
   const stored = new Set<string>();
@@ -172,11 +174,11 @@ async function main() {
   } finally {
     auditService.record = recordAudit; paymentsService.assertIncomeRecordUploadAccess = preflight;
     storageProvider.saveFile = save; storageProvider.removeFile = remove;
-    if (users.length) await prisma.auditLog.deleteMany({ where: { actorId: { in: users } } });
-    if (events.length) await prisma.event.deleteMany({ where: { id: { in: events } } });
-    if (users.length) await prisma.user.deleteMany({ where: { id: { in: users } } });
+    if (users.length) await fixturePrisma.auditLog.deleteMany({ where: { actorId: { in: users } } });
+    if (events.length) await fixturePrisma.event.deleteMany({ where: { id: { in: events } } });
+    if (users.length) await fixturePrisma.user.deleteMany({ where: { id: { in: users } } });
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
-    await prisma.$disconnect();
+    await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-void main().catch(() => { console.error("Financial idempotency verification failed; private diagnostics suppressed."); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

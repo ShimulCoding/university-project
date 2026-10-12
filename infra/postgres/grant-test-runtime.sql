@@ -52,11 +52,12 @@ END $$;
 
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE ALL ON ALL TABLES IN SCHEMA public FROM PUBLIC;
+REVOKE ALL ON ALL TABLES IN SCHEMA public FROM :"runtime_role";
 REVOKE ALL ON DATABASE :"database_name" FROM PUBLIC;
 GRANT CONNECT ON DATABASE :"database_name" TO :"runtime_role";
 GRANT CONNECT ON DATABASE :"database_name" TO :"migration_role";
 GRANT USAGE ON SCHEMA public TO :"runtime_role";
-GRANT SELECT, INSERT, UPDATE ON TABLE
+GRANT SELECT, INSERT ON TABLE
   public."User", public."Role", public."UserRole", public."EventTeamMember",
   public."RefreshToken", public."MfaFactor", public."MfaChallenge",
   public."MfaRecoveryCode", public."MfaEnrollmentGrant", public."PasswordResetToken",
@@ -66,6 +67,26 @@ GRANT SELECT, INSERT, UPDATE ON TABLE
   public."ApprovalDecision", public."Complaint", public."ComplaintRouting",
   public."ReconciliationReport", public."PublicSummarySnapshot"
 TO :"runtime_role";
+-- PK updates can cascade into immutable audit/retry rows under RI trigger rights.
+-- Permit legitimate updates only to ordinary tables' non-primary-key columns.
+DO $$
+DECLARE
+  runtime_name text := current_setting('scale.runtime_role');
+  target record;
+BEGIN
+  FOR target IN
+    SELECT t.tablename, string_agg(format('%I', a.attname), ', ' ORDER BY a.attnum) AS columns
+    FROM pg_tables t
+    JOIN pg_namespace n ON n.nspname = t.schemaname
+    JOIN pg_class c ON c.relnamespace = n.oid AND c.relname = t.tablename
+    JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped
+    WHERE t.schemaname = 'public' AND t.tablename NOT IN ('AuditLog', 'FinancialIdempotency', '_prisma_migrations')
+      AND NOT EXISTS (SELECT 1 FROM pg_index i WHERE i.indrelid = c.oid AND i.indisprimary AND a.attnum = ANY(i.indkey))
+    GROUP BY t.tablename
+  LOOP
+    EXECUTE format('GRANT UPDATE (%s) ON TABLE public.%I TO %I', target.columns, target.tablename, runtime_name);
+  END LOOP;
+END $$;
 GRANT SELECT, INSERT ON TABLE public."AuditLog", public."FinancialIdempotency" TO :"runtime_role";
 GRANT DELETE ON TABLE public."RefreshToken", public."PasswordResetToken", public."MfaChallenge" TO :"runtime_role";
 DO $$
@@ -78,5 +99,12 @@ BEGIN
     has_table_privilege(runtime_name, 'public."_prisma_migrations"', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE') THEN
     RAISE EXCEPTION 'Runtime grants exceed the reviewed boundary';
   END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_index i JOIN pg_class c ON c.oid = i.indrelid
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+      JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = ANY(i.indkey)
+    WHERE n.nspname = 'public' AND i.indisprimary
+      AND has_column_privilege(runtime_name, c.oid, a.attnum, 'UPDATE')
+  ) THEN RAISE EXCEPTION 'Runtime must not update any primary-key column'; END IF;
 END $$;
 COMMIT;

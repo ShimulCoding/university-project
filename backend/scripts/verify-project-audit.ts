@@ -5,6 +5,7 @@ import { AccountStatus, EventStatus, RoleCode } from "@prisma/client";
 
 import { createApp } from "../src/app";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { documentDirectories, resolveUploadPath, uploadRules } from "../src/config/uploads";
 import { storageProvider } from "../src/storage";
 import { storeValidatedUploads } from "../src/utils/upload-utils";
@@ -40,6 +41,7 @@ function file(text = "%PDF-1.4\n%%EOF\n"): Express.Multer.File {
   return { buffer, size: buffer.length, originalname: "evidence.exe", mimetype: "application/pdf", fieldname: "files", encoding: "7bit" } as Express.Multer.File;
 }
 async function main() {
+  await verifyFixtureDatabase();
   const server = createApp().listen(0, "127.0.0.1");
   await new Promise<void>((r) => server.once("listening", r));
   const address = server.address(); assert(address && typeof address !== "string");
@@ -279,14 +281,14 @@ async function main() {
     console.log(`Project audit regression verification passed (${checks} checks).`);
   } finally {
     await new Promise<void>((resolve, reject) => server.close((e) => e ? reject(e) : resolve()));
-    const documents = await prisma.supportingDocument.findMany({ where: { uploadedById: { in: users } }, select: { relativePath: true } });
+    const documents = await fixturePrisma.supportingDocument.findMany({ where: { uploadedById: { in: users } }, select: { relativePath: true } });
     for (const document of documents) await storageProvider.removeFile(document.relativePath);
-    await prisma.$transaction(async (tx) => {
+    await fixturePrisma.$transaction(async (tx) => {
       await tx.auditLog.deleteMany({ where: { OR: [{ eventId: { in: events } }, { actorId: { in: users } }] } });
       await tx.event.deleteMany({ where: { id: { in: events } } });
       await tx.user.deleteMany({ where: { id: { in: users } } });
     });
-    await prisma.$disconnect();
+    await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-main().catch((e) => { console.error("Project audit regression verification failed", e); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

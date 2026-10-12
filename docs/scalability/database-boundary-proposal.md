@@ -1,12 +1,12 @@
 # Phase 1 database boundary proposal
 
-Status: prepared for approval; not executed. The existing database/runtime credential remains unchanged. Existing administrator MFA/key/password/assignments/evidence are outside this work.
+Status: owner approved isolated verification; direct fake-data execution passed. The existing database/runtime credential remains unchanged. Existing administrator MFA/key/password/assignments/evidence are outside this work. See [database boundary review](database-boundary-review.md) for commands, results and remaining gates.
 
 ## First staged operation: new isolated fake target
 
-Create one fresh database with a unique `mu_scale_` prefix and separate non-superuser runtime and migration login roles in the existing loopback PostgreSQL cluster. Role creation is cluster-wide, so it requires owner approval even though application data is fake. Refuse existing database/role names; never reuse/reset the owner's dataset. The migration role owns only the new database/schema/Prisma objects and has no superuser, role/database-creation, replication, bypass-RLS or inherited role powers. The runtime owns no objects and receives only the current reviewed 27-model application's required operations:
+Create one fresh database with a unique `mu_scale_` prefix and separate non-superuser runtime and migration login roles in a new owner-approved local PostgreSQL container. Role creation is cluster-wide, so it requires owner approval even though application data is fake. Refuse existing database/role names; never reuse/reset the owner's dataset. The migration role owns only the new database/schema/Prisma objects and has no superuser, role/database-creation, replication, bypass-RLS or inherited role powers. The runtime owns no objects and receives only the current reviewed 27-model application's required operations:
 
-- SELECT/INSERT/UPDATE on ordinary application tables.
+- SELECT/INSERT and non-primary-key column UPDATE on ordinary application tables. Primary-key updates are denied because referential actions can otherwise change protected history indirectly.
 - SELECT/INSERT only on AuditLog and FinancialIdempotency.
 - DELETE only on expired authentication maintenance tables RefreshToken, PasswordResetToken and MfaChallenge.
 - CONNECT/USAGE, no database CREATE/TEMP, schema CREATE, object ownership, migration-table access, GRANT option or membership in the migration/operator role. Revoke PUBLIC database CONNECT/TEMP only on this new isolated database and bind role names exactly to that database's prefix.

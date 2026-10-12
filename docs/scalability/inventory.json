@@ -12,7 +12,7 @@
     "recurringSchedulers": 1,
     "timers": 9,
     "inputSinkCandidates": 224,
-    "operatorSources": 91,
+    "operatorSources": 99,
     "npmCommands": 62
   },
   "coverage": {
@@ -15449,6 +15449,69 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "backend/scripts/helpers/fixture-database.ts",
+        "source": "backend/scripts/helpers/fixture-database.ts:1",
+        "kind": "maintenance/operator script; inspect before execution",
+        "lines": 57,
+        "sha256": "e0cbceb566d34ab55d258289ec83dd542fbad2ba3a84df508cf22ec1c01e0a5f",
+        "effects": [
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/helpers/fixture-database.ts:2"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/helpers/fixture-database.ts:3"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/helpers/fixture-database.ts:26"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/helpers/fixture-database.ts:27"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/helpers/fixture-database.ts:34"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/helpers/fixture-database.ts:35"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/helpers/fixture-database.ts:41"
+          }
+        ],
+        "guardCandidates": [
+          "backend/scripts/helpers/fixture-database.ts:6",
+          "backend/scripts/helpers/fixture-database.ts:9",
+          "backend/scripts/helpers/fixture-database.ts:10",
+          "backend/scripts/helpers/fixture-database.ts:12",
+          "backend/scripts/helpers/fixture-database.ts:13",
+          "backend/scripts/helpers/fixture-database.ts:14",
+          "backend/scripts/helpers/fixture-database.ts:15",
+          "backend/scripts/helpers/fixture-database.ts:20",
+          "backend/scripts/helpers/fixture-database.ts:21",
+          "backend/scripts/helpers/fixture-database.ts:25",
+          "backend/scripts/helpers/fixture-database.ts:26",
+          "backend/scripts/helpers/fixture-database.ts:30",
+          "backend/scripts/helpers/fixture-database.ts:31",
+          "backend/scripts/helpers/fixture-database.ts:32",
+          "backend/scripts/helpers/fixture-database.ts:33",
+          "backend/scripts/helpers/fixture-database.ts:35",
+          "backend/scripts/helpers/fixture-database.ts:37",
+          "backend/scripts/helpers/fixture-database.ts:41",
+          "backend/scripts/helpers/fixture-database.ts:44"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "backend/scripts/helpers/mfa-fixtures.ts",
         "source": "backend/scripts/helpers/mfa-fixtures.ts:1",
         "kind": "maintenance/operator script; inspect before execution",
@@ -16084,8 +16147,8 @@
         "path": "backend/scripts/verify-event-workspaces.ts",
         "source": "backend/scripts/verify-event-workspaces.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 303,
-        "sha256": "3002292453225ad0261dd0e00e0a72118fa8519330838d6dae1cc98c85f5cb47",
+        "lines": 305,
+        "sha256": "cd46863f4a17cd048111269d57320cb198a2340ebf63fd8e0cd57ca227c01728",
         "effects": [
           {
             "kind": "filesystem write candidate",
@@ -16101,15 +16164,11 @@
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:31"
+            "source": "backend/scripts/verify-event-workspaces.ts:32"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:42"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:50"
+            "source": "backend/scripts/verify-event-workspaces.ts:43"
           },
           {
             "kind": "database candidate",
@@ -16117,7 +16176,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:106"
+            "source": "backend/scripts/verify-event-workspaces.ts:52"
           },
           {
             "kind": "database candidate",
@@ -16125,11 +16184,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:113"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:114"
+            "source": "backend/scripts/verify-event-workspaces.ts:110"
           },
           {
             "kind": "database candidate",
@@ -16160,28 +16215,32 @@
             "source": "backend/scripts/verify-event-workspaces.ts:121"
           },
           {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-event-workspaces.ts:122"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-event-workspaces.ts:123"
+          },
+          {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:180"
+            "source": "backend/scripts/verify-event-workspaces.ts:182"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:193"
+            "source": "backend/scripts/verify-event-workspaces.ts:195"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:202"
-          },
-          {
-            "kind": "filesystem write candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:203"
-          },
-          {
-            "kind": "database candidate",
             "source": "backend/scripts/verify-event-workspaces.ts:204"
           },
           {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:217"
+            "kind": "filesystem write candidate",
+            "source": "backend/scripts/verify-event-workspaces.ts:205"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-event-workspaces.ts:206"
           },
           {
             "kind": "network candidate",
@@ -16212,60 +16271,52 @@
             "source": "backend/scripts/verify-event-workspaces.ts:231"
           },
           {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-event-workspaces.ts:233"
+          },
+          {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:252"
+            "source": "backend/scripts/verify-event-workspaces.ts:254"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:253"
-          },
-          {
-            "kind": "database candidate",
             "source": "backend/scripts/verify-event-workspaces.ts:255"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:256"
+            "source": "backend/scripts/verify-event-workspaces.ts:257"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:262"
+            "source": "backend/scripts/verify-event-workspaces.ts:258"
           },
           {
-            "kind": "network candidate",
+            "kind": "database candidate",
             "source": "backend/scripts/verify-event-workspaces.ts:264"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:265"
+            "source": "backend/scripts/verify-event-workspaces.ts:266"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-event-workspaces.ts:267"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:268"
+            "source": "backend/scripts/verify-event-workspaces.ts:270"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:283"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
             "source": "backend/scripts/verify-event-workspaces.ts:285"
           },
           {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:288"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:290"
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-event-workspaces.ts:287"
           },
           {
             "kind": "database candidate",
             "source": "backend/scripts/verify-event-workspaces.ts:292"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:293"
           },
           {
             "kind": "database candidate",
@@ -16276,28 +16327,40 @@
             "source": "backend/scripts/verify-event-workspaces.ts:295"
           },
           {
-            "kind": "filesystem write candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:297"
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-event-workspaces.ts:296"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-event-workspaces.ts:298"
+            "source": "backend/scripts/verify-event-workspaces.ts:297"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "backend/scripts/verify-event-workspaces.ts:299"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-event-workspaces.ts:300"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-event-workspaces.ts:302"
+            "source": "backend/scripts/verify-event-workspaces.ts:304"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-event-workspaces.ts:12",
-          "backend/scripts/verify-event-workspaces.ts:14",
-          "backend/scripts/verify-event-workspaces.ts:63",
-          "backend/scripts/verify-event-workspaces.ts:67",
-          "backend/scripts/verify-event-workspaces.ts:118",
-          "backend/scripts/verify-event-workspaces.ts:140",
-          "backend/scripts/verify-event-workspaces.ts:193",
-          "backend/scripts/verify-event-workspaces.ts:203",
-          "backend/scripts/verify-event-workspaces.ts:222"
+          "backend/scripts/verify-event-workspaces.ts:9",
+          "backend/scripts/verify-event-workspaces.ts:13",
+          "backend/scripts/verify-event-workspaces.ts:15",
+          "backend/scripts/verify-event-workspaces.ts:65",
+          "backend/scripts/verify-event-workspaces.ts:69",
+          "backend/scripts/verify-event-workspaces.ts:120",
+          "backend/scripts/verify-event-workspaces.ts:142",
+          "backend/scripts/verify-event-workspaces.ts:195",
+          "backend/scripts/verify-event-workspaces.ts:205",
+          "backend/scripts/verify-event-workspaces.ts:224",
+          "backend/scripts/verify-event-workspaces.ts:290",
+          "backend/scripts/verify-event-workspaces.ts:292",
+          "backend/scripts/verify-event-workspaces.ts:304"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -16310,7 +16373,7 @@
         "source": "backend/scripts/verify-events-payments-slice.ts:1",
         "kind": "verification/profiling tool",
         "lines": 127,
-        "sha256": "a2cb7c0a937693e17d2b074be225ff92c885149e90b49bf2684ecb169ecf37ac",
+        "sha256": "e6f6c01074335b6af8858216e0e9c4aa7c1727d8ba858bd1acbcf1aee3970d06",
         "effects": [
           {
             "kind": "network candidate",
@@ -16333,6 +16396,7 @@
           "backend/scripts/verify-events-payments-slice.ts:8",
           "backend/scripts/verify-events-payments-slice.ts:10",
           "backend/scripts/verify-events-payments-slice.ts:11",
+          "backend/scripts/verify-events-payments-slice.ts:49",
           "backend/scripts/verify-events-payments-slice.ts:61"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
@@ -16404,7 +16468,7 @@
         "source": "backend/scripts/verify-finance-workflow-slice.ts:1",
         "kind": "verification/profiling tool",
         "lines": 1751,
-        "sha256": "6b82848093e0d5a70a0399d6342f12b3f6c063c5b1bf9b3196e3fe8412915c81",
+        "sha256": "df87114eb0e13a9ee5f0832726f5054ee45b0c8bc9ef967b3e42eeb547535d01",
         "effects": [
           {
             "kind": "database candidate",
@@ -16532,6 +16596,7 @@
           "backend/scripts/verify-finance-workflow-slice.ts:61",
           "backend/scripts/verify-finance-workflow-slice.ts:62",
           "backend/scripts/verify-finance-workflow-slice.ts:371",
+          "backend/scripts/verify-finance-workflow-slice.ts:454",
           "backend/scripts/verify-finance-workflow-slice.ts:466"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
@@ -16545,7 +16610,7 @@
         "source": "backend/scripts/verify-governance-closure-slice.ts:1",
         "kind": "verification/profiling tool",
         "lines": 1158,
-        "sha256": "13e3434f67dc911869f6e25c71a03db25ec8927f376919adfaa3157eaae714b5",
+        "sha256": "6c70285e35dab6f056256ee9e09da89e35cb51516f702af8884d740baf87c2bf",
         "effects": [
           {
             "kind": "database candidate",
@@ -16689,6 +16754,7 @@
           "backend/scripts/verify-governance-closure-slice.ts:31",
           "backend/scripts/verify-governance-closure-slice.ts:32",
           "backend/scripts/verify-governance-closure-slice.ts:302",
+          "backend/scripts/verify-governance-closure-slice.ts:455",
           "backend/scripts/verify-governance-closure-slice.ts:468",
           "backend/scripts/verify-governance-closure-slice.ts:1064"
         ],
@@ -16702,8 +16768,8 @@
         "path": "backend/scripts/verify-network-sign-in.ts",
         "source": "backend/scripts/verify-network-sign-in.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 67,
-        "sha256": "9847569990acaf101380ea10bd1841ae61dcdfcbd19d8c26bf6fe2eae808fc58",
+        "lines": 69,
+        "sha256": "b36fceadc8aa825339eaa6709f915baea46f3eb92ab676e3784c65c738104a26",
         "effects": [
           {
             "kind": "database candidate",
@@ -16711,46 +16777,42 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-network-sign-in.ts:21"
-          },
-          {
-            "kind": "database candidate",
             "source": "backend/scripts/verify-network-sign-in.ts:23"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-network-sign-in.ts:53"
+            "source": "backend/scripts/verify-network-sign-in.ts:25"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-network-sign-in.ts:55"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-network-sign-in.ts:56"
+            "source": "backend/scripts/verify-network-sign-in.ts:58"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-network-sign-in.ts:60"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-network-sign-in.ts:61"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-network-sign-in.ts:63"
+            "source": "backend/scripts/verify-network-sign-in.ts:65"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-network-sign-in.ts:66"
+            "source": "backend/scripts/verify-network-sign-in.ts:68"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-network-sign-in.ts:8",
-          "backend/scripts/verify-network-sign-in.ts:11",
+          "backend/scripts/verify-network-sign-in.ts:7",
+          "backend/scripts/verify-network-sign-in.ts:9",
           "backend/scripts/verify-network-sign-in.ts:12",
           "backend/scripts/verify-network-sign-in.ts:13",
-          "backend/scripts/verify-network-sign-in.ts:17",
-          "backend/scripts/verify-network-sign-in.ts:23",
-          "backend/scripts/verify-network-sign-in.ts:53",
-          "backend/scripts/verify-network-sign-in.ts:55"
+          "backend/scripts/verify-network-sign-in.ts:14",
+          "backend/scripts/verify-network-sign-in.ts:19",
+          "backend/scripts/verify-network-sign-in.ts:25",
+          "backend/scripts/verify-network-sign-in.ts:55",
+          "backend/scripts/verify-network-sign-in.ts:57",
+          "backend/scripts/verify-network-sign-in.ts:62",
+          "backend/scripts/verify-network-sign-in.ts:63",
+          "backend/scripts/verify-network-sign-in.ts:68"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -16762,8 +16824,8 @@
         "path": "backend/scripts/verify-project-audit.ts",
         "source": "backend/scripts/verify-project-audit.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 293,
-        "sha256": "55b2bd9a7e4ab05c77fbc6964c8d281ad9285a99ac3dda0e2bc9e8c3a6205f9d",
+        "lines": 295,
+        "sha256": "5391aa86f27043224dc0dcbefc75d514d2232a9c8a8bed53f90a112e0974fcb6",
         "effects": [
           {
             "kind": "database candidate",
@@ -16775,11 +16837,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:52"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:55"
+            "source": "backend/scripts/verify-project-audit.ts:54"
           },
           {
             "kind": "database candidate",
@@ -16787,11 +16845,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:76"
+            "source": "backend/scripts/verify-project-audit.ts:59"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:79"
+            "source": "backend/scripts/verify-project-audit.ts:78"
           },
           {
             "kind": "database candidate",
@@ -16799,19 +16857,15 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:82"
+            "source": "backend/scripts/verify-project-audit.ts:83"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:89"
+            "source": "backend/scripts/verify-project-audit.ts:84"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:92"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:93"
+            "source": "backend/scripts/verify-project-audit.ts:91"
           },
           {
             "kind": "database candidate",
@@ -16819,11 +16873,15 @@
           },
           {
             "kind": "database candidate",
+            "source": "backend/scripts/verify-project-audit.ts:95"
+          },
+          {
+            "kind": "database candidate",
             "source": "backend/scripts/verify-project-audit.ts:96"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:105"
+            "source": "backend/scripts/verify-project-audit.ts:98"
           },
           {
             "kind": "database candidate",
@@ -16831,11 +16889,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:111"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:112"
+            "source": "backend/scripts/verify-project-audit.ts:109"
           },
           {
             "kind": "database candidate",
@@ -16843,19 +16897,23 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:121"
+            "source": "backend/scripts/verify-project-audit.ts:114"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:124"
+            "source": "backend/scripts/verify-project-audit.ts:115"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:128"
+            "source": "backend/scripts/verify-project-audit.ts:123"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:135"
+            "source": "backend/scripts/verify-project-audit.ts:126"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-project-audit.ts:130"
           },
           {
             "kind": "database candidate",
@@ -16863,79 +16921,79 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:140"
+            "source": "backend/scripts/verify-project-audit.ts:139"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:146"
+            "source": "backend/scripts/verify-project-audit.ts:142"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:156"
+            "source": "backend/scripts/verify-project-audit.ts:148"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:159"
+            "source": "backend/scripts/verify-project-audit.ts:158"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:162"
+            "source": "backend/scripts/verify-project-audit.ts:161"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:163"
+            "source": "backend/scripts/verify-project-audit.ts:164"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:175"
+            "source": "backend/scripts/verify-project-audit.ts:165"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-project-audit.ts:177"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "backend/scripts/verify-project-audit.ts:179"
+            "source": "backend/scripts/verify-project-audit.ts:181"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:188"
+            "source": "backend/scripts/verify-project-audit.ts:190"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:193"
+            "source": "backend/scripts/verify-project-audit.ts:195"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-project-audit.ts:213"
+            "source": "backend/scripts/verify-project-audit.ts:215"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:226"
+            "source": "backend/scripts/verify-project-audit.ts:228"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:230"
+            "source": "backend/scripts/verify-project-audit.ts:232"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:233"
+            "source": "backend/scripts/verify-project-audit.ts:235"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:239"
+            "source": "backend/scripts/verify-project-audit.ts:241"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:240"
+            "source": "backend/scripts/verify-project-audit.ts:242"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:245"
+            "source": "backend/scripts/verify-project-audit.ts:247"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:253"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:260"
+            "source": "backend/scripts/verify-project-audit.ts:255"
           },
           {
             "kind": "database candidate",
@@ -16943,39 +17001,31 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:265"
+            "source": "backend/scripts/verify-project-audit.ts:264"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:266"
+            "source": "backend/scripts/verify-project-audit.ts:267"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:275"
+            "source": "backend/scripts/verify-project-audit.ts:268"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:276"
+            "source": "backend/scripts/verify-project-audit.ts:277"
           },
           {
             "kind": "database candidate",
             "source": "backend/scripts/verify-project-audit.ts:278"
           },
           {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-project-audit.ts:280"
+          },
+          {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-project-audit.ts:279"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:282"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:284"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-project-audit.ts:285"
+            "source": "backend/scripts/verify-project-audit.ts:281"
           },
           {
             "kind": "database candidate",
@@ -16987,19 +17037,31 @@
           },
           {
             "kind": "database candidate",
+            "source": "backend/scripts/verify-project-audit.ts:288"
+          },
+          {
+            "kind": "database candidate",
             "source": "backend/scripts/verify-project-audit.ts:289"
           },
           {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-project-audit.ts:291"
+          },
+          {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-project-audit.ts:292"
+            "source": "backend/scripts/verify-project-audit.ts:294"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-project-audit.ts:43",
-          "backend/scripts/verify-project-audit.ts:46",
-          "backend/scripts/verify-project-audit.ts:142",
-          "backend/scripts/verify-project-audit.ts:155",
-          "backend/scripts/verify-project-audit.ts:191"
+          "backend/scripts/verify-project-audit.ts:8",
+          "backend/scripts/verify-project-audit.ts:45",
+          "backend/scripts/verify-project-audit.ts:48",
+          "backend/scripts/verify-project-audit.ts:144",
+          "backend/scripts/verify-project-audit.ts:157",
+          "backend/scripts/verify-project-audit.ts:193",
+          "backend/scripts/verify-project-audit.ts:284",
+          "backend/scripts/verify-project-audit.ts:286",
+          "backend/scripts/verify-project-audit.ts:294"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -17029,6 +17091,10 @@
           {
             "kind": "network candidate",
             "source": "backend/scripts/verify-scalability-drain.ts:150"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "backend/scripts/verify-scalability-drain.ts:231"
           },
           {
             "kind": "database candidate",
@@ -17183,8 +17249,8 @@
         "path": "backend/scripts/verify-security-action-limits.ts",
         "source": "backend/scripts/verify-security-action-limits.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 126,
-        "sha256": "f628752c16189951ffcb6fdc024bc4ebc13fd2d064965688d381ae2d7dcab46d",
+        "lines": 128,
+        "sha256": "84c3fb731d01164450cbc829df483c466223d0ea029e649daebedfb0d5594014",
         "effects": [
           {
             "kind": "database candidate",
@@ -17192,11 +17258,7 @@
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:44"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:57"
+            "source": "backend/scripts/verify-security-action-limits.ts:46"
           },
           {
             "kind": "network candidate",
@@ -17204,31 +17266,31 @@
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:62"
+            "source": "backend/scripts/verify-security-action-limits.ts:61"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:65"
+            "source": "backend/scripts/verify-security-action-limits.ts:64"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:66"
+            "source": "backend/scripts/verify-security-action-limits.ts:67"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:70"
+            "source": "backend/scripts/verify-security-action-limits.ts:68"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:74"
+            "source": "backend/scripts/verify-security-action-limits.ts:72"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:76"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:79"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:82"
+            "source": "backend/scripts/verify-security-action-limits.ts:81"
           },
           {
             "kind": "database candidate",
@@ -17236,19 +17298,15 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:85"
+            "source": "backend/scripts/verify-security-action-limits.ts:86"
           },
           {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:89"
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:87"
           },
           {
             "kind": "network candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:91"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:92"
           },
           {
             "kind": "network candidate",
@@ -17267,8 +17325,12 @@
             "source": "backend/scripts/verify-security-action-limits.ts:96"
           },
           {
-            "kind": "database candidate",
+            "kind": "network candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:97"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:98"
           },
           {
             "kind": "database candidate",
@@ -17276,73 +17338,67 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:102"
+            "source": "backend/scripts/verify-security-action-limits.ts:101"
           },
           {
-            "kind": "network candidate",
+            "kind": "database candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:104"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:108"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:110"
+            "source": "backend/scripts/verify-security-action-limits.ts:106"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:111"
+            "source": "backend/scripts/verify-security-action-limits.ts:110"
           },
           {
-            "kind": "output candidate; inspect PII/capabilities",
+            "kind": "database candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:112"
           },
           {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:117"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:118"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:119"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:120"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:122"
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:113"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-action-limits.ts:125"
+            "source": "backend/scripts/verify-security-action-limits.ts:114"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:124"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-action-limits.ts:127"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-action-limits.ts:13",
-          "backend/scripts/verify-security-action-limits.ts:18",
-          "backend/scripts/verify-security-action-limits.ts:22",
-          "backend/scripts/verify-security-action-limits.ts:25",
-          "backend/scripts/verify-security-action-limits.ts:28",
-          "backend/scripts/verify-security-action-limits.ts:29",
-          "backend/scripts/verify-security-action-limits.ts:32",
-          "backend/scripts/verify-security-action-limits.ts:33",
+          "backend/scripts/verify-security-action-limits.ts:6",
+          "backend/scripts/verify-security-action-limits.ts:14",
+          "backend/scripts/verify-security-action-limits.ts:20",
+          "backend/scripts/verify-security-action-limits.ts:24",
+          "backend/scripts/verify-security-action-limits.ts:27",
+          "backend/scripts/verify-security-action-limits.ts:30",
+          "backend/scripts/verify-security-action-limits.ts:31",
           "backend/scripts/verify-security-action-limits.ts:34",
-          "backend/scripts/verify-security-action-limits.ts:37",
-          "backend/scripts/verify-security-action-limits.ts:38",
-          "backend/scripts/verify-security-action-limits.ts:43",
-          "backend/scripts/verify-security-action-limits.ts:44",
-          "backend/scripts/verify-security-action-limits.ts:50",
-          "backend/scripts/verify-security-action-limits.ts:51",
-          "backend/scripts/verify-security-action-limits.ts:79",
-          "backend/scripts/verify-security-action-limits.ts:82",
-          "backend/scripts/verify-security-action-limits.ts:99",
-          "backend/scripts/verify-security-action-limits.ts:102"
+          "backend/scripts/verify-security-action-limits.ts:35",
+          "backend/scripts/verify-security-action-limits.ts:36",
+          "backend/scripts/verify-security-action-limits.ts:39",
+          "backend/scripts/verify-security-action-limits.ts:40",
+          "backend/scripts/verify-security-action-limits.ts:45",
+          "backend/scripts/verify-security-action-limits.ts:46",
+          "backend/scripts/verify-security-action-limits.ts:52",
+          "backend/scripts/verify-security-action-limits.ts:53",
+          "backend/scripts/verify-security-action-limits.ts:81",
+          "backend/scripts/verify-security-action-limits.ts:84",
+          "backend/scripts/verify-security-action-limits.ts:101",
+          "backend/scripts/verify-security-action-limits.ts:104",
+          "backend/scripts/verify-security-action-limits.ts:119",
+          "backend/scripts/verify-security-action-limits.ts:120",
+          "backend/scripts/verify-security-action-limits.ts:121",
+          "backend/scripts/verify-security-action-limits.ts:122",
+          "backend/scripts/verify-security-action-limits.ts:127"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -17377,8 +17433,8 @@
         "path": "backend/scripts/verify-security-audit-metadata.ts",
         "source": "backend/scripts/verify-security-audit-metadata.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 56,
-        "sha256": "b2696bbc00677648f4aa281da0b8f645f859b18246d8df279935f03f89706583",
+        "lines": 58,
+        "sha256": "eb852a62c4acaa46dabca7496a780440c8581943a8f5377faab0681b6a1bd964",
         "effects": [
           {
             "kind": "database candidate",
@@ -17386,54 +17442,53 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-audit-metadata.ts:16"
+            "source": "backend/scripts/verify-security-audit-metadata.ts:18"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-audit-metadata.ts:17"
+            "source": "backend/scripts/verify-security-audit-metadata.ts:19"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-audit-metadata.ts:41"
+            "source": "backend/scripts/verify-security-audit-metadata.ts:43"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-audit-metadata.ts:42"
-          },
-          {
-            "kind": "database candidate",
             "source": "backend/scripts/verify-security-audit-metadata.ts:44"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-audit-metadata.ts:47"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-audit-metadata.ts:48"
+            "source": "backend/scripts/verify-security-audit-metadata.ts:46"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-audit-metadata.ts:51"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-audit-metadata.ts:52"
+            "source": "backend/scripts/verify-security-audit-metadata.ts:49"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-audit-metadata.ts:55"
+            "source": "backend/scripts/verify-security-audit-metadata.ts:50"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-audit-metadata.ts:54"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-audit-metadata.ts:57"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-audit-metadata.ts:17",
-          "backend/scripts/verify-security-audit-metadata.ts:22",
+          "backend/scripts/verify-security-audit-metadata.ts:9",
+          "backend/scripts/verify-security-audit-metadata.ts:19",
           "backend/scripts/verify-security-audit-metadata.ts:24",
-          "backend/scripts/verify-security-audit-metadata.ts:29",
-          "backend/scripts/verify-security-audit-metadata.ts:33",
-          "backend/scripts/verify-security-audit-metadata.ts:36",
-          "backend/scripts/verify-security-audit-metadata.ts:41",
-          "backend/scripts/verify-security-audit-metadata.ts:42"
+          "backend/scripts/verify-security-audit-metadata.ts:26",
+          "backend/scripts/verify-security-audit-metadata.ts:31",
+          "backend/scripts/verify-security-audit-metadata.ts:35",
+          "backend/scripts/verify-security-audit-metadata.ts:38",
+          "backend/scripts/verify-security-audit-metadata.ts:43",
+          "backend/scripts/verify-security-audit-metadata.ts:44",
+          "backend/scripts/verify-security-audit-metadata.ts:53",
+          "backend/scripts/verify-security-audit-metadata.ts:57"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -17529,8 +17584,8 @@
         "path": "backend/scripts/verify-security-document-audit.ts",
         "source": "backend/scripts/verify-security-document-audit.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 66,
-        "sha256": "c70493e4b8bccdc5e5207825cf93a5b6ff5f067a87b7fb15be8259e01d987ec5",
+        "lines": 68,
+        "sha256": "e956adebf5a1e7933275f4bbe884dbb4d4b4d35cfe0e814f074c7d5984cce71c",
         "effects": [
           {
             "kind": "database candidate",
@@ -17538,43 +17593,39 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:19"
+            "source": "backend/scripts/verify-security-document-audit.ts:21"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:20"
+            "source": "backend/scripts/verify-security-document-audit.ts:22"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:23"
-          },
-          {
-            "kind": "network candidate",
             "source": "backend/scripts/verify-security-document-audit.ts:25"
           },
           {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:28"
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-document-audit.ts:27"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:32"
+            "source": "backend/scripts/verify-security-document-audit.ts:30"
           },
           {
             "kind": "database candidate",
             "source": "backend/scripts/verify-security-document-audit.ts:34"
           },
           {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-document-audit.ts:36"
+          },
+          {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:37"
+            "source": "backend/scripts/verify-security-document-audit.ts:39"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:42"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:48"
+            "source": "backend/scripts/verify-security-document-audit.ts:44"
           },
           {
             "kind": "database candidate",
@@ -17582,42 +17633,39 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:53"
+            "source": "backend/scripts/verify-security-document-audit.ts:52"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-document-audit.ts:55"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-document-audit.ts:54"
+            "source": "backend/scripts/verify-security-document-audit.ts:56"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:58"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:59"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:60"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:62"
+            "source": "backend/scripts/verify-security-document-audit.ts:64"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-document-audit.ts:65"
+            "source": "backend/scripts/verify-security-document-audit.ts:67"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-document-audit.ts:13",
-          "backend/scripts/verify-security-document-audit.ts:19",
-          "backend/scripts/verify-security-document-audit.ts:20",
+          "backend/scripts/verify-security-document-audit.ts:5",
+          "backend/scripts/verify-security-document-audit.ts:15",
           "backend/scripts/verify-security-document-audit.ts:21",
+          "backend/scripts/verify-security-document-audit.ts:22",
           "backend/scripts/verify-security-document-audit.ts:23",
           "backend/scripts/verify-security-document-audit.ts:25",
-          "backend/scripts/verify-security-document-audit.ts:34",
-          "backend/scripts/verify-security-document-audit.ts:37"
+          "backend/scripts/verify-security-document-audit.ts:27",
+          "backend/scripts/verify-security-document-audit.ts:36",
+          "backend/scripts/verify-security-document-audit.ts:39",
+          "backend/scripts/verify-security-document-audit.ts:60",
+          "backend/scripts/verify-security-document-audit.ts:61",
+          "backend/scripts/verify-security-document-audit.ts:62",
+          "backend/scripts/verify-security-document-audit.ts:67"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -17629,8 +17677,8 @@
         "path": "backend/scripts/verify-security-email.ts",
         "source": "backend/scripts/verify-security-email.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 87,
-        "sha256": "cc1147e0a3bd4806af7b5659e33d19c7153c9ee5cfc40bb470f9ff4197720890",
+        "lines": 89,
+        "sha256": "2365c5c1422f79b3d6c0a40b93ecaa6d0af618c7e46218bac72e6f9c01c72aee",
         "effects": [
           {
             "kind": "database candidate",
@@ -17638,35 +17686,27 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:22"
+            "source": "backend/scripts/verify-security-email.ts:24"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-email.ts:25"
-          },
-          {
-            "kind": "database candidate",
             "source": "backend/scripts/verify-security-email.ts:27"
           },
           {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-email.ts:29"
+          },
+          {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-email.ts:33"
+            "source": "backend/scripts/verify-security-email.ts:35"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:38"
+            "source": "backend/scripts/verify-security-email.ts:40"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:41"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:46"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:47"
+            "source": "backend/scripts/verify-security-email.ts:43"
           },
           {
             "kind": "database candidate",
@@ -17678,7 +17718,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:54"
+            "source": "backend/scripts/verify-security-email.ts:50"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-email.ts:51"
           },
           {
             "kind": "database candidate",
@@ -17686,15 +17730,15 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:57"
+            "source": "backend/scripts/verify-security-email.ts:58"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:67"
+            "source": "backend/scripts/verify-security-email.ts:59"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:68"
+            "source": "backend/scripts/verify-security-email.ts:69"
           },
           {
             "kind": "database candidate",
@@ -17702,32 +17746,36 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:75"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-email.ts:78"
+            "source": "backend/scripts/verify-security-email.ts:72"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:82"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:83"
+            "source": "backend/scripts/verify-security-email.ts:77"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-email.ts:86"
+            "source": "backend/scripts/verify-security-email.ts:80"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-email.ts:85"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-email.ts:88"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-email.ts:11",
-          "backend/scripts/verify-security-email.ts:16",
-          "backend/scripts/verify-security-email.ts:22",
-          "backend/scripts/verify-security-email.ts:25",
-          "backend/scripts/verify-security-email.ts:33",
-          "backend/scripts/verify-security-email.ts:38"
+          "backend/scripts/verify-security-email.ts:5",
+          "backend/scripts/verify-security-email.ts:12",
+          "backend/scripts/verify-security-email.ts:18",
+          "backend/scripts/verify-security-email.ts:24",
+          "backend/scripts/verify-security-email.ts:27",
+          "backend/scripts/verify-security-email.ts:35",
+          "backend/scripts/verify-security-email.ts:40",
+          "backend/scripts/verify-security-email.ts:84",
+          "backend/scripts/verify-security-email.ts:85",
+          "backend/scripts/verify-security-email.ts:88"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -17739,8 +17787,8 @@
         "path": "backend/scripts/verify-security-financial-replay.ts",
         "source": "backend/scripts/verify-security-financial-replay.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 183,
-        "sha256": "529e2c9f174065352d4fe96e7553eb030ad607be469199fdcbd377680d3d6806",
+        "lines": 185,
+        "sha256": "4c476ac663df7b0114f6b3e6cb9b61b04f2752e40d2e9c2bfeab6a89df20e5ed",
         "effects": [
           {
             "kind": "database candidate",
@@ -17752,15 +17800,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:35"
+            "source": "backend/scripts/verify-security-financial-replay.ts:37"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:36"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:39"
+            "source": "backend/scripts/verify-security-financial-replay.ts:38"
           },
           {
             "kind": "database candidate",
@@ -17768,55 +17812,55 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:42"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:55"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:67"
+            "source": "backend/scripts/verify-security-financial-replay.ts:43"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:76"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:77"
+            "source": "backend/scripts/verify-security-financial-replay.ts:44"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:82"
+            "source": "backend/scripts/verify-security-financial-replay.ts:57"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-financial-replay.ts:69"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-financial-replay.ts:78"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-financial-replay.ts:79"
           },
           {
             "kind": "network candidate",
             "source": "backend/scripts/verify-security-financial-replay.ts:84"
           },
           {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:88"
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-financial-replay.ts:86"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:89"
+            "source": "backend/scripts/verify-security-financial-replay.ts:90"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-financial-replay.ts:91"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:94"
+            "source": "backend/scripts/verify-security-financial-replay.ts:96"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:108"
+            "source": "backend/scripts/verify-security-financial-replay.ts:110"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:112"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:113"
+            "source": "backend/scripts/verify-security-financial-replay.ts:114"
           },
           {
             "kind": "database candidate",
@@ -17824,15 +17868,15 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:116"
+            "source": "backend/scripts/verify-security-financial-replay.ts:117"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:121"
+            "source": "backend/scripts/verify-security-financial-replay.ts:118"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:122"
+            "source": "backend/scripts/verify-security-financial-replay.ts:123"
           },
           {
             "kind": "database candidate",
@@ -17840,66 +17884,63 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:125"
+            "source": "backend/scripts/verify-security-financial-replay.ts:126"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:129"
+            "source": "backend/scripts/verify-security-financial-replay.ts:127"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:139"
+            "source": "backend/scripts/verify-security-financial-replay.ts:131"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:150"
+            "source": "backend/scripts/verify-security-financial-replay.ts:141"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:156"
+            "source": "backend/scripts/verify-security-financial-replay.ts:152"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:164"
+            "source": "backend/scripts/verify-security-financial-replay.ts:158"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:168"
+            "source": "backend/scripts/verify-security-financial-replay.ts:166"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-financial-replay.ts:170"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-financial-replay.ts:171"
+            "source": "backend/scripts/verify-security-financial-replay.ts:173"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:175"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:176"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:177"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-financial-replay.ts:179"
+            "source": "backend/scripts/verify-security-financial-replay.ts:181"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-financial-replay.ts:182"
+            "source": "backend/scripts/verify-security-financial-replay.ts:184"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-financial-replay.ts:15",
-          "backend/scripts/verify-security-financial-replay.ts:25",
-          "backend/scripts/verify-security-financial-replay.ts:30",
-          "backend/scripts/verify-security-financial-replay.ts:34",
-          "backend/scripts/verify-security-financial-replay.ts:35",
+          "backend/scripts/verify-security-financial-replay.ts:7",
+          "backend/scripts/verify-security-financial-replay.ts:16",
+          "backend/scripts/verify-security-financial-replay.ts:27",
+          "backend/scripts/verify-security-financial-replay.ts:32",
           "backend/scripts/verify-security-financial-replay.ts:36",
-          "backend/scripts/verify-security-financial-replay.ts:39",
-          "backend/scripts/verify-security-financial-replay.ts:131"
+          "backend/scripts/verify-security-financial-replay.ts:37",
+          "backend/scripts/verify-security-financial-replay.ts:38",
+          "backend/scripts/verify-security-financial-replay.ts:41",
+          "backend/scripts/verify-security-financial-replay.ts:133",
+          "backend/scripts/verify-security-financial-replay.ts:177",
+          "backend/scripts/verify-security-financial-replay.ts:178",
+          "backend/scripts/verify-security-financial-replay.ts:179",
+          "backend/scripts/verify-security-financial-replay.ts:184"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -17966,8 +18007,8 @@
         "path": "backend/scripts/verify-security-login.ts",
         "source": "backend/scripts/verify-security-login.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 62,
-        "sha256": "9bc8e4a8b86fba35cddc7e6b3968c1fbf042bcf2cffbc1c75e01a106972d5d8c",
+        "lines": 64,
+        "sha256": "b095497fb5716b3d2b959219385418f3053ad77772e3019f69695ebf753a5150",
         "effects": [
           {
             "kind": "database candidate",
@@ -17975,19 +18016,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-login.ts:16"
+            "source": "backend/scripts/verify-security-login.ts:18"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-login.ts:25"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-login.ts:28"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-login.ts:29"
+            "source": "backend/scripts/verify-security-login.ts:27"
           },
           {
             "kind": "database candidate",
@@ -17995,11 +18028,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-login.ts:40"
+            "source": "backend/scripts/verify-security-login.ts:31"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-login.ts:45"
+            "source": "backend/scripts/verify-security-login.ts:42"
           },
           {
             "kind": "database candidate",
@@ -18007,29 +18040,37 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-login.ts:51"
+            "source": "backend/scripts/verify-security-login.ts:49"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-login.ts:54"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-login.ts:55"
+            "source": "backend/scripts/verify-security-login.ts:53"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-login.ts:58"
+            "source": "backend/scripts/verify-security-login.ts:56"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-login.ts:61"
+            "source": "backend/scripts/verify-security-login.ts:57"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-login.ts:60"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-login.ts:63"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-login.ts:16",
-          "backend/scripts/verify-security-login.ts:40",
-          "backend/scripts/verify-security-login.ts:47"
+          "backend/scripts/verify-security-login.ts:5",
+          "backend/scripts/verify-security-login.ts:18",
+          "backend/scripts/verify-security-login.ts:32",
+          "backend/scripts/verify-security-login.ts:42",
+          "backend/scripts/verify-security-login.ts:49",
+          "backend/scripts/verify-security-login.ts:60",
+          "backend/scripts/verify-security-login.ts:63"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -18044,6 +18085,10 @@
         "lines": 120,
         "sha256": "828069f59aad2bcaad7a92b5585559395d545f8a5bff7c663c9a9649056aaa33",
         "effects": [
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "backend/scripts/verify-security-mail-transport.ts:35"
+          },
           {
             "kind": "network candidate",
             "source": "backend/scripts/verify-security-mail-transport.ts:85"
@@ -18088,8 +18133,8 @@
         "path": "backend/scripts/verify-security-mfa-browser.ts",
         "source": "backend/scripts/verify-security-mfa-browser.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 81,
-        "sha256": "fa5d298002f82104c151ebeb712c4bd6f4c44a873d6c6da7740ea66fafa4180c",
+        "lines": 83,
+        "sha256": "97a15d09d7d1a37f9ec873abfbc6d5c497caa2232b3673340c4f4e21981ef7f3",
         "effects": [
           {
             "kind": "database candidate",
@@ -18101,50 +18146,47 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa-browser.ts:20"
-          },
-          {
-            "kind": "database candidate",
             "source": "backend/scripts/verify-security-mfa-browser.ts:22"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa-browser.ts:25"
+            "source": "backend/scripts/verify-security-mfa-browser.ts:24"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa-browser.ts:26"
+            "source": "backend/scripts/verify-security-mfa-browser.ts:27"
           },
           {
             "kind": "database candidate",
             "source": "backend/scripts/verify-security-mfa-browser.ts:28"
           },
           {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-mfa-browser.ts:72"
-          },
-          {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa-browser.ts:75"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa-browser.ts:76"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa-browser.ts:77"
+            "source": "backend/scripts/verify-security-mfa-browser.ts:30"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-mfa-browser.ts:80"
+            "source": "backend/scripts/verify-security-mfa-browser.ts:74"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-mfa-browser.ts:79"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-mfa-browser.ts:82"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-mfa-browser.ts:15",
-          "backend/scripts/verify-security-mfa-browser.ts:16",
+          "backend/scripts/verify-security-mfa-browser.ts:7",
           "backend/scripts/verify-security-mfa-browser.ts:17",
-          "backend/scripts/verify-security-mfa-browser.ts:25"
+          "backend/scripts/verify-security-mfa-browser.ts:18",
+          "backend/scripts/verify-security-mfa-browser.ts:19",
+          "backend/scripts/verify-security-mfa-browser.ts:27",
+          "backend/scripts/verify-security-mfa-browser.ts:77",
+          "backend/scripts/verify-security-mfa-browser.ts:78",
+          "backend/scripts/verify-security-mfa-browser.ts:79",
+          "backend/scripts/verify-security-mfa-browser.ts:82"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -18187,8 +18229,8 @@
         "path": "backend/scripts/verify-security-mfa.ts",
         "source": "backend/scripts/verify-security-mfa.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 135,
-        "sha256": "5142d2e60664d4208a33fb6b6b21f7847d1aed8795586684bf89358b435c5f4e",
+        "lines": 137,
+        "sha256": "2eb6dfe90a6e02b4266cbe97eca1a3b2ae9033507c969399f990de9c9b4d0132",
         "effects": [
           {
             "kind": "database candidate",
@@ -18200,43 +18242,35 @@
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:29"
+            "source": "backend/scripts/verify-security-mfa.ts:31"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:35"
+            "source": "backend/scripts/verify-security-mfa.ts:37"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:36"
+            "source": "backend/scripts/verify-security-mfa.ts:38"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:39"
+            "source": "backend/scripts/verify-security-mfa.ts:41"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:43"
+            "source": "backend/scripts/verify-security-mfa.ts:45"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:48"
+            "source": "backend/scripts/verify-security-mfa.ts:50"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:55"
+            "source": "backend/scripts/verify-security-mfa.ts:57"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:64"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:72"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:73"
+            "source": "backend/scripts/verify-security-mfa.ts:66"
           },
           {
             "kind": "database candidate",
@@ -18244,23 +18278,27 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:82"
+            "source": "backend/scripts/verify-security-mfa.ts:75"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:86"
+            "source": "backend/scripts/verify-security-mfa.ts:76"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:89"
+            "source": "backend/scripts/verify-security-mfa.ts:84"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:94"
+            "source": "backend/scripts/verify-security-mfa.ts:88"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:97"
+            "source": "backend/scripts/verify-security-mfa.ts:91"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-mfa.ts:96"
           },
           {
             "kind": "database candidate",
@@ -18268,54 +18306,58 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:104"
+            "source": "backend/scripts/verify-security-mfa.ts:101"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:105"
+            "source": "backend/scripts/verify-security-mfa.ts:106"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:110"
+            "source": "backend/scripts/verify-security-mfa.ts:107"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:113"
+            "source": "backend/scripts/verify-security-mfa.ts:112"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:118"
+            "source": "backend/scripts/verify-security-mfa.ts:115"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:121"
+            "source": "backend/scripts/verify-security-mfa.ts:120"
           },
           {
             "kind": "database candidate",
             "source": "backend/scripts/verify-security-mfa.ts:123"
           },
           {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-mfa.ts:126"
-          },
-          {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:130"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-mfa.ts:131"
+            "source": "backend/scripts/verify-security-mfa.ts:125"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-mfa.ts:134"
+            "source": "backend/scripts/verify-security-mfa.ts:128"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-mfa.ts:133"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-mfa.ts:136"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-mfa.ts:21",
-          "backend/scripts/verify-security-mfa.ts:26",
-          "backend/scripts/verify-security-mfa.ts:36",
-          "backend/scripts/verify-security-mfa.ts:39"
+          "backend/scripts/verify-security-mfa.ts:7",
+          "backend/scripts/verify-security-mfa.ts:23",
+          "backend/scripts/verify-security-mfa.ts:28",
+          "backend/scripts/verify-security-mfa.ts:38",
+          "backend/scripts/verify-security-mfa.ts:41",
+          "backend/scripts/verify-security-mfa.ts:132",
+          "backend/scripts/verify-security-mfa.ts:133",
+          "backend/scripts/verify-security-mfa.ts:136"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -18327,8 +18369,8 @@
         "path": "backend/scripts/verify-security-reset-browser.ts",
         "source": "backend/scripts/verify-security-reset-browser.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 122,
-        "sha256": "b597b97fb60587b83960508275032c85a3f0134c81a9d8c996dc3c5c1d92eb04",
+        "lines": 124,
+        "sha256": "fa193c55805f9816ea155b32d5f550f3b739111dd2e3be87e6230e6948da735c",
         "effects": [
           {
             "kind": "database candidate",
@@ -18336,87 +18378,83 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:31"
+            "source": "backend/scripts/verify-security-reset-browser.ts:33"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:40"
+            "source": "backend/scripts/verify-security-reset-browser.ts:42"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:53"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:73"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:74"
+            "source": "backend/scripts/verify-security-reset-browser.ts:55"
           },
           {
             "kind": "database candidate",
             "source": "backend/scripts/verify-security-reset-browser.ts:75"
           },
           {
-            "kind": "network candidate",
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-reset-browser.ts:76"
+          },
+          {
+            "kind": "database candidate",
             "source": "backend/scripts/verify-security-reset-browser.ts:77"
           },
           {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:84"
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-reset-browser.ts:79"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:87"
+            "source": "backend/scripts/verify-security-reset-browser.ts:86"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:93"
+            "source": "backend/scripts/verify-security-reset-browser.ts:89"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:102"
+            "source": "backend/scripts/verify-security-reset-browser.ts:95"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:105"
+            "source": "backend/scripts/verify-security-reset-browser.ts:104"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:108"
+            "source": "backend/scripts/verify-security-reset-browser.ts:107"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-reset-browser.ts:110"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-reset-browser.ts:111"
+            "source": "backend/scripts/verify-security-reset-browser.ts:113"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:116"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:117"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-reset-browser.ts:118"
+            "source": "backend/scripts/verify-security-reset-browser.ts:120"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-reset-browser.ts:121"
+            "source": "backend/scripts/verify-security-reset-browser.ts:123"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-reset-browser.ts:18",
-          "backend/scripts/verify-security-reset-browser.ts:19",
+          "backend/scripts/verify-security-reset-browser.ts:6",
           "backend/scripts/verify-security-reset-browser.ts:20",
           "backend/scripts/verify-security-reset-browser.ts:21",
-          "backend/scripts/verify-security-reset-browser.ts:29",
+          "backend/scripts/verify-security-reset-browser.ts:22",
+          "backend/scripts/verify-security-reset-browser.ts:23",
           "backend/scripts/verify-security-reset-browser.ts:31",
-          "backend/scripts/verify-security-reset-browser.ts:37",
-          "backend/scripts/verify-security-reset-browser.ts:41",
-          "backend/scripts/verify-security-reset-browser.ts:102"
+          "backend/scripts/verify-security-reset-browser.ts:33",
+          "backend/scripts/verify-security-reset-browser.ts:39",
+          "backend/scripts/verify-security-reset-browser.ts:43",
+          "backend/scripts/verify-security-reset-browser.ts:104",
+          "backend/scripts/verify-security-reset-browser.ts:118",
+          "backend/scripts/verify-security-reset-browser.ts:119",
+          "backend/scripts/verify-security-reset-browser.ts:123"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -18434,6 +18472,14 @@
           {
             "kind": "database candidate",
             "source": "backend/scripts/verify-security-scanner.ts:4"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "backend/scripts/verify-security-scanner.ts:84"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "backend/scripts/verify-security-scanner.ts:87"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
@@ -18545,8 +18591,8 @@
         "path": "backend/scripts/verify-security-session-boundary.ts",
         "source": "backend/scripts/verify-security-session-boundary.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 83,
-        "sha256": "380ba9dfd4d89684fc0ede256e9269db88bc137ed4da8306255f841931482218",
+        "lines": 85,
+        "sha256": "da549f9f37ffabd811853d6c57806808ba39d8dc176557031f43a9b8c1b2ad3e",
         "effects": [
           {
             "kind": "database candidate",
@@ -18554,82 +18600,85 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:23"
+            "source": "backend/scripts/verify-security-session-boundary.ts:25"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:27"
+            "source": "backend/scripts/verify-security-session-boundary.ts:29"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:32"
+            "source": "backend/scripts/verify-security-session-boundary.ts:34"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:38"
+            "source": "backend/scripts/verify-security-session-boundary.ts:40"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:39"
+            "source": "backend/scripts/verify-security-session-boundary.ts:41"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:51"
+            "source": "backend/scripts/verify-security-session-boundary.ts:53"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:54"
+            "source": "backend/scripts/verify-security-session-boundary.ts:56"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:55"
+            "source": "backend/scripts/verify-security-session-boundary.ts:57"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:60"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:64"
+            "source": "backend/scripts/verify-security-session-boundary.ts:62"
           },
           {
             "kind": "database candidate",
             "source": "backend/scripts/verify-security-session-boundary.ts:66"
           },
           {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:69"
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-session-boundary.ts:68"
           },
           {
-            "kind": "database candidate",
+            "kind": "network candidate",
             "source": "backend/scripts/verify-security-session-boundary.ts:71"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:72"
-          },
-          {
-            "kind": "network candidate",
             "source": "backend/scripts/verify-security-session-boundary.ts:73"
           },
           {
-            "kind": "output candidate; inspect PII/capabilities",
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-session-boundary.ts:74"
+          },
+          {
+            "kind": "network candidate",
             "source": "backend/scripts/verify-security-session-boundary.ts:75"
           },
           {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-session-boundary.ts:77"
+          },
+          {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:79"
+            "source": "backend/scripts/verify-security-session-boundary.ts:81"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-session-boundary.ts:82"
+            "source": "backend/scripts/verify-security-session-boundary.ts:84"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-session-boundary.ts:9",
-          "backend/scripts/verify-security-session-boundary.ts:16",
-          "backend/scripts/verify-security-session-boundary.ts:21",
-          "backend/scripts/verify-security-session-boundary.ts:23"
+          "backend/scripts/verify-security-session-boundary.ts:5",
+          "backend/scripts/verify-security-session-boundary.ts:10",
+          "backend/scripts/verify-security-session-boundary.ts:18",
+          "backend/scripts/verify-security-session-boundary.ts:23",
+          "backend/scripts/verify-security-session-boundary.ts:25",
+          "backend/scripts/verify-security-session-boundary.ts:81",
+          "backend/scripts/verify-security-session-boundary.ts:84"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -18641,8 +18690,8 @@
         "path": "backend/scripts/verify-security-uploads.ts",
         "source": "backend/scripts/verify-security-uploads.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 70,
-        "sha256": "3b3c5eb8e6e67f6f706f087f01618745ee047f360fc71f656b471b2d0b0d22b8",
+        "lines": 72,
+        "sha256": "219009480c8277f7a255c1f0dfa22f0fbdd7a9607b06a5687a4395ab73322cfb",
         "effects": [
           {
             "kind": "database candidate",
@@ -18654,11 +18703,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-uploads.ts:25"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-uploads.ts:28"
+            "source": "backend/scripts/verify-security-uploads.ts:27"
           },
           {
             "kind": "database candidate",
@@ -18666,40 +18711,40 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-uploads.ts:41"
+            "source": "backend/scripts/verify-security-uploads.ts:32"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-uploads.ts:43"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-uploads.ts:45"
+            "source": "backend/scripts/verify-security-uploads.ts:47"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-uploads.ts:62"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-uploads.ts:63"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-uploads.ts:65"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
             "source": "backend/scripts/verify-security-uploads.ts:67"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
             "source": "backend/scripts/verify-security-uploads.ts:69"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-uploads.ts:71"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-uploads.ts:17",
-          "backend/scripts/verify-security-uploads.ts:22",
-          "backend/scripts/verify-security-uploads.ts:25",
-          "backend/scripts/verify-security-uploads.ts:28",
-          "backend/scripts/verify-security-uploads.ts:37",
-          "backend/scripts/verify-security-uploads.ts:38"
+          "backend/scripts/verify-security-uploads.ts:9",
+          "backend/scripts/verify-security-uploads.ts:19",
+          "backend/scripts/verify-security-uploads.ts:24",
+          "backend/scripts/verify-security-uploads.ts:27",
+          "backend/scripts/verify-security-uploads.ts:30",
+          "backend/scripts/verify-security-uploads.ts:39",
+          "backend/scripts/verify-security-uploads.ts:40",
+          "backend/scripts/verify-security-uploads.ts:64",
+          "backend/scripts/verify-security-uploads.ts:65",
+          "backend/scripts/verify-security-uploads.ts:71"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -19261,11 +19306,28 @@
         "path": "infra/postgres/grant-test-runtime.sql",
         "source": "infra/postgres/grant-test-runtime.sql:1",
         "kind": "maintenance/operator script; inspect before execution",
-        "lines": 83,
-        "sha256": "c195d357902abcf07706caadd9d712778d3a51f8e099cb8b20846c1299926a7d",
+        "lines": 111,
+        "sha256": "fb29368a3355e7f5268339b89c568718c446573c69f68c0e76cd8b11a1fd6cd2",
         "effects": [],
         "guardCandidates": [
           "infra/postgres/grant-test-runtime.sql:49"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "infra/scalability/compose.database.yml",
+        "source": "infra/scalability/compose.database.yml:1",
+        "kind": "maintenance/operator script; inspect before execution",
+        "lines": 80,
+        "sha256": "f8f06b115d777111b035f7c7284eec755c6cb5e9b41b5a3cdb90b0278c7305ed",
+        "effects": [],
+        "guardCandidates": [
+          "infra/scalability/compose.database.yml:18",
+          "infra/scalability/compose.database.yml:63"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -19584,8 +19646,8 @@
         "path": "scripts/scalability/operator-inventory.mjs",
         "source": "scripts/scalability/operator-inventory.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 68,
-        "sha256": "2aea754973faadbac4dd60751b490b6352c024d8c29b9321fdfa3e42c7a82130",
+        "lines": 70,
+        "sha256": "89694cbcc0f0f235b5c7ad2533f54be1089bc07787b01581ff193cd0555b5a09",
         "effects": [
           {
             "kind": "database candidate",
@@ -19602,10 +19664,248 @@
           {
             "kind": "filesystem write candidate",
             "source": "scripts/scalability/operator-inventory.mjs:44"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/operator-inventory.mjs:46"
           }
         ],
         "guardCandidates": [
-          "scripts/scalability/operator-inventory.mjs:47"
+          "scripts/scalability/operator-inventory.mjs:49"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/postgres-local-admin.py",
+        "source": "scripts/scalability/postgres-local-admin.py:1",
+        "kind": "verification/profiling tool",
+        "lines": 159,
+        "sha256": "59c26d03cdb3fa422111ceafa2a365c41276833697f1ba79ef87662fa0d52b7d",
+        "effects": [
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:5"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:24"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:25"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:31"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:32"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:56"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:72"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:127"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:133"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:135"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:137"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:137"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:138"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:139"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:140"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-local-admin.py:141"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/postgres-local-admin.py:142"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/postgres-local-admin.py:154"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/postgres-local-admin.py:157"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/postgres-local-admin.py:1",
+          "scripts/scalability/postgres-local-admin.py:53",
+          "scripts/scalability/postgres-local-admin.py:107",
+          "scripts/scalability/postgres-local-admin.py:113",
+          "scripts/scalability/postgres-local-admin.py:132",
+          "scripts/scalability/postgres-local-admin.py:141"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/prepare-local-container.mjs",
+        "source": "scripts/scalability/prepare-local-container.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 58,
+        "sha256": "2f1873d1758a41e9c4854cf0222229b247f132d2aabf0e52fa6e01484429308b",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-container.mjs:3"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/prepare-local-container.mjs:21"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/prepare-local-container.mjs:24"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-container.mjs:40"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-container.mjs:41"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-container.mjs:42"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-container.mjs:44"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/prepare-local-container.mjs:52"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/prepare-local-container.mjs:56"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/prepare-local-container.mjs:23",
+          "scripts/scalability/prepare-local-container.mjs:25",
+          "scripts/scalability/prepare-local-container.mjs:30",
+          "scripts/scalability/prepare-local-container.mjs:32",
+          "scripts/scalability/prepare-local-container.mjs:33",
+          "scripts/scalability/prepare-local-container.mjs:34",
+          "scripts/scalability/prepare-local-container.mjs:41",
+          "scripts/scalability/prepare-local-container.mjs:43",
+          "scripts/scalability/prepare-local-container.mjs:50",
+          "scripts/scalability/prepare-local-container.mjs:52",
+          "scripts/scalability/prepare-local-container.mjs:56"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/provision-local-database.mjs",
+        "source": "scripts/scalability/provision-local-database.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 135,
+        "sha256": "8fec52c83cc4a835c29b556bcbae88cc8c12083bd5434c1ead4d7a3224958763",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/provision-local-database.mjs:3"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/provision-local-database.mjs:25"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/provision-local-database.mjs:90"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/provision-local-database.mjs:103"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/provision-local-database.mjs:110"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/provision-local-database.mjs:116"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/provision-local-database.mjs:121"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/provision-local-database.mjs:130"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/provision-local-database.mjs:131"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/provision-local-database.mjs:132"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/provision-local-database.mjs:17",
+          "scripts/scalability/provision-local-database.mjs:59",
+          "scripts/scalability/provision-local-database.mjs:62",
+          "scripts/scalability/provision-local-database.mjs:65",
+          "scripts/scalability/provision-local-database.mjs:89",
+          "scripts/scalability/provision-local-database.mjs:96",
+          "scripts/scalability/provision-local-database.mjs:97",
+          "scripts/scalability/provision-local-database.mjs:100",
+          "scripts/scalability/provision-local-database.mjs:101",
+          "scripts/scalability/provision-local-database.mjs:103",
+          "scripts/scalability/provision-local-database.mjs:106",
+          "scripts/scalability/provision-local-database.mjs:111",
+          "scripts/scalability/provision-local-database.mjs:123",
+          "scripts/scalability/provision-local-database.mjs:124",
+          "scripts/scalability/provision-local-database.mjs:129",
+          "scripts/scalability/provision-local-database.mjs:130",
+          "scripts/scalability/provision-local-database.mjs:132"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -19617,8 +19917,8 @@
         "path": "scripts/scalability/verify-inventory.mjs",
         "source": "scripts/scalability/verify-inventory.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 154,
-        "sha256": "0a0228bd68e4c47115444e2683664c63285ee4861835abe87ca4199092a86432",
+        "lines": 164,
+        "sha256": "d39782f9d98d26f7e44bcc35d1d15fd66e4f0b36ea2c2de5f7748108d30b4442",
         "effects": [
           {
             "kind": "filesystem write candidate",
@@ -19689,8 +19989,24 @@
             "source": "scripts/scalability/verify-inventory.mjs:150"
           },
           {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:151"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:155"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:156"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:160"
+          },
+          {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-inventory.mjs:153"
+            "source": "scripts/scalability/verify-inventory.mjs:163"
           }
         ],
         "guardCandidates": [
@@ -19725,7 +20041,277 @@
           "scripts/scalability/verify-inventory.mjs:145",
           "scripts/scalability/verify-inventory.mjs:150",
           "scripts/scalability/verify-inventory.mjs:151",
-          "scripts/scalability/verify-inventory.mjs:153"
+          "scripts/scalability/verify-inventory.mjs:152",
+          "scripts/scalability/verify-inventory.mjs:154",
+          "scripts/scalability/verify-inventory.mjs:160",
+          "scripts/scalability/verify-inventory.mjs:161",
+          "scripts/scalability/verify-inventory.mjs:163"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/verify-local-container.mjs",
+        "source": "scripts/scalability/verify-local-container.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 72,
+        "sha256": "1674a88d7d9da775775357c0af4348a3cff957fd434a0c8916d07339bcc76c70",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-local-container.mjs:3"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/verify-local-container.mjs:34"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-local-container.mjs:44"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-local-container.mjs:65"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-local-container.mjs:66"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-local-container.mjs:70"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/verify-local-container.mjs:24",
+          "scripts/scalability/verify-local-container.mjs:40",
+          "scripts/scalability/verify-local-container.mjs:48",
+          "scripts/scalability/verify-local-container.mjs:49",
+          "scripts/scalability/verify-local-container.mjs:51",
+          "scripts/scalability/verify-local-container.mjs:69"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/verify-local-database.mjs",
+        "source": "scripts/scalability/verify-local-database.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 194,
+        "sha256": "0022c30822164db55bfcb34c91580eca05ff60384fe1b4d4ba9a3ce3150cd16e",
+        "effects": [
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:7"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:28"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:31"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:32"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:36"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:37"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:59"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:62"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:64"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:81"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:82"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:83"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:84"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:85"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:86"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:87"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:88"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:89"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:90"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:101"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:112"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:113"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:115"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:116"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:129"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:130"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:131"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:132"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/verify-local-database.mjs:152"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-local-database.mjs:186"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-local-database.mjs:190"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-local-database.mjs:191"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/verify-local-database.mjs:13",
+          "scripts/scalability/verify-local-database.mjs:17",
+          "scripts/scalability/verify-local-database.mjs:21",
+          "scripts/scalability/verify-local-database.mjs:22",
+          "scripts/scalability/verify-local-database.mjs:23",
+          "scripts/scalability/verify-local-database.mjs:24",
+          "scripts/scalability/verify-local-database.mjs:50",
+          "scripts/scalability/verify-local-database.mjs:70",
+          "scripts/scalability/verify-local-database.mjs:71",
+          "scripts/scalability/verify-local-database.mjs:78",
+          "scripts/scalability/verify-local-database.mjs:123",
+          "scripts/scalability/verify-local-database.mjs:128",
+          "scripts/scalability/verify-local-database.mjs:143",
+          "scripts/scalability/verify-local-database.mjs:149",
+          "scripts/scalability/verify-local-database.mjs:154",
+          "scripts/scalability/verify-local-database.mjs:186",
+          "scripts/scalability/verify-local-database.mjs:188"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/verify-provisioning-contracts.mjs",
+        "source": "scripts/scalability/verify-provisioning-contracts.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 278,
+        "sha256": "3337b1ea426ca391de14bef0f85f58016c53c2c663ce5544c95af1635618d079",
+        "effects": [
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:33"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:226"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:252"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:274"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:274"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:277"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/verify-provisioning-contracts.mjs:10",
+          "scripts/scalability/verify-provisioning-contracts.mjs:16",
+          "scripts/scalability/verify-provisioning-contracts.mjs:20",
+          "scripts/scalability/verify-provisioning-contracts.mjs:28",
+          "scripts/scalability/verify-provisioning-contracts.mjs:109",
+          "scripts/scalability/verify-provisioning-contracts.mjs:112",
+          "scripts/scalability/verify-provisioning-contracts.mjs:114",
+          "scripts/scalability/verify-provisioning-contracts.mjs:156",
+          "scripts/scalability/verify-provisioning-contracts.mjs:157",
+          "scripts/scalability/verify-provisioning-contracts.mjs:216",
+          "scripts/scalability/verify-provisioning-contracts.mjs:237",
+          "scripts/scalability/verify-provisioning-contracts.mjs:240",
+          "scripts/scalability/verify-provisioning-contracts.mjs:243",
+          "scripts/scalability/verify-provisioning-contracts.mjs:248",
+          "scripts/scalability/verify-provisioning-contracts.mjs:249",
+          "scripts/scalability/verify-provisioning-contracts.mjs:251",
+          "scripts/scalability/verify-provisioning-contracts.mjs:252",
+          "scripts/scalability/verify-provisioning-contracts.mjs:253",
+          "scripts/scalability/verify-provisioning-contracts.mjs:259"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",

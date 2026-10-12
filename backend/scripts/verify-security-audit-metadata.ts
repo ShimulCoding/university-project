@@ -6,11 +6,13 @@ import { getRequestMetadata } from "../src/utils/request-metadata";
 import { authRepository } from "../src/modules/auth/repositories/auth.repository";
 import { createApp } from "../src/app";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { hashPassword } from "../src/utils/password";
 import { randomUUID } from "node:crypto";
 import type { Request } from "express";
 
 async function main() {
+  await verifyFixtureDatabase();
   const marker = "SYNTHETIC_QUERY_CAPABILITY_93f";
   let stored: unknown;
   const db = { auditLog: { create: async (input: unknown) => { stored = input; return {}; } } } as unknown as DbClient;
@@ -48,8 +50,8 @@ async function main() {
     console.log(`Audit metadata privacy: ${checks} checks passed.`);
   } finally {
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
-    if (userId) { await prisma.auditLog.deleteMany({ where: { actorId: userId } }); await prisma.user.delete({ where: { id: userId } }); }
-    await prisma.$disconnect();
+    if (userId) { await fixturePrisma.auditLog.deleteMany({ where: { actorId: userId } }); await fixturePrisma.user.delete({ where: { id: userId } }); }
+    await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-void main().catch(() => { console.error("Audit metadata privacy verification failed. Private details suppressed."); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

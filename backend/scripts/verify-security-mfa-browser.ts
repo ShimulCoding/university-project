@@ -4,12 +4,14 @@ import { chromium } from "playwright";
 import { generate } from "otplib";
 import { RoleCode } from "@prisma/client";
 import { prisma } from "../src/config/prisma";
+import { fixturePrisma, verifyFixtureDatabase, disconnectFixtureDatabase, fixtureFailureDiagnostics } from "./helpers/fixture-database";
 import { hashPassword } from "../src/utils/password";
 import { createEnrollmentGrant } from "../src/modules/auth/services/mfa.service";
 import { checkPageDesign } from "../../frontend/scripts/browser-design-checks";
 
 const run = randomUUID(); const users: string[] = []; let eventId: string | undefined; let step = "setup";
 async function main() {
+  await verifyFixtureDatabase();
   const browser = await chromium.launch({ channel: process.env.VERIFY_BROWSER_CHANNEL || "msedge", headless: true });
   const context = await browser.newContext(); const page = await context.newPage(); let checks = 0;
   const frontend = process.env.VERIFY_FRONTEND_BASE_URL || "http://localhost:3000";
@@ -72,9 +74,9 @@ async function main() {
     console.log(`MFA browser enrollment, authorization and recovery: ${checks} interaction/design checks passed.`);
   } finally {
     await browser.close();
-    await prisma.auditLog.deleteMany({ where: { OR: [{ actorId: { in: users } }, { entityId: { in: users } }, ...(eventId ? [{ eventId }] : [])] } });
-    if (eventId) await prisma.event.deleteMany({ where: { id: eventId } });
-    await prisma.user.deleteMany({ where: { id: { in: users } } }); await prisma.$disconnect();
+    await fixturePrisma.auditLog.deleteMany({ where: { OR: [{ actorId: { in: users } }, { entityId: { in: users } }, ...(eventId ? [{ eventId }] : [])] } });
+    if (eventId) await fixturePrisma.event.deleteMany({ where: { id: eventId } });
+    await fixturePrisma.user.deleteMany({ where: { id: { in: users } } }); await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-void main().catch(() => { console.error(`MFA browser verification failed at ${step}; private details suppressed.`); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });

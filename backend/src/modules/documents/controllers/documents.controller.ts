@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 
 import { documentsService } from "../services/documents.service";
 import { getRequestMetadata } from "../../../utils/request-metadata";
+import { sendAuthorizedLocalFile } from "../../../utils/file-response";
 
 export const documentsController = {
   async openProtectedDocument(request: Request, response: Response) {
@@ -17,6 +18,6 @@ export const documentsController = {
       "Content-Disposition",
       `inline; filename="${encodeURIComponent(document.originalName)}"`,
     );
-    response.sendFile(document.absolutePath);
+    sendAuthorizedLocalFile(response, document.absolutePath);
   },
 };

@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import type { RoleCode } from "@prisma/client";
 
 import { prisma } from "../config/prisma";
+import { trackRequestMiddleware } from "../utils/request-work";
 
 /**
  * Global role authorization middleware.
@@ -43,7 +44,7 @@ export function authorizeEventScoped(
   allowedRoles: RoleCode[],
   eventIdParam = "eventLookupKey",
 ) {
-  return async (request: Request, response: Response, next: NextFunction) => {
+  return trackRequestMiddleware(async (request: Request, response: Response, next: NextFunction) => {
     const globalRoles = request.auth?.roles ?? [];
 
     // System Admin always passes — they have governance/oversight access
@@ -103,5 +104,5 @@ export function authorizeEventScoped(
     response
       .status(403)
       .json({ message: "You are not assigned to this event with the required role." });
-  };
+  });
 }

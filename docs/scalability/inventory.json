@@ -3,16 +3,16 @@
   "evidenceCommit": "415a869",
   "compilerVersion": "5.9.3",
   "counts": {
-    "applicationSourceFiles": 310,
-    "applicationTypeScriptFiles": 308,
+    "applicationSourceFiles": 311,
+    "applicationTypeScriptFiles": 309,
     "supportingSourceFiles": 2,
-    "apiRoutesIncludingHealth": 91,
+    "apiRoutesIncludingHealth": 92,
     "pageFiles": 39,
     "prismaModels": 27,
     "recurringSchedulers": 1,
-    "timers": 7,
+    "timers": 9,
     "inputSinkCandidates": 224,
-    "operatorSources": 89,
+    "operatorSources": 91,
     "npmCommands": 62
   },
   "coverage": {
@@ -30,7 +30,7 @@
       "root/backend/frontend loose source/config scripts",
       "workspace package scripts"
     ],
-    "sourceCountExplanation": "The prior security map indexed 307 TypeScript application files. Current application coverage: 308 TypeScript files plus 2 supporting sources. Operator/config/migration sources are counted separately.",
+    "sourceCountExplanation": "The prior security map indexed 307 TypeScript application files. Current application coverage: 309 TypeScript files plus 2 supporting sources. Operator/config/migration sources are counted separately.",
     "excluded": [
       ".env and local/private cache files",
       "generated dist/.next/node_modules",
@@ -96,6 +96,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -127,6 +128,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -158,6 +160,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -189,6 +192,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -220,6 +224,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -251,6 +256,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -281,6 +287,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -312,6 +319,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -343,6 +351,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -373,6 +382,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -403,6 +413,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -434,6 +445,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -465,6 +477,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -494,6 +507,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -523,6 +537,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -554,6 +569,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -585,6 +601,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -616,6 +633,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -647,6 +665,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -678,6 +697,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -707,6 +727,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -736,6 +757,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -767,6 +789,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -798,6 +821,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -828,6 +852,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -859,6 +884,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -889,6 +915,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -920,6 +947,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -950,6 +978,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -980,6 +1009,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1011,6 +1041,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1042,6 +1073,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1073,6 +1105,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1103,6 +1136,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1133,6 +1167,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1163,6 +1198,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1194,6 +1230,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1225,6 +1262,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1256,6 +1294,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1274,7 +1313,7 @@
       "id": "GET /health",
       "method": "GET",
       "path": "/health",
-      "source": "backend/src/app.ts:27",
+      "source": "backend/src/app.ts:24",
       "mountSources": [
         "backend/src/app.ts#app"
       ],
@@ -1283,14 +1322,34 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
-        "express.json({ limit: \"2mb\" })",
-        "express.urlencoded({ extended: true })",
-        "cookieParser()",
         "(_request, response) => { response.status(200).json({ status: \"ok\", service: \"mu-cse-transparency-backend\", timestamp: new Date().toISOString(), }); }"
       ],
       "access": "public or auth-challenge; handler-level controls must be traced",
       "bottleneck": "Unmeasured hypothesis: liveness does not establish dependency readiness",
       "phase": 6,
+      "change": "Mapped; no runtime change",
+      "before": "N/A: Phase 2 measurement pending",
+      "after": "N/A: no change measured",
+      "evidenceCommit": "415a869"
+    },
+    {
+      "id": "GET /readyz",
+      "method": "GET",
+      "path": "/readyz",
+      "source": "backend/src/app.ts:32",
+      "mountSources": [
+        "backend/src/app.ts#app"
+      ],
+      "middleware": [
+        "requestReference",
+        "requestLogger",
+        "helmet()",
+        "cors(corsOptions)",
+        "readinessHandler(work)"
+      ],
+      "access": "public or auth-challenge; handler-level controls must be traced",
+      "bottleneck": "Unmeasured hypothesis: database filtering/sorting/count cost and private no-store read amplification",
+      "phase": 3,
       "change": "Mapped; no runtime change",
       "before": "N/A: Phase 2 measurement pending",
       "after": "N/A: no change measured",
@@ -1311,6 +1370,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1343,6 +1403,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1374,6 +1435,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1405,6 +1467,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1440,6 +1503,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1475,6 +1539,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1506,6 +1571,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1537,6 +1603,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1568,6 +1635,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1600,6 +1668,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1631,6 +1700,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1662,6 +1732,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1693,6 +1764,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1724,6 +1796,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1754,6 +1827,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1787,6 +1861,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1818,6 +1893,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1849,6 +1925,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1879,6 +1956,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1910,6 +1988,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1941,6 +2020,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -1972,6 +2052,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2003,6 +2084,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2034,6 +2116,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2067,6 +2150,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2098,6 +2182,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2129,6 +2214,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2160,6 +2246,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2191,6 +2278,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2222,6 +2310,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2253,6 +2342,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2284,6 +2374,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2318,6 +2409,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2349,6 +2441,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2380,6 +2473,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2411,6 +2505,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2444,6 +2539,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2475,6 +2571,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2506,6 +2603,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2537,6 +2635,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2568,6 +2667,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2600,6 +2700,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2630,6 +2731,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2664,6 +2766,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2694,6 +2797,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2730,6 +2834,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2761,6 +2866,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2792,6 +2898,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2826,6 +2933,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2856,6 +2964,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -2887,6 +2996,7 @@
         "requestLogger",
         "helmet()",
         "cors(corsOptions)",
+        "bindRequestWork(work)",
         "express.json({ limit: \"2mb\" })",
         "express.urlencoded({ extended: true })",
         "cookieParser()",
@@ -9836,7 +9946,7 @@
     "startupAndCallbacks": [
       {
         "kind": "startup task",
-        "source": "backend/src/server.ts:10",
+        "source": "backend/src/server.ts:11",
         "handler": "rolesService.ensureRoleCatalog",
         "bottleneck": "Unmeasured hypothesis: repeated startup/scheduled database work across replicas requires coordination review",
         "phase": 5,
@@ -9847,7 +9957,7 @@
       },
       {
         "kind": "startup task",
-        "source": "backend/src/server.ts:11",
+        "source": "backend/src/server.ts:14",
         "handler": "authRepository.pruneStaleTokens",
         "bottleneck": "Unmeasured hypothesis: repeated startup/scheduled database work across replicas requires coordination review",
         "phase": 5,
@@ -9860,8 +9970,8 @@
     "timers": [
       {
         "kind": "recurring scheduler",
-        "source": "backend/src/server.ts:12",
-        "callback": "() => void authRepository.pruneStaleTokens()",
+        "source": "backend/src/server.ts:17",
+        "callback": "pruneTokens",
         "interval": "60 * 60 * 1000",
         "bottleneck": "Unmeasured hypothesis: scheduler runs independently in every app process; coordination/error handling require review",
         "phase": 5,
@@ -9887,6 +9997,30 @@
         "source": "backend/src/utils/governance-transaction.ts:63",
         "callback": "resolve",
         "interval": "delay",
+        "bottleneck": "Unmeasured hypothesis: timer lifetime and deadline/backpressure require failure-injection proof",
+        "phase": 6,
+        "change": "Mapped; no runtime change",
+        "before": "N/A: Phase 2 measurement pending",
+        "after": "N/A: no change measured",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "kind": "deadline/retry/browser cleanup; not durable job",
+        "source": "backend/src/utils/request-work.ts:158",
+        "callback": "() => finish({ status: \"failed\", reason: \"deadline\", unfinishedWork: options.work.activeCount })",
+        "interval": "deadlineMs",
+        "bottleneck": "Unmeasured hypothesis: timer lifetime and deadline/backpressure require failure-injection proof",
+        "phase": 6,
+        "change": "Mapped; no runtime change",
+        "before": "N/A: Phase 2 measurement pending",
+        "after": "N/A: no change measured",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "kind": "deadline/retry/browser cleanup; not durable job",
+        "source": "backend/src/utils/request-work.ts:173",
+        "callback": "() => process.exit(1)",
+        "interval": "250",
         "bottleneck": "Unmeasured hypothesis: timer lifetime and deadline/backpressure require failure-injection proof",
         "phase": 6,
         "change": "Mapped; no runtime change",
@@ -9953,13 +10087,13 @@
     },
     {
       "name": "Next/browser → Express API",
-      "source": "backend/src/app.ts:22",
+      "source": "backend/src/app.ts:23",
       "controls": "exact-origin credentialed CORS, parser limits, response security headers",
       "status": "Mapped; controls require existing regressions plus scale-specific tests"
     },
     {
       "name": "Health → liveness response",
-      "source": "backend/src/app.ts:27",
+      "source": "backend/src/app.ts:24",
       "controls": "included in the API count; current health does not check PostgreSQL/scanner/readiness",
       "status": "Mapped; controls require existing regressions plus scale-specific tests"
     },
@@ -9977,7 +10111,7 @@
     },
     {
       "name": "Untrusted cookies → trusted live session",
-      "source": "backend/src/middlewares/authenticate.ts:20",
+      "source": "backend/src/middlewares/authenticate.ts:21",
       "controls": "signature/token/session/account/MFA checks; current session context bound server-side",
       "status": "Mapped; controls require existing regressions plus scale-specific tests"
     },
@@ -10099,17 +10233,17 @@
     {
       "surface": "database",
       "callee": "prisma.user.findUnique",
-      "source": "backend/src/middlewares/authenticate.ts:42"
+      "source": "backend/src/middlewares/authenticate.ts:49"
     },
     {
       "surface": "database",
       "callee": "prisma.refreshToken.findUnique",
-      "source": "backend/src/middlewares/authenticate.ts:47"
+      "source": "backend/src/middlewares/authenticate.ts:54"
     },
     {
       "surface": "database",
       "callee": "prisma.event.findFirst",
-      "source": "backend/src/middlewares/authorize.ts:79"
+      "source": "backend/src/middlewares/authorize.ts:80"
     },
     {
       "surface": "database",
@@ -11206,8 +11340,8 @@
     {
       "path": "backend/src/app.ts",
       "source": "backend/src/app.ts:1",
-      "lines": 41,
-      "sha256": "82eeabc3d5df413e4f7c072f056e9a1de4be2b06c88f1cea447f263d7ea243f5",
+      "lines": 44,
+      "sha256": "34c7d9e343a26d21e5dcd84acc7f82cd1837f72420ac8c2ba4500417b2529538",
       "kind": "support/source",
       "change": "Mapped; no runtime change",
       "metrics": "N/A: source coverage evidence; benchmark by owning journey",
@@ -11296,8 +11430,8 @@
     {
       "path": "backend/src/middlewares/authenticate-refresh-session.ts",
       "source": "backend/src/middlewares/authenticate-refresh-session.ts:1",
-      "lines": 74,
-      "sha256": "7be008b461c7802c97056d5f32e2da6fab0052939dc920e816fc1f4b96a1f25b",
+      "lines": 81,
+      "sha256": "70ad5a53b6ba6f7f49ecd95087a00a8f2f858b19f4205ef567fbfe254138978b",
       "kind": "support/source",
       "change": "Mapped; no runtime change",
       "metrics": "N/A: source coverage evidence; benchmark by owning journey",
@@ -11306,8 +11440,8 @@
     {
       "path": "backend/src/middlewares/authenticate.ts",
       "source": "backend/src/middlewares/authenticate.ts:1",
-      "lines": 85,
-      "sha256": "22a69504696af973786b5ac4522fc972c728d004e4c4dd51552e67213eba39dc",
+      "lines": 92,
+      "sha256": "59eb10de741063b56457fcbb53e3a02f66bb42eeb650dac29ff1f136369f1587",
       "kind": "support/source",
       "change": "Mapped; no runtime change",
       "metrics": "N/A: source coverage evidence; benchmark by owning journey",
@@ -11316,8 +11450,8 @@
     {
       "path": "backend/src/middlewares/authorize.ts",
       "source": "backend/src/middlewares/authorize.ts:1",
-      "lines": 108,
-      "sha256": "9c5f3e27d9cbf7595210f89b8a9e27cfa3be43f09732baf47f0f47f2d3bdf384",
+      "lines": 109,
+      "sha256": "29e59929cc3fc2d0966e76a64de424ce5e87a76a153e7635d814fa626c7e6d4e",
       "kind": "support/source",
       "change": "Mapped; no runtime change",
       "metrics": "N/A: source coverage evidence; benchmark by owning journey",
@@ -11356,8 +11490,8 @@
     {
       "path": "backend/src/middlewares/resource-admission.ts",
       "source": "backend/src/middlewares/resource-admission.ts:1",
-      "lines": 56,
-      "sha256": "3e870066d9115d7c0ede1534fee740d7640b887b5d6348bd99aacf40867bd444",
+      "lines": 61,
+      "sha256": "9e46b993bb7ff99475c8638664ba0222c7d6127f2233b8e8b349d756d0e5031f",
       "kind": "support/source",
       "change": "Mapped; no runtime change",
       "metrics": "N/A: source coverage evidence; benchmark by owning journey",
@@ -12526,8 +12660,8 @@
     {
       "path": "backend/src/server.ts",
       "source": "backend/src/server.ts:1",
-      "lines": 44,
-      "sha256": "03c7f9fc38300b7d9f7a22c0369538917290f89862eb132d88d59b68ffdb30f1",
+      "lines": 50,
+      "sha256": "ead07603b8b128a01159b90f951d1d5cce7205daa648e4418fe8bd330c443f97",
       "kind": "support/source",
       "change": "Mapped; no runtime change",
       "metrics": "N/A: source coverage evidence; benchmark by owning journey",
@@ -12606,8 +12740,8 @@
     {
       "path": "backend/src/utils/async-handler.ts",
       "source": "backend/src/utils/async-handler.ts:1",
-      "lines": 18,
-      "sha256": "8abb4deb0989175c110b75a6a6a030e9f6a73277810465c06bce710048257686",
+      "lines": 21,
+      "sha256": "d2957158c9674788df08b6bdc55c30d082941b3551e1819af4179ed2a633e1b0",
       "kind": "support/source",
       "change": "Mapped; no runtime change",
       "metrics": "N/A: source coverage evidence; benchmark by owning journey",
@@ -12808,6 +12942,16 @@
       "source": "backend/src/utils/request-metadata.ts:1",
       "lines": 13,
       "sha256": "c1c1eac1ed3380ddef54b575f5dc8504be1e6105107f6b6bbe9e0649cc2c24f6",
+      "kind": "support/source",
+      "change": "Mapped; no runtime change",
+      "metrics": "N/A: source coverage evidence; benchmark by owning journey",
+      "evidenceCommit": "415a869"
+    },
+    {
+      "path": "backend/src/utils/request-work.ts",
+      "source": "backend/src/utils/request-work.ts:1",
+      "lines": 181,
+      "sha256": "104a338a82963797f5461d062002943b358ba536ef0401865d2a5b044be0de8c",
       "kind": "support/source",
       "change": "Mapped; no runtime change",
       "metrics": "N/A: source coverage evidence; benchmark by owning journey",
@@ -16864,6 +17008,178 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "backend/scripts/verify-scalability-drain.ts",
+        "source": "backend/scripts/verify-scalability-drain.ts:1",
+        "kind": "verification/profiling tool",
+        "lines": 422,
+        "sha256": "7094ea265e200d9c6f730d522318b6c925489fdea1fc7dca3d24b9fd7324663a",
+        "effects": [
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:15"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:36"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:88"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:150"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:247"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:257"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:266"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:267"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:270"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:272"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:274"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:288"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:289"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:291"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:308"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:310"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:313"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:324"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:340"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:350"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:351"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:352"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:361"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:365"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:368"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:371"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:374"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:375"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:376"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:392"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:398"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-scalability-drain.ts:417"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-scalability-drain.ts:417"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-scalability-drain.ts:421"
+          }
+        ],
+        "guardCandidates": [
+          "backend/scripts/verify-scalability-drain.ts:26",
+          "backend/scripts/verify-scalability-drain.ts:29",
+          "backend/scripts/verify-scalability-drain.ts:58",
+          "backend/scripts/verify-scalability-drain.ts:122",
+          "backend/scripts/verify-scalability-drain.ts:126",
+          "backend/scripts/verify-scalability-drain.ts:251",
+          "backend/scripts/verify-scalability-drain.ts:253",
+          "backend/scripts/verify-scalability-drain.ts:254",
+          "backend/scripts/verify-scalability-drain.ts:299",
+          "backend/scripts/verify-scalability-drain.ts:308",
+          "backend/scripts/verify-scalability-drain.ts:333",
+          "backend/scripts/verify-scalability-drain.ts:340",
+          "backend/scripts/verify-scalability-drain.ts:355",
+          "backend/scripts/verify-scalability-drain.ts:361",
+          "backend/scripts/verify-scalability-drain.ts:365",
+          "backend/scripts/verify-scalability-drain.ts:368",
+          "backend/scripts/verify-scalability-drain.ts:371",
+          "backend/scripts/verify-scalability-drain.ts:384",
+          "backend/scripts/verify-scalability-drain.ts:392",
+          "backend/scripts/verify-scalability-drain.ts:417"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "backend/scripts/verify-security-action-limits.ts",
         "source": "backend/scripts/verify-security-action-limits.ts:1",
         "kind": "verification/profiling tool",
@@ -19164,6 +19480,20 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "scripts/scalability/baseline-routes.json",
+        "source": "scripts/scalability/baseline-routes.json:1",
+        "kind": "verification/profiling tool",
+        "lines": 94,
+        "sha256": "fac982a31ea94d584f13b5fedbb66bc0c8cf0964e865136ad0ed36016883f22a",
+        "effects": [],
+        "guardCandidates": [],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "scripts/scalability/inventory.mjs",
         "source": "scripts/scalability/inventory.mjs:1",
         "kind": "verification/profiling tool",
@@ -19287,32 +19617,28 @@
         "path": "scripts/scalability/verify-inventory.mjs",
         "source": "scripts/scalability/verify-inventory.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 146,
-        "sha256": "beafb991e5bf28439ef913bf6b1993771858197cd975273b8211a2b67015ac7d",
+        "lines": 154,
+        "sha256": "0a0228bd68e4c47115444e2683664c63285ee4861835abe87ca4199092a86432",
         "effects": [
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:2"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-inventory.mjs:8"
+            "source": "scripts/scalability/verify-inventory.mjs:3"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
             "source": "scripts/scalability/verify-inventory.mjs:9"
           },
           {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:70"
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-inventory.mjs:10"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:72"
+            "source": "scripts/scalability/verify-inventory.mjs:71"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:74"
+            "source": "scripts/scalability/verify-inventory.mjs:73"
           },
           {
             "kind": "database candidate",
@@ -19324,78 +19650,82 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:83"
+            "source": "scripts/scalability/verify-inventory.mjs:77"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:85"
+            "source": "scripts/scalability/verify-inventory.mjs:84"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:87"
+            "source": "scripts/scalability/verify-inventory.mjs:86"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:88"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:103"
+            "source": "scripts/scalability/verify-inventory.mjs:111"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:130"
-          },
-          {
-            "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:134"
-          },
-          {
-            "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:135"
-          },
-          {
-            "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:136"
+            "source": "scripts/scalability/verify-inventory.mjs:138"
           },
           {
             "kind": "filesystem write candidate",
             "source": "scripts/scalability/verify-inventory.mjs:142"
           },
           {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:143"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:144"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:150"
+          },
+          {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-inventory.mjs:145"
+            "source": "scripts/scalability/verify-inventory.mjs:153"
           }
         ],
         "guardCandidates": [
-          "scripts/scalability/verify-inventory.mjs:10",
-          "scripts/scalability/verify-inventory.mjs:22",
-          "scripts/scalability/verify-inventory.mjs:27",
-          "scripts/scalability/verify-inventory.mjs:64",
+          "scripts/scalability/verify-inventory.mjs:11",
+          "scripts/scalability/verify-inventory.mjs:23",
+          "scripts/scalability/verify-inventory.mjs:28",
           "scripts/scalability/verify-inventory.mjs:65",
           "scripts/scalability/verify-inventory.mjs:66",
           "scripts/scalability/verify-inventory.mjs:67",
           "scripts/scalability/verify-inventory.mjs:68",
           "scripts/scalability/verify-inventory.mjs:69",
-          "scripts/scalability/verify-inventory.mjs:89",
-          "scripts/scalability/verify-inventory.mjs:95",
+          "scripts/scalability/verify-inventory.mjs:70",
+          "scripts/scalability/verify-inventory.mjs:90",
           "scripts/scalability/verify-inventory.mjs:103",
-          "scripts/scalability/verify-inventory.mjs:104",
-          "scripts/scalability/verify-inventory.mjs:105",
-          "scripts/scalability/verify-inventory.mjs:106",
-          "scripts/scalability/verify-inventory.mjs:108",
-          "scripts/scalability/verify-inventory.mjs:109",
-          "scripts/scalability/verify-inventory.mjs:110",
+          "scripts/scalability/verify-inventory.mjs:111",
+          "scripts/scalability/verify-inventory.mjs:112",
+          "scripts/scalability/verify-inventory.mjs:113",
           "scripts/scalability/verify-inventory.mjs:114",
+          "scripts/scalability/verify-inventory.mjs:116",
+          "scripts/scalability/verify-inventory.mjs:117",
           "scripts/scalability/verify-inventory.mjs:118",
           "scripts/scalability/verify-inventory.mjs:122",
-          "scripts/scalability/verify-inventory.mjs:124",
-          "scripts/scalability/verify-inventory.mjs:127",
+          "scripts/scalability/verify-inventory.mjs:126",
           "scripts/scalability/verify-inventory.mjs:130",
-          "scripts/scalability/verify-inventory.mjs:131",
-          "scripts/scalability/verify-inventory.mjs:134",
+          "scripts/scalability/verify-inventory.mjs:132",
           "scripts/scalability/verify-inventory.mjs:135",
-          "scripts/scalability/verify-inventory.mjs:136",
-          "scripts/scalability/verify-inventory.mjs:137",
+          "scripts/scalability/verify-inventory.mjs:138",
+          "scripts/scalability/verify-inventory.mjs:139",
           "scripts/scalability/verify-inventory.mjs:142",
           "scripts/scalability/verify-inventory.mjs:143",
-          "scripts/scalability/verify-inventory.mjs:145"
+          "scripts/scalability/verify-inventory.mjs:144",
+          "scripts/scalability/verify-inventory.mjs:145",
+          "scripts/scalability/verify-inventory.mjs:150",
+          "scripts/scalability/verify-inventory.mjs:151",
+          "scripts/scalability/verify-inventory.mjs:153"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",

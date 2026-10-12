@@ -8,6 +8,7 @@ import { verifyAccessToken } from "../utils/tokens";
 import { hasCurrentMfaAssurance, requiresPrivilegedMfa } from "../modules/auth/services/auth-session";
 import { authenticatedSessionContext } from "../utils/authenticated-session-context";
 import { sensitiveActionLimits } from "./sensitive-action-limits";
+import { trackRequestMiddleware } from "../utils/request-work";
 
 function extractAccessToken(request: Request) {
   const bearerToken = request.headers.authorization?.startsWith("Bearer ")
@@ -18,6 +19,12 @@ function extractAccessToken(request: Request) {
 }
 
 export async function authenticate(request: Request, response: Response, next: NextFunction) {
+  await trackedAuthentication(request, response, next);
+}
+
+const trackedAuthentication = trackRequestMiddleware(authenticateRequest);
+
+async function authenticateRequest(request: Request, response: Response, next: NextFunction) {
   response.setHeader("Cache-Control", "private, no-store");
   const token = extractAccessToken(request);
   if (!token) {

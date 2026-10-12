@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { mkdtemp, mkdir, writeFile, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ROOT, buildInventory, extractPages, extractRoutes, extractSchema, pagePath, parseSource, renderMarkdown, writeOrCheck } from "./inventory.mjs";
@@ -89,7 +90,14 @@ check("operator scripts and every npm entry participate in coverage", () => {
   assert(inventory.operators.entries.every((entry) => !/\.env|\.cache|node_modules|uploads\//.test(entry.path)));
 });
 check("existing baseline covers every mounted API/page/model", () => {
-  assert.equal(inventory.counts.apiRoutesIncludingHealth, 91); assert.equal(inventory.counts.pageFiles, 39); assert.equal(inventory.counts.prismaModels, 27);
+  const originalRoutes = JSON.parse(readFileSync(join(ROOT, 'scripts/scalability/baseline-routes.json'), 'utf8'));
+  assert.equal(originalRoutes.length, 91);
+  assert.equal(new Set(originalRoutes).size, 91);
+  assert(originalRoutes.every((id) => inventory.routes.some((route) => route.id === id)), 'An inherited entry point was removed');
+  assert.equal(inventory.counts.apiRoutesIncludingHealth, 92);
+  const readiness = inventory.routes.find((route) => route.id === 'GET /readyz');
+  assert(readiness && readiness.middleware.some((value) => value.includes('readinessHandler(work)')), 'New readiness entry must retain its drain handler');
+  assert.equal(inventory.counts.pageFiles, 39); assert.equal(inventory.counts.prismaModels, 27);
   assert.equal(inventory.counts.recurringSchedulers, 1); assert.equal(inventory.roles.fields.length, 7);
   assert.ok(inventory.sourceFiles.every((file) => /^[0-9a-f]{64}$/.test(file.sha256)));
   assert.ok(inventory.sourceFiles.every((file) => !/\.env|\.cache|node_modules/.test(file.path)));

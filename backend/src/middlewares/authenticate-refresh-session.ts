@@ -8,12 +8,19 @@ import { hashValue } from "../utils/hash";
 import { verifyRefreshToken } from "../utils/tokens";
 import { hasCurrentMfaAssurance, requiresPrivilegedMfa } from "../modules/auth/services/auth-session";
 import { authenticatedSessionContext } from "../utils/authenticated-session-context";
+import { trackRequestMiddleware } from "../utils/request-work";
 
 export async function authenticateRefreshSession(
   request: Request,
   response: Response,
   next: NextFunction,
 ) {
+  await trackedRefreshAuthentication(request, response, next);
+}
+
+const trackedRefreshAuthentication = trackRequestMiddleware(authenticateRefreshRequest);
+
+async function authenticateRefreshRequest(request: Request, response: Response, next: NextFunction) {
   const refreshToken = request.cookies[authCookieNames.refreshToken] as string | undefined;
 
   if (!refreshToken) {

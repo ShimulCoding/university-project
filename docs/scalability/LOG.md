@@ -120,3 +120,15 @@ Append only. Dates use UTC in measurements and Asia/Dhaka for user-facing dates.
 - Command: `.cache/security-audit/semgrep-env/Scripts/semgrep.exe scan --config p/typescript --config p/nodejs --metrics off --disable-version-check --json --output .cache/scalability/semgrep-file-response.json backend/src/utils/file-response.ts backend/src/modules/documents/controllers/documents.controller.ts backend/scripts/verify-file-response.ts`.
 - Result: exit0,74 rules/three files, zero findings/~100%parsed. No warning suppressed. The earlier whole-source scan366 files/zero parseerrors/one reviewed sendFile warning predates this moved call and is historical, not a final updated full scan.
 - Decision: export the staged index to a fresh ignored snapshot for source-map/build/transport verification. This prevents concurrently prepared database/lifecycle work from being accidentally committed or included in this concern's inventory. No existing working file is discarded.
+
+## 2026-10-12 / E0019 — protected-file concern committed/pushed
+
+- Commands: `node .cache/scalability/verify-staged-snapshot.mjs` (gitcheckout-index to freshignoredsnapshot, its own inventory build/check/verifier, backendbuild and transport test); stageddiff/Gitleaks; `git commit --author="Nayem <nayem692003@gmail.com>" -m "Nayem: Fixed protected downloads from hidden private storage roots"`; immediate branchpush/status/mainhash checks.
+- Result: staged snapshot38 inventory checks/310app sources/91API/89operator/62commands; build/transport10 pass. SAST74rules/3files0findings; stagedsecret164.82KB0findings. Commit410f383 pushed. Main unchanged816d7d6. Database/lifecycle/tooling drafts remain uncommitted authorized work; nothing discarded. Next contributor Shimul.
+- Decision: continue lifecycle concern with an index-specific snapshot; current workspace's additive readiness and other prepared sources are not falsely certified by the previous snapshot.
+
+## 2026-10-12 / E0020 — complete native drain proof
+
+- Commands: `node node_modules/tsx/dist/cli.mjs backend/scripts/verify-scalability-drain.ts`; backendbuild and independent hostile review; guarded restricted-runtime document/action/project scripts.
+- Result:144 checks. Same nativeNode24.13.1/fake80ms task: unfinished-at-disconnect1before→0after; close0.270ms vs drain86.129ms. Unchanged admission12 retains previous independent proof; real document14/action32/project81 pass. Subsequent idle TCP/partial headers/full accepted stream/async middleware/context cases strengthened the original96 checks;2s fixture deadline was never increased. Native Linux/fullsecurity/pooler/staging acceptance unexecuted.
+- Decision: per-app tracked drain is ready for final source/stagedsecret/snapshot gates; readiness remains process lifecycle only. Do not claim overall dependency readiness, capacity or completed mission.

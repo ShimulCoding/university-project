@@ -10,19 +10,64 @@ import { operatorParameters, privateConfigurationFile } from "./provision-local-
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 let stage = "configuration";
 
+export const fixtureTransactionPooler = Object.freeze({
+  host: "127.0.0.1", port: "16432", upstreamPort: "15432",
+  imageId: "sha256:b5b268e6b371aab1cc3ef00cc92a0106e2c30643bc98e4534982e5b07df367a2",
+});
+
+function fixtureUrlArguments(url) {
+  // Keep this CLI guard aligned with the independently tested TypeScript guard.
+  assert.equal(url.hash, "", "Fixture URLs cannot carry fragments");
+  const seen = new Set();
+  const integerLimits = { connection_limit: 100, pool_timeout: 60, connect_timeout: 60, socket_timeout: 300, statement_cache_size: 1000 };
+  for (const [key, value] of url.searchParams) {
+    assert(!seen.has(key), "Fixture URL arguments cannot be duplicated");
+    seen.add(key);
+    if (key === "schema") assert.equal(value, "public", "Fixture clients require the reviewed public schema");
+    else if (key === "pgbouncer") assert(value === "true" || value === "false", "Fixture PgBouncer compatibility must be explicit boolean text");
+    else {
+      const maximum = Object.hasOwn(integerLimits, key) ? integerLimits[key] : undefined;
+      assert(maximum !== undefined && /^(0|[1-9][0-9]{0,3})$/.test(value) && Number(value) <= maximum && (key === "statement_cache_size" || Number(value) > 0), "Fixture URL arguments must be reviewed bounded connection settings");
+    }
+  }
+}
+
 export function fixtureConfig(value) {
   assert(value.purpose === "isolated_fake_scalability" && value.schemaVersion === 1 && /^mu_scale_[a-z0-9_]{8,35}$/.test(value.database), "An explicitly owned isolated configuration is required");
   for (const [url, suffix] of [[value.runtimeDatabaseUrl, "runtime"], [value.migrationDatabaseUrl, "migration"]]) {
     const parsed = new URL(url);
+    fixtureUrlArguments(parsed);
     assert(["postgres:", "postgresql:"].includes(parsed.protocol) && ["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname) && parsed.pathname === `/${value.database}` && decodeURIComponent(parsed.username) === `${value.database}_${suffix}`, "Fixture URL scope/identity mismatch");
   }
   const runtime = new URL(value.runtimeDatabaseUrl), migration = new URL(value.migrationDatabaseUrl);
-  assert.equal(runtime.hostname, migration.hostname); assert.equal(runtime.port, migration.port);
+  const mode = value.connectionMode === undefined ? "direct" : value.connectionMode;
+  if (mode === "direct") {
+    assert.equal(value.pooler, undefined, "Direct fixtures cannot carry pooler metadata");
+    assert.equal(runtime.hostname, migration.hostname); assert.equal(runtime.port, migration.port);
+  } else {
+    assert.equal(mode, "pgbouncer-transaction", "Only explicit reviewed fixture connection modes are accepted");
+    assert(value.pooler && typeof value.pooler === "object" && !Array.isArray(value.pooler), "Pooled fixtures require the reviewed pooler descriptor");
+    assert.deepEqual(value.pooler, fixtureTransactionPooler, "Fixture pooler host, ports and owned image must match the reviewed boundary");
+    assert.equal(runtime.hostname, value.pooler.host); assert.equal(migration.hostname, value.pooler.host);
+    assert.equal(runtime.port, value.pooler.port); assert.equal(migration.port, value.pooler.upstreamPort);
+  }
   assert.equal(value.runtimeEnvironment?.DATABASE_URL, value.runtimeDatabaseUrl);
   assert.equal(value.runtimeEnvironment?.NODE_ENV, "test");
   assert.equal(path.resolve(value.runtimeEnvironment?.UPLOADS_ROOT ?? ""), path.join(root, ".cache/scalability", value.database, "uploads"));
   assert.equal(value.runtimeEnvironment?.SMTP_HOST, "127.0.0.1");
   return value;
+}
+
+export function fixtureDispatchEnvironment(config) {
+  fixtureConfig(config);
+  const pooled = config.connectionMode === "pgbouncer-transaction";
+  return {
+    VERIFY_ISOLATED_RUNTIME: "true", VERIFY_FIXTURE_DATABASE_URL: config.migrationDatabaseUrl,
+    VERIFY_FIXTURE_CONNECTION_MODE: pooled ? "pgbouncer-transaction" : "direct",
+    VERIFY_FIXTURE_POOLER_PORT: pooled ? config.pooler.port : undefined,
+    VERIFY_FIXTURE_UPSTREAM_PORT: pooled ? config.pooler.upstreamPort : undefined,
+    VERIFY_FIXTURE_POOLER_IMAGE_ID: pooled ? config.pooler.imageId : undefined,
+  };
 }
 
 function client(url) { return new PrismaClient({ datasources: { db: { url } }, log: [] }); }
@@ -135,8 +180,15 @@ export async function verify(config, operatorFile) {
   }
 }
 
+export function reportedCheckCounts(stdout) {
+  // Only numeric aggregate evidence crosses the child-output boundary. Never
+  // forward arbitrary lines (browser fixtures can contain synthetic tokens).
+  return [...stdout.matchAll(/\b(\d+) (?:[\w/, -]{0,100} )?checks(?: passed[.;]|\))/g)].map((match) => Number(match[1]));
+}
+
 async function runScript(config, script) {
   stage = "owned_verification_child";
+  const fixtureEnvironment = fixtureDispatchEnvironment(config);
   const manifest = JSON.parse(await readFile(path.join(root, "backend/package.json"), "utf8"));
   assert(/^verify:[a-z0-9:-]+$/.test(script) && manifest.scripts[script], "Only existing backend verification scripts are allowed");
   assert(manifest.scripts[script].startsWith("tsx ") && !/[;&|`$<>]/.test(manifest.scripts[script]), "Only reviewed tsx verification commands are accepted");
@@ -151,14 +203,14 @@ async function runScript(config, script) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [path.join(root, "node_modules/tsx/dist/cli.mjs"), ...manifest.scripts[script].slice(4).trim().split(/\s+/)], {
       cwd: path.join(root, "backend"), windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
-      env: { ...process.env, ...config.runtimeEnvironment, VERIFY_ISOLATED_RUNTIME: "true", VERIFY_FIXTURE_DATABASE_URL: config.migrationDatabaseUrl },
+      env: { ...process.env, ...config.runtimeEnvironment, ...fixtureEnvironment },
     });
     let stdout = "", stderr = "";
     child.stdout.on("data", (data) => { if (stdout.length < 1024 * 1024) stdout += data.toString(); });
     child.stderr.on("data", (data) => { if (stderr.length < 1024 * 1024) stderr += data.toString(); });
     child.on("error", () => reject(new Error("Verification child could not start")));
     child.on("close", (code) => {
-      const counts = [...stdout.matchAll(/\b(\d+) (?:[\w/ -]{0,80} )?checks(?: passed\.|\))/g)].map((match) => Number(match[1]));
+      const counts = reportedCheckCounts(stdout);
       if (code !== 0) {
         const failure = new Error("Verification child failed; private output suppressed");
         for (const line of stderr.split(/\r?\n/)) {

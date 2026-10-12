@@ -1,0 +1,3 @@
+# The Dockerfile downloads only verified vendor source; no repository files
+# belong in this context. Docker may transmit the Dockerfile/ignore themselves.
+**

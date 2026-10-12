@@ -12,11 +12,13 @@ export async function operatorInventory(root, evidenceCommit) {
     try { entries = await readdir(join(root, directory), { withFileTypes: true }); }
     catch (error) { if (error.code === 'ENOENT') return; throw error; }
     for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name, 'en'))) {
-      if (entry.name.startsWith('.') || ['node_modules', 'dist', 'uploads', 'public', 'src', 'secrets', '__pycache__'].includes(entry.name)) continue;
+      const buildFile = /^(?:Dockerfile(?:\..*)?|.+\.Dockerfile(?:\.dockerignore)?)$/i.test(entry.name);
+      const contextFile = entry.name === '.dockerignore' || buildFile && entry.name.endsWith('.dockerignore');
+      if ((entry.name.startsWith('.') && !contextFile) || ['node_modules', 'dist', 'uploads', 'public', 'src', 'secrets', '__pycache__'].includes(entry.name)) continue;
       const file = directory ? `${directory}/${entry.name}` : entry.name;
       if (entry.isSymbolicLink()) throw new Error(`Operator source symlink requires review: ${file}`);
       if (entry.isDirectory() && recursive) await collect(file);
-      else if (entry.isFile() && (/\.(?:[cm]?js|tsx?|ps1|py|sh|sql|ya?ml|json|toml|conf|ini)$/.test(entry.name) || /^Dockerfile(?:\..*)?$/i.test(entry.name))) candidates.add(file);
+      else if (entry.isFile() && (/\.(?:[cm]?js|tsx?|ps1|py|sh|sql|ya?ml|json|toml|conf|ini)$/.test(entry.name) || buildFile || contextFile)) candidates.add(file);
       else if (entry.isFile() && !/\.(?:md|txt|css|map|tsbuildinfo|log|pid|lock|png|jpe?g|svg|woff2?|ttf|pdf)$/.test(entry.name)) {
         throw new Error(`Uncovered operator/config format requires review: ${file}`);
       }
@@ -35,7 +37,7 @@ export async function operatorInventory(root, evidenceCommit) {
       : /seed/.test(file) ? 'operator data creation/seed'
       : /authorize-mfa/.test(file) ? 'supervised operator MFA grant'
       : file.startsWith('.github/workflows/') ? 'CI workflow'
-      : /config|\.config\./.test(file) ? 'build/runtime configuration'
+      : /config|\.config\.|Dockerfile|\.dockerignore/.test(file) ? 'build/runtime configuration'
       : 'maintenance/operator script; inspect before execution';
     const effects = [], guards = [];
     for (const [index, line] of content.split(/\r?\n/).entries()) {

@@ -1,0 +1,35 @@
+# Owned fake-only transaction pooler; no wildcard database or migration login.
+services:
+  pooler:
+    image: ${SCALE_POOLER_IMAGE:?Prepare and verify the owned pooler artifact}
+    platform: linux/amd64
+    user: "10001:10001"
+    restart: "no"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: "0.15"
+    mem_limit: 64m
+    memswap_limit: 64m
+    pids_limit: 32
+    ulimits:
+      nofile: { soft: 256, hard: 256 }
+    secrets: [pooler_config, pooler_auth]
+    command: [/run/secrets/pooler_config]
+    tmpfs:
+      - /run/pgbouncer:uid=10001,gid=10001,mode=0700,size=8m
+      - /tmp:uid=10001,gid=10001,mode=0700,size=8m
+    stop_grace_period: 45s
+    logging:
+      driver: local
+      options: { max-size: 5m, max-file: "2" }
+    networks: [database]
+secrets:
+  pooler_config:
+    file: ${SCALE_POOLER_CONFIG_FILE:?Prepare private isolated pooler configuration}
+  pooler_auth:
+    file: ${SCALE_POOLER_AUTH_FILE:?Prepare private runtime-only SCRAM authentication}
+networks:
+  database:
+    external: true
+    name: ${SCALE_DATABASE_NETWORK:?Use only the inspected owned internal network}

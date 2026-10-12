@@ -50,7 +50,7 @@ flowchart LR
     Web --> Collector
 ```
 
-This is the intended growth topology. No cache/queue/object store/pooler/collector is installed or measured by this diagram. One VPS may collocate components only after measured total memory/CPU headroom; replicas move those adapters to shared services without weakening checks.
+This is the intended growth topology. Only the approved isolated local PostgreSQL/PgBouncer components are now installed and compatibility-tested; cache/queue/object store/collector and deployment are not established by this diagram. One VPS may collocate components only after measured total memory/CPU headroom; replicas move those adapters to shared services without weakening checks.
 
 | Adapter | Required invariant | Current implementation / migration constraint |
 | --- | --- | --- |
@@ -75,6 +75,10 @@ Decision: benchmark generated fake data on a dedicated isolated database and pri
 ## ADR-0003 — small VPS is a measured launch constraint
 
 Decision: design shared-state adapters for later replicas, but certify only environments actually tested. A 2 CPU/4 GB budget must include OS/proxy/DB/cache/AV/apps/workers, not just Node. Real antivirus memory/signature requirements may exceed a collocated budget; that is a deployment sizing gate. Cloudflare free service is an intended edge, not configured capacity, an authorization boundary or a replacement for shared backend quotas. Cost projections use provisioned resource classes and trigger metrics, not invented vendor prices.
+
+## ADR-0004 - direct migrator and bounded runtime transaction pooling
+
+Use transaction-mode PgBouncer1.26.0 for the explicitly isolated fake runtime, preserving the separate direct migration/cleanup identity and current transaction/authorization semantics. Native verified limits are five server connections/fifty clients/finite queue deadlines; prepared statements are supported without the legacy compatibility flag. The actual six-client comparison and all inherited/browser regressions are recorded in [pooler-boundary-review.md](pooler-boundary-review.md). This is not the eventual production pool sizing. Reject session pooling, a forced privileged user, wildcard mappings and migrator secrets in the pooler. Native Linux0400 secret mounts replace reproduced Windows-mount777 leakage. Across hosts, verified TLS and separate capacity/failure tests are required before activation. Roll back only the owned test pooler/API profile to its direct restricted connection; preserve data and the owner environment.
 
 ## Review and rollback requirements
 

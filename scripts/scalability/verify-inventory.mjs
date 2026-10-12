@@ -146,6 +146,21 @@ await asyncCheck("shell and Docker entrypoints are source-covered without execut
   assert(operators.entries.some((entry) => entry.path === 'infra/entrypoint.sh'));
   assert(operators.entries.some((entry) => entry.path === 'infra/Dockerfile'));
 });
+await asyncCheck("Dockerfile-specific contexts are covered and changes invalidate fingerprints", async () => {
+  for (const name of ['Backend.Dockerfile', 'Backend.Dockerfile.dockerignore', 'Dockerfile.worker', 'Dockerfile.worker.dockerignore', '.dockerignore']) {
+    await writeFile(join(fixtureRoot, 'infra', name), '# public synthetic build configuration\n');
+  }
+  await writeFile(join(fixtureRoot, 'infra/.env'), 'must-never-be-read\n');
+  const before = await operatorInventory(fixtureRoot, 'fake');
+  for (const name of ['Backend.Dockerfile', 'Backend.Dockerfile.dockerignore', 'Dockerfile.worker', 'Dockerfile.worker.dockerignore', '.dockerignore']) {
+    assert(before.entries.some((entry) => entry.path === `infra/${name}`));
+  }
+  assert(!before.entries.some((entry) => entry.path.endsWith('/.env')));
+  await writeFile(join(fixtureRoot, 'infra/Backend.Dockerfile.dockerignore'), '# changed allow-list\n');
+  const after = await operatorInventory(fixtureRoot, 'fake');
+  assert.notEqual(before.entries.find((entry) => entry.path === 'infra/Backend.Dockerfile.dockerignore').sha256,
+    after.entries.find((entry) => entry.path === 'infra/Backend.Dockerfile.dockerignore').sha256);
+});
 await asyncCheck("generated Python bytecode is excluded without weakening source-format checks", async () => {
   await mkdir(join(fixtureRoot, 'infra/__pycache__'), { recursive: true });
   await writeFile(join(fixtureRoot, 'infra/__pycache__/fixture.cpython.pyc'), 'generated fixture bytes; do not read as source');

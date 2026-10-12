@@ -12,7 +12,7 @@
     "recurringSchedulers": 1,
     "timers": 9,
     "inputSinkCandidates": 224,
-    "operatorSources": 102,
+    "operatorSources": 110,
     "npmCommands": 63
   },
   "coverage": {
@@ -15449,11 +15449,55 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "backend/scripts/helpers/fixture-boundary.ts",
+        "source": "backend/scripts/helpers/fixture-boundary.ts:1",
+        "kind": "maintenance/operator script; inspect before execution",
+        "lines": 76,
+        "sha256": "d0f48995fb6d5b110dc357560f7b8936082468b1cd07b653ab8a71e14735627a",
+        "effects": [
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/helpers/fixture-boundary.ts:15"
+          }
+        ],
+        "guardCandidates": [
+          "backend/scripts/helpers/fixture-boundary.ts:3",
+          "backend/scripts/helpers/fixture-boundary.ts:4",
+          "backend/scripts/helpers/fixture-boundary.ts:12",
+          "backend/scripts/helpers/fixture-boundary.ts:14",
+          "backend/scripts/helpers/fixture-boundary.ts:16",
+          "backend/scripts/helpers/fixture-boundary.ts:33",
+          "backend/scripts/helpers/fixture-boundary.ts:38",
+          "backend/scripts/helpers/fixture-boundary.ts:41",
+          "backend/scripts/helpers/fixture-boundary.ts:43",
+          "backend/scripts/helpers/fixture-boundary.ts:45",
+          "backend/scripts/helpers/fixture-boundary.ts:46",
+          "backend/scripts/helpers/fixture-boundary.ts:49",
+          "backend/scripts/helpers/fixture-boundary.ts:55",
+          "backend/scripts/helpers/fixture-boundary.ts:56",
+          "backend/scripts/helpers/fixture-boundary.ts:58",
+          "backend/scripts/helpers/fixture-boundary.ts:61",
+          "backend/scripts/helpers/fixture-boundary.ts:62",
+          "backend/scripts/helpers/fixture-boundary.ts:63",
+          "backend/scripts/helpers/fixture-boundary.ts:65",
+          "backend/scripts/helpers/fixture-boundary.ts:66",
+          "backend/scripts/helpers/fixture-boundary.ts:67",
+          "backend/scripts/helpers/fixture-boundary.ts:69",
+          "backend/scripts/helpers/fixture-boundary.ts:71",
+          "backend/scripts/helpers/fixture-boundary.ts:73"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "backend/scripts/helpers/fixture-database.ts",
         "source": "backend/scripts/helpers/fixture-database.ts:1",
         "kind": "maintenance/operator script; inspect before execution",
-        "lines": 57,
-        "sha256": "e0cbceb566d34ab55d258289ec83dd542fbad2ba3a84df508cf22ec1c01e0a5f",
+        "lines": 52,
+        "sha256": "a29b1f7e96ff1099877a16692e86ec1f5c475e9277c4d086a5322c656531eb75",
         "effects": [
           {
             "kind": "database candidate",
@@ -15465,45 +15509,44 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/helpers/fixture-database.ts:26"
+            "source": "backend/scripts/helpers/fixture-database.ts:21"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/helpers/fixture-database.ts:27"
+            "source": "backend/scripts/helpers/fixture-database.ts:22"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/helpers/fixture-database.ts:34"
+            "source": "backend/scripts/helpers/fixture-database.ts:29"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/helpers/fixture-database.ts:35"
+            "source": "backend/scripts/helpers/fixture-database.ts:30"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/helpers/fixture-database.ts:41"
+            "source": "backend/scripts/helpers/fixture-database.ts:36"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/helpers/fixture-database.ts:6",
+          "backend/scripts/helpers/fixture-database.ts:5",
+          "backend/scripts/helpers/fixture-database.ts:7",
           "backend/scripts/helpers/fixture-database.ts:9",
-          "backend/scripts/helpers/fixture-database.ts:10",
+          "backend/scripts/helpers/fixture-database.ts:11",
           "backend/scripts/helpers/fixture-database.ts:12",
-          "backend/scripts/helpers/fixture-database.ts:13",
           "backend/scripts/helpers/fixture-database.ts:14",
           "backend/scripts/helpers/fixture-database.ts:15",
+          "backend/scripts/helpers/fixture-database.ts:16",
           "backend/scripts/helpers/fixture-database.ts:20",
           "backend/scripts/helpers/fixture-database.ts:21",
           "backend/scripts/helpers/fixture-database.ts:25",
           "backend/scripts/helpers/fixture-database.ts:26",
+          "backend/scripts/helpers/fixture-database.ts:27",
+          "backend/scripts/helpers/fixture-database.ts:28",
           "backend/scripts/helpers/fixture-database.ts:30",
-          "backend/scripts/helpers/fixture-database.ts:31",
           "backend/scripts/helpers/fixture-database.ts:32",
-          "backend/scripts/helpers/fixture-database.ts:33",
-          "backend/scripts/helpers/fixture-database.ts:35",
-          "backend/scripts/helpers/fixture-database.ts:37",
-          "backend/scripts/helpers/fixture-database.ts:41",
-          "backend/scripts/helpers/fixture-database.ts:44"
+          "backend/scripts/helpers/fixture-database.ts:36",
+          "backend/scripts/helpers/fixture-database.ts:39"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -19335,6 +19378,59 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "infra/scalability/PgBouncer.Dockerfile",
+        "source": "infra/scalability/PgBouncer.Dockerfile:1",
+        "kind": "build/runtime configuration",
+        "lines": 173,
+        "sha256": "ba9bd4c972241ccc6d5640302880b6947a859f6fefa7afd074d5d0953a7aa116",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "infra/scalability/PgBouncer.Dockerfile:28"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "infra/scalability/PgBouncer.Dockerfile:62"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "infra/scalability/PgBouncer.Dockerfile:78"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "infra/scalability/PgBouncer.Dockerfile:128"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "infra/scalability/PgBouncer.Dockerfile:136"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "infra/scalability/PgBouncer.Dockerfile:148"
+          }
+        ],
+        "guardCandidates": [],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "infra/scalability/PgBouncer.Dockerfile.dockerignore",
+        "source": "infra/scalability/PgBouncer.Dockerfile.dockerignore:1",
+        "kind": "build/runtime configuration",
+        "lines": 4,
+        "sha256": "ed95f4f917365ef74e40fb2b609db2164ea861404ef6f0e00ae4b07451f66da6",
+        "effects": [],
+        "guardCandidates": [],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "infra/scalability/compose.database.yml",
         "source": "infra/scalability/compose.database.yml:1",
         "kind": "maintenance/operator script; inspect before execution",
@@ -19345,6 +19441,51 @@
           "infra/scalability/compose.database.yml:18",
           "infra/scalability/compose.database.yml:63"
         ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "infra/scalability/compose.pooler.yml",
+        "source": "infra/scalability/compose.pooler.yml:1",
+        "kind": "maintenance/operator script; inspect before execution",
+        "lines": 36,
+        "sha256": "cdd16c9af7ff00f9f3d85749a7a76ab563a7096c13a2cca19761afb608bf257c",
+        "effects": [],
+        "guardCandidates": [],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "infra/scalability/install-pooler-secrets.py",
+        "source": "infra/scalability/install-pooler-secrets.py:1",
+        "kind": "maintenance/operator script; inspect before execution",
+        "lines": 94,
+        "sha256": "b56046aa6386ab5130272a1b7069f4ccc3039697ca3be92792ba5ace0b5a5cba",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "infra/scalability/install-pooler-secrets.py:37"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "infra/scalability/install-pooler-secrets.py:43"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "infra/scalability/install-pooler-secrets.py:90"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "infra/scalability/install-pooler-secrets.py:92"
+          }
+        ],
+        "guardCandidates": [],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
         "before": "N/A: source coverage only",
@@ -19662,32 +19803,32 @@
         "path": "scripts/scalability/operator-inventory.mjs",
         "source": "scripts/scalability/operator-inventory.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 70,
-        "sha256": "89694cbcc0f0f235b5c7ad2533f54be1089bc07787b01581ff193cd0555b5a09",
+        "lines": 72,
+        "sha256": "d94204fcee02d7f113b3ae6acdcb29eb2b76f85725a234da299fb7646a795e08",
         "effects": [
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/operator-inventory.mjs:25"
+            "source": "scripts/scalability/operator-inventory.mjs:27"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/operator-inventory.mjs:28"
+            "source": "scripts/scalability/operator-inventory.mjs:30"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/operator-inventory.mjs:43"
+            "source": "scripts/scalability/operator-inventory.mjs:45"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/operator-inventory.mjs:44"
+            "source": "scripts/scalability/operator-inventory.mjs:46"
           },
           {
             "kind": "libpq database/network candidate",
-            "source": "scripts/scalability/operator-inventory.mjs:46"
+            "source": "scripts/scalability/operator-inventory.mjs:48"
           }
         ],
         "guardCandidates": [
-          "scripts/scalability/operator-inventory.mjs:49"
+          "scripts/scalability/operator-inventory.mjs:51"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -19857,6 +19998,98 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "scripts/scalability/prepare-local-pooler.mjs",
+        "source": "scripts/scalability/prepare-local-pooler.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 113,
+        "sha256": "4afa9a5f2f988f1c4e8c95dee3e9ecd307cfc4bb38dbe694213c61ce5f2def88",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:3"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:7"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:29"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:60"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:63"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:66"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:71"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:75"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:76"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:86"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:88"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:89"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:104"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:110"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:111"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/prepare-local-pooler.mjs:8",
+          "scripts/scalability/prepare-local-pooler.mjs:39",
+          "scripts/scalability/prepare-local-pooler.mjs:40",
+          "scripts/scalability/prepare-local-pooler.mjs:42",
+          "scripts/scalability/prepare-local-pooler.mjs:43",
+          "scripts/scalability/prepare-local-pooler.mjs:45",
+          "scripts/scalability/prepare-local-pooler.mjs:48",
+          "scripts/scalability/prepare-local-pooler.mjs:50",
+          "scripts/scalability/prepare-local-pooler.mjs:51",
+          "scripts/scalability/prepare-local-pooler.mjs:69",
+          "scripts/scalability/prepare-local-pooler.mjs:83",
+          "scripts/scalability/prepare-local-pooler.mjs:84",
+          "scripts/scalability/prepare-local-pooler.mjs:85",
+          "scripts/scalability/prepare-local-pooler.mjs:86",
+          "scripts/scalability/prepare-local-pooler.mjs:87",
+          "scripts/scalability/prepare-local-pooler.mjs:89"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "scripts/scalability/provision-local-database.mjs",
         "source": "scripts/scalability/provision-local-database.mjs:1",
         "kind": "verification/profiling tool",
@@ -19969,8 +20202,8 @@
         "path": "scripts/scalability/verify-inventory.mjs",
         "source": "scripts/scalability/verify-inventory.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 164,
-        "sha256": "d39782f9d98d26f7e44bcc35d1d15fd66e4f0b36ea2c2de5f7748108d30b4442",
+        "lines": 179,
+        "sha256": "d8acf80fd37dea58b620a43996c56cac35af14f94bee00894199439d37b9c3e4",
         "effects": [
           {
             "kind": "filesystem write candidate",
@@ -20038,27 +20271,39 @@
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:150"
-          },
-          {
-            "kind": "filesystem write candidate",
             "source": "scripts/scalability/verify-inventory.mjs:151"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:155"
+            "source": "scripts/scalability/verify-inventory.mjs:153"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:156"
+            "source": "scripts/scalability/verify-inventory.mjs:159"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:160"
+            "source": "scripts/scalability/verify-inventory.mjs:165"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:166"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:170"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:171"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:175"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-inventory.mjs:163"
+            "source": "scripts/scalability/verify-inventory.mjs:178"
           }
         ],
         "guardCandidates": [
@@ -20091,13 +20336,18 @@
           "scripts/scalability/verify-inventory.mjs:143",
           "scripts/scalability/verify-inventory.mjs:144",
           "scripts/scalability/verify-inventory.mjs:145",
-          "scripts/scalability/verify-inventory.mjs:150",
           "scripts/scalability/verify-inventory.mjs:151",
-          "scripts/scalability/verify-inventory.mjs:152",
+          "scripts/scalability/verify-inventory.mjs:153",
           "scripts/scalability/verify-inventory.mjs:154",
+          "scripts/scalability/verify-inventory.mjs:159",
           "scripts/scalability/verify-inventory.mjs:160",
-          "scripts/scalability/verify-inventory.mjs:161",
-          "scripts/scalability/verify-inventory.mjs:163"
+          "scripts/scalability/verify-inventory.mjs:165",
+          "scripts/scalability/verify-inventory.mjs:166",
+          "scripts/scalability/verify-inventory.mjs:167",
+          "scripts/scalability/verify-inventory.mjs:169",
+          "scripts/scalability/verify-inventory.mjs:175",
+          "scripts/scalability/verify-inventory.mjs:176",
+          "scripts/scalability/verify-inventory.mjs:178"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -20155,8 +20405,8 @@
         "path": "scripts/scalability/verify-local-database.mjs",
         "source": "scripts/scalability/verify-local-database.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 194,
-        "sha256": "0022c30822164db55bfcb34c91580eca05ff60384fe1b4d4ba9a3ce3150cd16e",
+        "lines": 246,
+        "sha256": "0cbc84fecf94226c79d21c00f4a52b9098823f7a4b01c647a400f17203a3584a",
         "effects": [
           {
             "kind": "database candidate",
@@ -20164,35 +20414,15 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:28"
+            "source": "scripts/scalability/verify-local-database.mjs:73"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:31"
+            "source": "scripts/scalability/verify-local-database.mjs:76"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:32"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:36"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:37"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:59"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:62"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:64"
+            "source": "scripts/scalability/verify-local-database.mjs:77"
           },
           {
             "kind": "database candidate",
@@ -20204,55 +20434,27 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:83"
+            "source": "scripts/scalability/verify-local-database.mjs:104"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:84"
+            "source": "scripts/scalability/verify-local-database.mjs:107"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:85"
+            "source": "scripts/scalability/verify-local-database.mjs:109"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:86"
+            "source": "scripts/scalability/verify-local-database.mjs:126"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:87"
+            "source": "scripts/scalability/verify-local-database.mjs:127"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:88"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:89"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:90"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:101"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:112"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:113"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:115"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:116"
+            "source": "scripts/scalability/verify-local-database.mjs:128"
           },
           {
             "kind": "database candidate",
@@ -20271,40 +20473,252 @@
             "source": "scripts/scalability/verify-local-database.mjs:132"
           },
           {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:133"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:134"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:135"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:146"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:157"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:158"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:160"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:161"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:174"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:175"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:176"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:177"
+          },
+          {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
-            "source": "scripts/scalability/verify-local-database.mjs:152"
+            "source": "scripts/scalability/verify-local-database.mjs:204"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-local-database.mjs:186"
+            "source": "scripts/scalability/verify-local-database.mjs:238"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-local-database.mjs:190"
+            "source": "scripts/scalability/verify-local-database.mjs:242"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-local-database.mjs:191"
+            "source": "scripts/scalability/verify-local-database.mjs:243"
           }
         ],
         "guardCandidates": [
           "scripts/scalability/verify-local-database.mjs:13",
-          "scripts/scalability/verify-local-database.mjs:17",
-          "scripts/scalability/verify-local-database.mjs:21",
-          "scripts/scalability/verify-local-database.mjs:22",
-          "scripts/scalability/verify-local-database.mjs:23",
-          "scripts/scalability/verify-local-database.mjs:24",
+          "scripts/scalability/verify-local-database.mjs:14",
+          "scripts/scalability/verify-local-database.mjs:18",
+          "scripts/scalability/verify-local-database.mjs:35",
+          "scripts/scalability/verify-local-database.mjs:39",
+          "scripts/scalability/verify-local-database.mjs:40",
+          "scripts/scalability/verify-local-database.mjs:45",
+          "scripts/scalability/verify-local-database.mjs:48",
+          "scripts/scalability/verify-local-database.mjs:49",
           "scripts/scalability/verify-local-database.mjs:50",
-          "scripts/scalability/verify-local-database.mjs:70",
-          "scripts/scalability/verify-local-database.mjs:71",
-          "scripts/scalability/verify-local-database.mjs:78",
+          "scripts/scalability/verify-local-database.mjs:54",
+          "scripts/scalability/verify-local-database.mjs:55",
+          "scripts/scalability/verify-local-database.mjs:56",
+          "scripts/scalability/verify-local-database.mjs:57",
+          "scripts/scalability/verify-local-database.mjs:61",
+          "scripts/scalability/verify-local-database.mjs:62",
+          "scripts/scalability/verify-local-database.mjs:65",
+          "scripts/scalability/verify-local-database.mjs:95",
+          "scripts/scalability/verify-local-database.mjs:115",
+          "scripts/scalability/verify-local-database.mjs:116",
           "scripts/scalability/verify-local-database.mjs:123",
-          "scripts/scalability/verify-local-database.mjs:128",
-          "scripts/scalability/verify-local-database.mjs:143",
-          "scripts/scalability/verify-local-database.mjs:149",
-          "scripts/scalability/verify-local-database.mjs:154",
-          "scripts/scalability/verify-local-database.mjs:186",
-          "scripts/scalability/verify-local-database.mjs:188"
+          "scripts/scalability/verify-local-database.mjs:168",
+          "scripts/scalability/verify-local-database.mjs:173",
+          "scripts/scalability/verify-local-database.mjs:185",
+          "scripts/scalability/verify-local-database.mjs:191",
+          "scripts/scalability/verify-local-database.mjs:195",
+          "scripts/scalability/verify-local-database.mjs:201",
+          "scripts/scalability/verify-local-database.mjs:206",
+          "scripts/scalability/verify-local-database.mjs:238",
+          "scripts/scalability/verify-local-database.mjs:240"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/verify-local-pooler.mjs",
+        "source": "scripts/scalability/verify-local-pooler.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 229,
+        "sha256": "f603db340d0424a3c7c6568d9030f2159ff1ac542f1f23bce0de268bce75d2ad",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:3"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:6"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:18"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/verify-local-pooler.mjs:67"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:76"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:78"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:84"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:89"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:90"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:108"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:112"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:114"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:118"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:119"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:122"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:133"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:134"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:146"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:148"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:153"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:154"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:197"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-local-pooler.mjs:226"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-local-pooler.mjs:227"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/verify-local-pooler.mjs:7",
+          "scripts/scalability/verify-local-pooler.mjs:32",
+          "scripts/scalability/verify-local-pooler.mjs:141",
+          "scripts/scalability/verify-local-pooler.mjs:168",
+          "scripts/scalability/verify-local-pooler.mjs:169",
+          "scripts/scalability/verify-local-pooler.mjs:203"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/verify-pgbouncer-build-contracts.mjs",
+        "source": "scripts/scalability/verify-pgbouncer-build-contracts.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 215,
+        "sha256": "2b6b8d60cef78dc1f96040f43bbef581c3fae1ca9b15b77eb53681e3e574d3f6",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-pgbouncer-build-contracts.mjs:109"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-pgbouncer-build-contracts.mjs:205"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-pgbouncer-build-contracts.mjs:211"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:113",
+          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:158",
+          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:166",
+          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:199",
+          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:202"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -20316,54 +20730,141 @@
         "path": "scripts/scalability/verify-provisioning-contracts.mjs",
         "source": "scripts/scalability/verify-provisioning-contracts.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 278,
-        "sha256": "3337b1ea426ca391de14bef0f85f58016c53c2c663ce5544c95af1635618d079",
+        "lines": 470,
+        "sha256": "a255747b32ef1354b3dc308fa921f0be9d2358105608e927023d42a50944c893",
         "effects": [
           {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:33"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:226"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:45"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:252"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:144"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:274"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:180"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:182"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:183"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:187"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:188"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:274"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:417"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:443"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:466"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:277"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:466"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:469"
           }
         ],
         "guardCandidates": [
-          "scripts/scalability/verify-provisioning-contracts.mjs:10",
-          "scripts/scalability/verify-provisioning-contracts.mjs:16",
-          "scripts/scalability/verify-provisioning-contracts.mjs:20",
-          "scripts/scalability/verify-provisioning-contracts.mjs:28",
+          "scripts/scalability/verify-provisioning-contracts.mjs:11",
+          "scripts/scalability/verify-provisioning-contracts.mjs:17",
+          "scripts/scalability/verify-provisioning-contracts.mjs:21",
+          "scripts/scalability/verify-provisioning-contracts.mjs:24",
+          "scripts/scalability/verify-provisioning-contracts.mjs:27",
+          "scripts/scalability/verify-provisioning-contracts.mjs:34",
+          "scripts/scalability/verify-provisioning-contracts.mjs:94",
+          "scripts/scalability/verify-provisioning-contracts.mjs:100",
+          "scripts/scalability/verify-provisioning-contracts.mjs:101",
+          "scripts/scalability/verify-provisioning-contracts.mjs:105",
+          "scripts/scalability/verify-provisioning-contracts.mjs:106",
           "scripts/scalability/verify-provisioning-contracts.mjs:109",
-          "scripts/scalability/verify-provisioning-contracts.mjs:112",
+          "scripts/scalability/verify-provisioning-contracts.mjs:110",
           "scripts/scalability/verify-provisioning-contracts.mjs:114",
+          "scripts/scalability/verify-provisioning-contracts.mjs:115",
+          "scripts/scalability/verify-provisioning-contracts.mjs:116",
+          "scripts/scalability/verify-provisioning-contracts.mjs:121",
+          "scripts/scalability/verify-provisioning-contracts.mjs:123",
+          "scripts/scalability/verify-provisioning-contracts.mjs:124",
+          "scripts/scalability/verify-provisioning-contracts.mjs:125",
+          "scripts/scalability/verify-provisioning-contracts.mjs:132",
+          "scripts/scalability/verify-provisioning-contracts.mjs:148",
+          "scripts/scalability/verify-provisioning-contracts.mjs:150",
           "scripts/scalability/verify-provisioning-contracts.mjs:156",
-          "scripts/scalability/verify-provisioning-contracts.mjs:157",
+          "scripts/scalability/verify-provisioning-contracts.mjs:158",
+          "scripts/scalability/verify-provisioning-contracts.mjs:160",
+          "scripts/scalability/verify-provisioning-contracts.mjs:163",
+          "scripts/scalability/verify-provisioning-contracts.mjs:166",
+          "scripts/scalability/verify-provisioning-contracts.mjs:167",
+          "scripts/scalability/verify-provisioning-contracts.mjs:169",
+          "scripts/scalability/verify-provisioning-contracts.mjs:171",
+          "scripts/scalability/verify-provisioning-contracts.mjs:174",
+          "scripts/scalability/verify-provisioning-contracts.mjs:175",
+          "scripts/scalability/verify-provisioning-contracts.mjs:177",
+          "scripts/scalability/verify-provisioning-contracts.mjs:178",
+          "scripts/scalability/verify-provisioning-contracts.mjs:180",
+          "scripts/scalability/verify-provisioning-contracts.mjs:182",
+          "scripts/scalability/verify-provisioning-contracts.mjs:183",
+          "scripts/scalability/verify-provisioning-contracts.mjs:188",
+          "scripts/scalability/verify-provisioning-contracts.mjs:189",
+          "scripts/scalability/verify-provisioning-contracts.mjs:198",
+          "scripts/scalability/verify-provisioning-contracts.mjs:204",
+          "scripts/scalability/verify-provisioning-contracts.mjs:205",
+          "scripts/scalability/verify-provisioning-contracts.mjs:206",
+          "scripts/scalability/verify-provisioning-contracts.mjs:210",
           "scripts/scalability/verify-provisioning-contracts.mjs:216",
-          "scripts/scalability/verify-provisioning-contracts.mjs:237",
+          "scripts/scalability/verify-provisioning-contracts.mjs:220",
+          "scripts/scalability/verify-provisioning-contracts.mjs:222",
+          "scripts/scalability/verify-provisioning-contracts.mjs:224",
+          "scripts/scalability/verify-provisioning-contracts.mjs:227",
+          "scripts/scalability/verify-provisioning-contracts.mjs:228",
+          "scripts/scalability/verify-provisioning-contracts.mjs:231",
+          "scripts/scalability/verify-provisioning-contracts.mjs:235",
+          "scripts/scalability/verify-provisioning-contracts.mjs:238",
           "scripts/scalability/verify-provisioning-contracts.mjs:240",
-          "scripts/scalability/verify-provisioning-contracts.mjs:243",
-          "scripts/scalability/verify-provisioning-contracts.mjs:248",
-          "scripts/scalability/verify-provisioning-contracts.mjs:249",
-          "scripts/scalability/verify-provisioning-contracts.mjs:251",
-          "scripts/scalability/verify-provisioning-contracts.mjs:252",
-          "scripts/scalability/verify-provisioning-contracts.mjs:253",
-          "scripts/scalability/verify-provisioning-contracts.mjs:259"
+          "scripts/scalability/verify-provisioning-contracts.mjs:241",
+          "scripts/scalability/verify-provisioning-contracts.mjs:254",
+          "scripts/scalability/verify-provisioning-contracts.mjs:277",
+          "scripts/scalability/verify-provisioning-contracts.mjs:280",
+          "scripts/scalability/verify-provisioning-contracts.mjs:282",
+          "scripts/scalability/verify-provisioning-contracts.mjs:285",
+          "scripts/scalability/verify-provisioning-contracts.mjs:287",
+          "scripts/scalability/verify-provisioning-contracts.mjs:289",
+          "scripts/scalability/verify-provisioning-contracts.mjs:293",
+          "scripts/scalability/verify-provisioning-contracts.mjs:294",
+          "scripts/scalability/verify-provisioning-contracts.mjs:295",
+          "scripts/scalability/verify-provisioning-contracts.mjs:296",
+          "scripts/scalability/verify-provisioning-contracts.mjs:298",
+          "scripts/scalability/verify-provisioning-contracts.mjs:299",
+          "scripts/scalability/verify-provisioning-contracts.mjs:347",
+          "scripts/scalability/verify-provisioning-contracts.mjs:348",
+          "scripts/scalability/verify-provisioning-contracts.mjs:407",
+          "scripts/scalability/verify-provisioning-contracts.mjs:428",
+          "scripts/scalability/verify-provisioning-contracts.mjs:431",
+          "scripts/scalability/verify-provisioning-contracts.mjs:434",
+          "scripts/scalability/verify-provisioning-contracts.mjs:439",
+          "scripts/scalability/verify-provisioning-contracts.mjs:440",
+          "scripts/scalability/verify-provisioning-contracts.mjs:442",
+          "scripts/scalability/verify-provisioning-contracts.mjs:443",
+          "scripts/scalability/verify-provisioning-contracts.mjs:444",
+          "scripts/scalability/verify-provisioning-contracts.mjs:450",
+          "scripts/scalability/verify-provisioning-contracts.mjs:462"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",

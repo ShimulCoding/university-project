@@ -2,23 +2,18 @@ import assert from "node:assert/strict";
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "../../src/config/prisma";
 import { env } from "../../src/config/env";
+import { fixtureConnectionEnvironment, fixtureDatabaseBoundary } from "./fixture-boundary";
+
+export { fixtureDatabaseBoundary } from "./fixture-boundary";
 
 const fixtureUrl = process.env.VERIFY_FIXTURE_DATABASE_URL;
 const isolated = process.env.VERIFY_ISOLATED_RUNTIME === "true";
+const connection = fixtureConnectionEnvironment(process.env);
+assert(connection.connectionMode === "direct" || isolated, "Pooled fixture verification requires explicit isolated mode");
 
-export function fixtureDatabaseBoundary(runtimeValue: string, fixtureValue: string) {
-  const runtime = new URL(runtimeValue), fixture = new URL(fixtureValue);
-  const database = decodeURIComponent(runtime.pathname.slice(1));
-  assert([runtime, fixture].every((value) => ["postgres:", "postgresql:"].includes(value.protocol) && ["localhost", "127.0.0.1", "[::1]"].includes(value.hostname)), "Fixture clients require loopback PostgreSQL targets");
-  assert(/^mu_scale_[a-z0-9_]{8,35}$/.test(database) && fixture.pathname === runtime.pathname, "Fixture clients require the same isolated mu_scale database");
-  assert(runtime.hostname === fixture.hostname && runtime.port === fixture.port, "Direct fixture/runtime clients require the same host and port");
-  assert(decodeURIComponent(runtime.username) === `${database}_runtime` && decodeURIComponent(fixture.username) === `${database}_migration`, "Fixture clients require paired restricted runtime/migration roles");
-  return database;
-}
-
-if (isolated) {
-  assert(env.NODE_ENV !== "production" && fixtureUrl, "Isolated verification requires a separate fixture credential");
-  fixtureDatabaseBoundary(env.DATABASE_URL, fixtureUrl);
+if (isolated || fixtureUrl) {
+  assert(isolated && env.NODE_ENV !== "production" && fixtureUrl, "An alternate fixture client requires explicit isolated verification and a separate credential");
+  fixtureDatabaseBoundary(env.DATABASE_URL, fixtureUrl, connection);
 }
 // Preserve existing verifier invocation; no alternate credential means no elevation.
 // Restricted-runtime acceptance always requires isolated=true and a verified pair.
@@ -29,7 +24,7 @@ export const fixturePrisma = fixtureUrl
 export async function verifyFixtureDatabase() {
   if (!fixtureUrl) { assert(!isolated); return; }
   assert(isolated && env.NODE_ENV !== "production", "A privileged fixture client must explicitly opt into isolated mode");
-  const database = fixtureDatabaseBoundary(env.DATABASE_URL, fixtureUrl);
+  const database = fixtureDatabaseBoundary(env.DATABASE_URL, fixtureUrl, connection);
   const [runtime, fixture] = await Promise.all([
     prisma.$queryRaw<Array<{ database: string; role: string }>>`SELECT current_database() AS database, current_user AS role`,
     fixturePrisma.$queryRaw<Array<{ database: string; role: string }>>`SELECT current_database() AS database, current_user AS role`,

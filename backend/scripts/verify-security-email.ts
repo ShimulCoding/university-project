@@ -20,19 +20,21 @@ async function main() {
   try {
     await new Promise<void>((resolve) => server.once("listening", resolve));
     const address = server.address(); assert(address && typeof address !== "string");
+    const base = `http://127.0.0.1:${address.port}/api`;
     const password = `Synthetic-${run}!`;
     const user = await prisma.user.create({ data: { fullName: "Email security fixture", email: `email-${run}@example.invalid`, studentId: `E${run.slice(0, 20)}`, passwordHash: await hashPassword(password) } }); users.push(user.id);
     const session = await authService.login({ studentId: user.studentId!, password }); assert("accessToken" in session);
+    const accessToken = session.accessToken;
     step = "a stolen session must not change recovery email without the password";
-    const response = await fetch(`http://127.0.0.1:${address.port}/api/auth/update-email`, { method: "PATCH", headers: { Authorization: `Bearer ${session.accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify({ email: `attacker-${run}@example.invalid` }) });
+    const response = await fetch(`${base}/auth/update-email`, { method: "PATCH", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify({ email: `attacker-${run}@example.invalid` }) });
     assert.equal(response.status, 400); checks++;
     assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).email, user.email); checks++;
     function check(value: unknown, label: string) { step = label; assert(value, label); checks++; }
     function context(value: AuthSessionResult) { const payload = verifyAccessToken(value.accessToken); assert(payload.sessionId); return { userId: payload.sub, sessionId: payload.sessionId, sessionVersion: payload.version! }; }
     async function denied(action: () => Promise<unknown>, status = 403) { await assert.rejects(action, (error: { statusCode?: number }) => error.statusCode === status); checks++; }
-    async function patch(body: unknown, token = session.accessToken, expected = 200) {
+    async function patch(body: unknown, token = accessToken, expected = 200) {
       step = `email PATCH expected ${expected}`;
-      const result = await fetch(`http://127.0.0.1:${address.port}/api/auth/update-email`, { method: "PATCH", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const result = await fetch(`${base}/auth/update-email`, { method: "PATCH", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify(body) });
       assert.equal(result.status, expected); checks++; return result;
     }
     await patch({ email: `attacker-${run}@example.invalid`, currentPassword: "Wrong-password!" }, undefined, 403);

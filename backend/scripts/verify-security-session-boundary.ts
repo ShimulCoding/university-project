@@ -35,6 +35,7 @@ async function main() {
     await entered;
     await authService.logout(session.refreshToken);
     step = "a session revoked after authentication must not enter a mutation transaction";
+    assert(release, "The mutation pause must register its release callback");
     release();
     assert.equal((await pending).status, 403); checks++;
     assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: admin.id } })).fullName, admin.fullName); checks++;

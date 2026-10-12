@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
-import { AccountStatus, EventStatus, RoleCode } from "@prisma/client";
+import { AccountStatus, EventStatus, RoleCode, type User } from "@prisma/client";
 
 import { createApp } from "../src/app";
 import { prisma } from "../src/config/prisma";
@@ -49,7 +49,7 @@ async function main() {
   const actorRoles = [RoleCode.GENERAL_STUDENT, RoleCode.GENERAL_STUDENT, RoleCode.EVENT_MANAGEMENT_USER, RoleCode.FINANCIAL_CONTROLLER, RoleCode.ORGANIZATIONAL_APPROVER, RoleCode.EVENT_ADMIN];
   try {
     const passwordHash = await hashPassword(`Audit-${run}!`);
-    const accounts = [];
+    const accounts: User[] = [];
     for (const [i, role] of actorRoles.entries()) {
       const user = await prisma.user.create({ data: { fullName: `Audit ${i}`, email: `audit-${i}-${run}@example.com`, studentId: `A${run.slice(0, 20)}-${i}`, passwordHash } });
       users.push(user.id); accounts.push(user);

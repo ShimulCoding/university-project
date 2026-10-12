@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, type AuditLog } from "@prisma/client";
 
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
@@ -25,7 +25,7 @@ function buildAuditWhere(filters: AuditFilters): Prisma.AuditLogWhereInput {
 }
 
 export const auditRepository = {
-  create(input: CreateAuditLogInput, db: DbClient = prisma) {
+  create(input: CreateAuditLogInput, db: DbClient = prisma): Promise<AuditLog> {
     const metadata = sanitizeAuditMetadata(input);
     const eventId = input.eventId ??
       (typeof input.context?.eventId === "string" ? input.context.eventId : undefined) ??

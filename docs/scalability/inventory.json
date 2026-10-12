@@ -12,8 +12,8 @@
     "recurringSchedulers": 1,
     "timers": 9,
     "inputSinkCandidates": 224,
-    "operatorSources": 99,
-    "npmCommands": 62
+    "operatorSources": 100,
+    "npmCommands": 63
   },
   "coverage": {
     "scope": [
@@ -11641,7 +11641,7 @@
       "path": "backend/src/modules/audit/repositories/audit.repository.ts",
       "source": "backend/src/modules/audit/repositories/audit.repository.ts:1",
       "lines": 92,
-      "sha256": "f3f3ed946d83562605c65e3cf88617e31b68eae8bea4a9805c2c3f14bf897fe2",
+      "sha256": "3666152125001fb4f3f8bc1d56dbabf4795a17edb671b9167d8a57a30fc699ae",
       "kind": "repository",
       "change": "Mapped; no runtime change",
       "metrics": "N/A: source coverage evidence; benchmark by owning journey",
@@ -12591,7 +12591,7 @@
       "path": "backend/src/modules/users/repositories/users.repository.ts",
       "source": "backend/src/modules/users/repositories/users.repository.ts:1",
       "lines": 96,
-      "sha256": "eb00ace2a49fe250f91639f729010ef8ca0caf1f06258d75e17cdfe6519a6b3c",
+      "sha256": "5ab1b0b4451636cf47edb44a88cd763da027fd74dba252582d4a52ed92bdacd9",
       "kind": "repository",
       "change": "Mapped; no runtime change",
       "metrics": "N/A: source coverage evidence; benchmark by owning journey",
@@ -14493,13 +14493,9 @@
         "path": "backend/package.json",
         "source": "backend/package.json:1",
         "kind": "maintenance/operator script; inspect before execution",
-        "lines": 79,
-        "sha256": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "lines": 80,
+        "sha256": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "effects": [
-          {
-            "kind": "database candidate",
-            "source": "backend/package.json:41"
-          },
           {
             "kind": "database candidate",
             "source": "backend/package.json:42"
@@ -14522,11 +14518,15 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/package.json:49"
+            "source": "backend/package.json:47"
           },
           {
             "kind": "database candidate",
-            "source": "backend/package.json:74"
+            "source": "backend/package.json:50"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/package.json:75"
           }
         ],
         "guardCandidates": [],
@@ -15868,6 +15868,20 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "backend/scripts/tsconfig.verification.json",
+        "source": "backend/scripts/tsconfig.verification.json:1",
+        "kind": "build/runtime configuration",
+        "lines": 6,
+        "sha256": "ac238ae287cff4f7b018d6d24bdae33a74d23f4a2dd0ec9b1f81d28a147280bb",
+        "effects": [],
+        "guardCandidates": [],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "backend/scripts/verify-browser-workspaces.ts",
         "source": "backend/scripts/verify-browser-workspaces.ts:1",
         "kind": "verification/profiling tool",
@@ -16124,8 +16138,8 @@
         "path": "backend/scripts/verify-event-scope.ts",
         "source": "backend/scripts/verify-event-scope.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 110,
-        "sha256": "2b6c6bcd88c2f658897be3179638c2714543bf4cc30fd3696373c55fd0bc4679",
+        "lines": 111,
+        "sha256": "a943e72dcd82d9d5b46d96787710e9917003ec2355ef3d9537eba41df721c2ae",
         "effects": [
           {
             "kind": "database candidate",
@@ -16133,7 +16147,7 @@
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-event-scope.ts:107"
+            "source": "backend/scripts/verify-event-scope.ts:108"
           }
         ],
         "guardCandidates": [],
@@ -16467,8 +16481,8 @@
         "path": "backend/scripts/verify-finance-workflow-slice.ts",
         "source": "backend/scripts/verify-finance-workflow-slice.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 1751,
-        "sha256": "df87114eb0e13a9ee5f0832726f5054ee45b0c8bc9ef967b3e42eeb547535d01",
+        "lines": 1755,
+        "sha256": "b3c447b3dd67bb145f8037045bdea348901f7c54da3b4cdef55adc872e3128a5",
         "effects": [
           {
             "kind": "database candidate",
@@ -16552,43 +16566,43 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-finance-workflow-slice.ts:1043"
+            "source": "backend/scripts/verify-finance-workflow-slice.ts:1044"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-finance-workflow-slice.ts:1121"
+            "source": "backend/scripts/verify-finance-workflow-slice.ts:1122"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-finance-workflow-slice.ts:1267"
+            "source": "backend/scripts/verify-finance-workflow-slice.ts:1269"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-finance-workflow-slice.ts:1281"
+            "source": "backend/scripts/verify-finance-workflow-slice.ts:1283"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-finance-workflow-slice.ts:1359"
+            "source": "backend/scripts/verify-finance-workflow-slice.ts:1361"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-finance-workflow-slice.ts:1527"
+            "source": "backend/scripts/verify-finance-workflow-slice.ts:1529"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-finance-workflow-slice.ts:1646"
+            "source": "backend/scripts/verify-finance-workflow-slice.ts:1649"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-finance-workflow-slice.ts:1735"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-finance-workflow-slice.ts:1744"
+            "source": "backend/scripts/verify-finance-workflow-slice.ts:1739"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
             "source": "backend/scripts/verify-finance-workflow-slice.ts:1748"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-finance-workflow-slice.ts:1752"
           }
         ],
         "guardCandidates": [
@@ -16609,8 +16623,8 @@
         "path": "backend/scripts/verify-governance-closure-slice.ts",
         "source": "backend/scripts/verify-governance-closure-slice.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 1158,
-        "sha256": "6c70285e35dab6f056256ee9e09da89e35cb51516f702af8884d740baf87c2bf",
+        "lines": 1160,
+        "sha256": "3b16d0f3b8bb9845dcfeb6a8a5af63a866ce22062dece5a5f9c3ecb6d15e3ea8",
         "effects": [
           {
             "kind": "database candidate",
@@ -16682,11 +16696,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-governance-closure-slice.ts:797"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-governance-closure-slice.ts:810"
+            "source": "backend/scripts/verify-governance-closure-slice.ts:798"
           },
           {
             "kind": "database candidate",
@@ -16694,7 +16704,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-governance-closure-slice.ts:818"
+            "source": "backend/scripts/verify-governance-closure-slice.ts:812"
           },
           {
             "kind": "database candidate",
@@ -16702,11 +16712,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-governance-closure-slice.ts:826"
+            "source": "backend/scripts/verify-governance-closure-slice.ts:820"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-governance-closure-slice.ts:833"
+            "source": "backend/scripts/verify-governance-closure-slice.ts:827"
           },
           {
             "kind": "database candidate",
@@ -16714,7 +16724,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-governance-closure-slice.ts:843"
+            "source": "backend/scripts/verify-governance-closure-slice.ts:835"
           },
           {
             "kind": "database candidate",
@@ -16726,27 +16736,31 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-governance-closure-slice.ts:1017"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-governance-closure-slice.ts:1018"
+            "source": "backend/scripts/verify-governance-closure-slice.ts:846"
           },
           {
             "kind": "database candidate",
             "source": "backend/scripts/verify-governance-closure-slice.ts:1019"
           },
           {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-governance-closure-slice.ts:1142"
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-governance-closure-slice.ts:1020"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-governance-closure-slice.ts:1021"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-governance-closure-slice.ts:1151"
+            "source": "backend/scripts/verify-governance-closure-slice.ts:1144"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-governance-closure-slice.ts:1155"
+            "source": "backend/scripts/verify-governance-closure-slice.ts:1153"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-governance-closure-slice.ts:1157"
           }
         ],
         "guardCandidates": [
@@ -16756,7 +16770,7 @@
           "backend/scripts/verify-governance-closure-slice.ts:302",
           "backend/scripts/verify-governance-closure-slice.ts:455",
           "backend/scripts/verify-governance-closure-slice.ts:468",
-          "backend/scripts/verify-governance-closure-slice.ts:1064"
+          "backend/scripts/verify-governance-closure-slice.ts:1066"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -16825,7 +16839,7 @@
         "source": "backend/scripts/verify-project-audit.ts:1",
         "kind": "verification/profiling tool",
         "lines": 295,
-        "sha256": "5391aa86f27043224dc0dcbefc75d514d2232a9c8a8bed53f90a112e0974fcb6",
+        "sha256": "d6535f5b115fb034a55f44903aa2b144c2c52398d56661a8193e58dd8648c30e",
         "effects": [
           {
             "kind": "database candidate",
@@ -17249,8 +17263,8 @@
         "path": "backend/scripts/verify-security-action-limits.ts",
         "source": "backend/scripts/verify-security-action-limits.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 128,
-        "sha256": "84c3fb731d01164450cbc829df483c466223d0ea029e649daebedfb0d5594014",
+        "lines": 136,
+        "sha256": "723f182687989dfa4ec99969af7cd82acfc1577225892591350dc57b15e3fd95",
         "effects": [
           {
             "kind": "database candidate",
@@ -17258,19 +17272,7 @@
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:46"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:59"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:61"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:64"
+            "source": "backend/scripts/verify-security-action-limits.ts:54"
           },
           {
             "kind": "network candidate",
@@ -17278,7 +17280,7 @@
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:68"
+            "source": "backend/scripts/verify-security-action-limits.ts:69"
           },
           {
             "kind": "network candidate",
@@ -17286,71 +17288,71 @@
           },
           {
             "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:75"
+          },
+          {
+            "kind": "network candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:76"
           },
           {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:81"
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:80"
           },
           {
-            "kind": "database candidate",
+            "kind": "network candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:84"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:86"
+            "source": "backend/scripts/verify-security-action-limits.ts:89"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:87"
+            "source": "backend/scripts/verify-security-action-limits.ts:92"
           },
           {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:91"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:93"
-          },
-          {
-            "kind": "network candidate",
+            "kind": "database candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:94"
           },
           {
-            "kind": "network candidate",
+            "kind": "database candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:95"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:96"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:97"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:98"
-          },
-          {
-            "kind": "database candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:99"
           },
           {
-            "kind": "database candidate",
+            "kind": "network candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:101"
           },
           {
-            "kind": "database candidate",
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:102"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:103"
+          },
+          {
+            "kind": "network candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:104"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:105"
           },
           {
             "kind": "network candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:106"
           },
           {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:110"
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:107"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:109"
           },
           {
             "kind": "database candidate",
@@ -17358,19 +17360,31 @@
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:113"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
             "source": "backend/scripts/verify-security-action-limits.ts:114"
           },
           {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:118"
+          },
+          {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:124"
+            "source": "backend/scripts/verify-security-action-limits.ts:120"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:121"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-action-limits.ts:127"
+            "source": "backend/scripts/verify-security-action-limits.ts:122"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:132"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-action-limits.ts:135"
           }
         ],
         "guardCandidates": [
@@ -17379,26 +17393,29 @@
           "backend/scripts/verify-security-action-limits.ts:20",
           "backend/scripts/verify-security-action-limits.ts:24",
           "backend/scripts/verify-security-action-limits.ts:27",
-          "backend/scripts/verify-security-action-limits.ts:30",
+          "backend/scripts/verify-security-action-limits.ts:28",
           "backend/scripts/verify-security-action-limits.ts:31",
-          "backend/scripts/verify-security-action-limits.ts:34",
-          "backend/scripts/verify-security-action-limits.ts:35",
-          "backend/scripts/verify-security-action-limits.ts:36",
+          "backend/scripts/verify-security-action-limits.ts:32",
+          "backend/scripts/verify-security-action-limits.ts:38",
           "backend/scripts/verify-security-action-limits.ts:39",
-          "backend/scripts/verify-security-action-limits.ts:40",
-          "backend/scripts/verify-security-action-limits.ts:45",
-          "backend/scripts/verify-security-action-limits.ts:46",
-          "backend/scripts/verify-security-action-limits.ts:52",
+          "backend/scripts/verify-security-action-limits.ts:42",
+          "backend/scripts/verify-security-action-limits.ts:43",
+          "backend/scripts/verify-security-action-limits.ts:44",
+          "backend/scripts/verify-security-action-limits.ts:47",
+          "backend/scripts/verify-security-action-limits.ts:48",
           "backend/scripts/verify-security-action-limits.ts:53",
-          "backend/scripts/verify-security-action-limits.ts:81",
-          "backend/scripts/verify-security-action-limits.ts:84",
-          "backend/scripts/verify-security-action-limits.ts:101",
-          "backend/scripts/verify-security-action-limits.ts:104",
-          "backend/scripts/verify-security-action-limits.ts:119",
-          "backend/scripts/verify-security-action-limits.ts:120",
-          "backend/scripts/verify-security-action-limits.ts:121",
-          "backend/scripts/verify-security-action-limits.ts:122",
-          "backend/scripts/verify-security-action-limits.ts:127"
+          "backend/scripts/verify-security-action-limits.ts:54",
+          "backend/scripts/verify-security-action-limits.ts:60",
+          "backend/scripts/verify-security-action-limits.ts:61",
+          "backend/scripts/verify-security-action-limits.ts:89",
+          "backend/scripts/verify-security-action-limits.ts:92",
+          "backend/scripts/verify-security-action-limits.ts:109",
+          "backend/scripts/verify-security-action-limits.ts:112",
+          "backend/scripts/verify-security-action-limits.ts:127",
+          "backend/scripts/verify-security-action-limits.ts:128",
+          "backend/scripts/verify-security-action-limits.ts:129",
+          "backend/scripts/verify-security-action-limits.ts:130",
+          "backend/scripts/verify-security-action-limits.ts:135"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -17584,8 +17601,8 @@
         "path": "backend/scripts/verify-security-document-audit.ts",
         "source": "backend/scripts/verify-security-document-audit.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 68,
-        "sha256": "e956adebf5a1e7933275f4bbe884dbb4d4b4d35cfe0e814f074c7d5984cce71c",
+        "lines": 69,
+        "sha256": "93f4e317dad71a9b4e4122e91dca10f7156fbe253a84410efddc290dc52dc33d",
         "effects": [
           {
             "kind": "database candidate",
@@ -17593,79 +17610,78 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:21"
-          },
-          {
-            "kind": "database candidate",
             "source": "backend/scripts/verify-security-document-audit.ts:22"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:25"
+            "source": "backend/scripts/verify-security-document-audit.ts:23"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-document-audit.ts:26"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:27"
+            "source": "backend/scripts/verify-security-document-audit.ts:28"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:30"
+            "source": "backend/scripts/verify-security-document-audit.ts:31"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:34"
+            "source": "backend/scripts/verify-security-document-audit.ts:35"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:36"
+            "source": "backend/scripts/verify-security-document-audit.ts:37"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:39"
+            "source": "backend/scripts/verify-security-document-audit.ts:40"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:44"
+            "source": "backend/scripts/verify-security-document-audit.ts:45"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:50"
+            "source": "backend/scripts/verify-security-document-audit.ts:51"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:52"
+            "source": "backend/scripts/verify-security-document-audit.ts:53"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:55"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
             "source": "backend/scripts/verify-security-document-audit.ts:56"
           },
           {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-document-audit.ts:57"
+          },
+          {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-document-audit.ts:64"
+            "source": "backend/scripts/verify-security-document-audit.ts:65"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-document-audit.ts:67"
+            "source": "backend/scripts/verify-security-document-audit.ts:68"
           }
         ],
         "guardCandidates": [
           "backend/scripts/verify-security-document-audit.ts:5",
           "backend/scripts/verify-security-document-audit.ts:15",
-          "backend/scripts/verify-security-document-audit.ts:21",
+          "backend/scripts/verify-security-document-audit.ts:20",
           "backend/scripts/verify-security-document-audit.ts:22",
           "backend/scripts/verify-security-document-audit.ts:23",
-          "backend/scripts/verify-security-document-audit.ts:25",
-          "backend/scripts/verify-security-document-audit.ts:27",
-          "backend/scripts/verify-security-document-audit.ts:36",
-          "backend/scripts/verify-security-document-audit.ts:39",
-          "backend/scripts/verify-security-document-audit.ts:60",
+          "backend/scripts/verify-security-document-audit.ts:24",
+          "backend/scripts/verify-security-document-audit.ts:26",
+          "backend/scripts/verify-security-document-audit.ts:37",
           "backend/scripts/verify-security-document-audit.ts:61",
           "backend/scripts/verify-security-document-audit.ts:62",
-          "backend/scripts/verify-security-document-audit.ts:67"
+          "backend/scripts/verify-security-document-audit.ts:63",
+          "backend/scripts/verify-security-document-audit.ts:68"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -17677,8 +17693,8 @@
         "path": "backend/scripts/verify-security-email.ts",
         "source": "backend/scripts/verify-security-email.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 89,
-        "sha256": "2365c5c1422f79b3d6c0a40b93ecaa6d0af618c7e46218bac72e6f9c01c72aee",
+        "lines": 91,
+        "sha256": "82cccbe82148532c327e9008beb41d9ea036d063b924ea67115790a961c5a400",
         "effects": [
           {
             "kind": "database candidate",
@@ -17686,35 +17702,27 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:24"
+            "source": "backend/scripts/verify-security-email.ts:25"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-email.ts:27"
-          },
-          {
-            "kind": "database candidate",
             "source": "backend/scripts/verify-security-email.ts:29"
           },
           {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-email.ts:31"
+          },
+          {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-email.ts:35"
+            "source": "backend/scripts/verify-security-email.ts:37"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:40"
+            "source": "backend/scripts/verify-security-email.ts:42"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:43"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:48"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:49"
+            "source": "backend/scripts/verify-security-email.ts:45"
           },
           {
             "kind": "database candidate",
@@ -17726,7 +17734,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:56"
+            "source": "backend/scripts/verify-security-email.ts:52"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-email.ts:53"
           },
           {
             "kind": "database candidate",
@@ -17734,15 +17746,15 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:59"
+            "source": "backend/scripts/verify-security-email.ts:60"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:69"
+            "source": "backend/scripts/verify-security-email.ts:61"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:70"
+            "source": "backend/scripts/verify-security-email.ts:71"
           },
           {
             "kind": "database candidate",
@@ -17750,32 +17762,35 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:77"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-email.ts:80"
+            "source": "backend/scripts/verify-security-email.ts:74"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-email.ts:85"
+            "source": "backend/scripts/verify-security-email.ts:79"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-email.ts:88"
+            "source": "backend/scripts/verify-security-email.ts:82"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-email.ts:87"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-email.ts:90"
           }
         ],
         "guardCandidates": [
           "backend/scripts/verify-security-email.ts:5",
           "backend/scripts/verify-security-email.ts:12",
           "backend/scripts/verify-security-email.ts:18",
-          "backend/scripts/verify-security-email.ts:24",
-          "backend/scripts/verify-security-email.ts:27",
-          "backend/scripts/verify-security-email.ts:35",
-          "backend/scripts/verify-security-email.ts:40",
-          "backend/scripts/verify-security-email.ts:84",
-          "backend/scripts/verify-security-email.ts:85",
-          "backend/scripts/verify-security-email.ts:88"
+          "backend/scripts/verify-security-email.ts:23",
+          "backend/scripts/verify-security-email.ts:25",
+          "backend/scripts/verify-security-email.ts:42",
+          "backend/scripts/verify-security-email.ts:86",
+          "backend/scripts/verify-security-email.ts:87",
+          "backend/scripts/verify-security-email.ts:90"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -17788,7 +17803,7 @@
         "source": "backend/scripts/verify-security-financial-replay.ts:1",
         "kind": "verification/profiling tool",
         "lines": 185,
-        "sha256": "4c476ac663df7b0114f6b3e6cb9b61b04f2752e40d2e9c2bfeab6a89df20e5ed",
+        "sha256": "c8bf1ac0085b43454ba73f736898b46caebf08f98d47613629498a1bd6489cd6",
         "effects": [
           {
             "kind": "database candidate",
@@ -18466,8 +18481,8 @@
         "path": "backend/scripts/verify-security-scanner.ts",
         "source": "backend/scripts/verify-security-scanner.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 100,
-        "sha256": "d5ec9c4d84da14675075acc181a022eb8e012b09bb078de5d350e67a07f7f45d",
+        "lines": 101,
+        "sha256": "7106cdabf0bd1268c570c683a69cf3e2de34a0485f7367bad317280ca17a574c",
         "effects": [
           {
             "kind": "database candidate",
@@ -18475,30 +18490,31 @@
           },
           {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
-            "source": "backend/scripts/verify-security-scanner.ts:84"
+            "source": "backend/scripts/verify-security-scanner.ts:85"
           },
           {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
-            "source": "backend/scripts/verify-security-scanner.ts:87"
+            "source": "backend/scripts/verify-security-scanner.ts:88"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-scanner.ts:97"
+            "source": "backend/scripts/verify-security-scanner.ts:98"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-scanner.ts:99"
+            "source": "backend/scripts/verify-security-scanner.ts:100"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-scanner.ts:38",
-          "backend/scripts/verify-security-scanner.ts:44",
+          "backend/scripts/verify-security-scanner.ts:35",
+          "backend/scripts/verify-security-scanner.ts:39",
           "backend/scripts/verify-security-scanner.ts:45",
-          "backend/scripts/verify-security-scanner.ts:61",
+          "backend/scripts/verify-security-scanner.ts:46",
           "backend/scripts/verify-security-scanner.ts:62",
-          "backend/scripts/verify-security-scanner.ts:83",
-          "backend/scripts/verify-security-scanner.ts:87",
-          "backend/scripts/verify-security-scanner.ts:96"
+          "backend/scripts/verify-security-scanner.ts:63",
+          "backend/scripts/verify-security-scanner.ts:84",
+          "backend/scripts/verify-security-scanner.ts:88",
+          "backend/scripts/verify-security-scanner.ts:97"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -18591,8 +18607,8 @@
         "path": "backend/scripts/verify-security-session-boundary.ts",
         "source": "backend/scripts/verify-security-session-boundary.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 85,
-        "sha256": "da549f9f37ffabd811853d6c57806808ba39d8dc176557031f43a9b8c1b2ad3e",
+        "lines": 86,
+        "sha256": "42c150481b83349b13d75846aa25aee207a6aef11b10473b0bc7ed20e81505c7",
         "effects": [
           {
             "kind": "database candidate",
@@ -18612,19 +18628,15 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:40"
-          },
-          {
-            "kind": "database candidate",
             "source": "backend/scripts/verify-security-session-boundary.ts:41"
           },
           {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:53"
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-session-boundary.ts:42"
           },
           {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:56"
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-session-boundary.ts:54"
           },
           {
             "kind": "database candidate",
@@ -18632,43 +18644,47 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:62"
+            "source": "backend/scripts/verify-security-session-boundary.ts:58"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:66"
+            "source": "backend/scripts/verify-security-session-boundary.ts:63"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:68"
+            "source": "backend/scripts/verify-security-session-boundary.ts:67"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-session-boundary.ts:69"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:71"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:73"
+            "source": "backend/scripts/verify-security-session-boundary.ts:72"
           },
           {
             "kind": "database candidate",
             "source": "backend/scripts/verify-security-session-boundary.ts:74"
           },
           {
-            "kind": "network candidate",
+            "kind": "database candidate",
             "source": "backend/scripts/verify-security-session-boundary.ts:75"
           },
           {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-session-boundary.ts:76"
+          },
+          {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-session-boundary.ts:77"
+            "source": "backend/scripts/verify-security-session-boundary.ts:78"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-session-boundary.ts:81"
+            "source": "backend/scripts/verify-security-session-boundary.ts:82"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-session-boundary.ts:84"
+            "source": "backend/scripts/verify-security-session-boundary.ts:85"
           }
         ],
         "guardCandidates": [
@@ -18677,8 +18693,8 @@
           "backend/scripts/verify-security-session-boundary.ts:18",
           "backend/scripts/verify-security-session-boundary.ts:23",
           "backend/scripts/verify-security-session-boundary.ts:25",
-          "backend/scripts/verify-security-session-boundary.ts:81",
-          "backend/scripts/verify-security-session-boundary.ts:84"
+          "backend/scripts/verify-security-session-boundary.ts:82",
+          "backend/scripts/verify-security-session-boundary.ts:85"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -20478,287 +20494,294 @@
         "id": "backend/package.json#dev",
         "command": "tsx watch src/server.ts",
         "source": "backend/package.json:6",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#build",
         "command": "tsc -p tsconfig.json",
         "source": "backend/package.json:7",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#start",
         "command": "node dist/server.js",
         "source": "backend/package.json:8",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:flows",
         "command": "tsx scripts/verify-events-payments-slice.ts",
         "source": "backend/package.json:9",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:finance",
         "command": "tsx scripts/verify-finance-workflow-slice.ts",
         "source": "backend/package.json:10",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:governance",
         "command": "tsx scripts/verify-governance-closure-slice.ts",
         "source": "backend/package.json:11",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:event-scope",
         "command": "tsx scripts/verify-event-scope.ts",
         "source": "backend/package.json:12",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:event-workspaces",
         "command": "tsx scripts/verify-event-workspaces.ts",
         "source": "backend/package.json:13",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:project-audit",
         "command": "tsx scripts/verify-project-audit.ts",
         "source": "backend/package.json:14",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-logging",
         "command": "tsx scripts/verify-security-logging.ts",
         "source": "backend/package.json:15",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-cors",
         "command": "tsx scripts/verify-security-cors.ts",
         "source": "backend/package.json:16",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-seed",
         "command": "tsx scripts/verify-security-seed.ts",
         "source": "backend/package.json:17",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-scanner",
         "command": "tsx scripts/verify-security-scanner.ts",
         "source": "backend/package.json:18",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-financial-replay",
         "command": "tsx scripts/verify-security-financial-replay.ts",
         "source": "backend/package.json:19",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-mail-transport",
         "command": "tsx scripts/verify-security-mail-transport.ts",
         "source": "backend/package.json:20",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-admission-lifecycle",
         "command": "tsx scripts/verify-security-admission-lifecycle.ts",
         "source": "backend/package.json:21",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-action-limits",
         "command": "tsx scripts/verify-security-action-limits.ts",
         "source": "backend/package.json:22",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:seed-types",
         "command": "tsc -p scripts/tsconfig.seed.json",
         "source": "backend/package.json:23",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
+        "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
+      },
+      {
+        "id": "backend/package.json#verify:types",
+        "command": "tsc -p scripts/tsconfig.verification.json",
+        "source": "backend/package.json:24",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-audit-metadata",
         "command": "tsx scripts/verify-security-audit-metadata.ts",
-        "source": "backend/package.json:24",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:25",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-uploads",
         "command": "tsx scripts/verify-security-uploads.ts",
-        "source": "backend/package.json:25",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:26",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-mfa",
         "command": "tsx scripts/verify-security-mfa.ts",
-        "source": "backend/package.json:26",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:27",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-mfa-crypto",
         "command": "tsx scripts/verify-security-mfa-crypto.ts",
-        "source": "backend/package.json:27",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:28",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-email",
         "command": "tsx scripts/verify-security-email.ts",
-        "source": "backend/package.json:28",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:29",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-login",
         "command": "tsx scripts/verify-security-login.ts",
-        "source": "backend/package.json:29",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:30",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-session-boundary",
         "command": "tsx scripts/verify-security-session-boundary.ts",
-        "source": "backend/package.json:30",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:31",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-bootstrap",
         "command": "tsx scripts/verify-security-bootstrap.ts",
-        "source": "backend/package.json:31",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:32",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-document-audit",
         "command": "tsx scripts/verify-security-document-audit.ts",
-        "source": "backend/package.json:32",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:33",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-mfa-browser",
         "command": "tsx scripts/verify-security-mfa-browser.ts",
-        "source": "backend/package.json:33",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:34",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-reset-browser",
         "command": "tsx scripts/verify-security-reset-browser.ts",
-        "source": "backend/package.json:34",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:35",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:network-sign-in",
         "command": "tsx scripts/verify-network-sign-in.ts",
-        "source": "backend/package.json:35",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:36",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#mfa:authorize-enrollment",
         "command": "tsx scripts/authorize-mfa-enrollment.ts",
-        "source": "backend/package.json:36",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:37",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:demo:runtime",
         "command": "tsx scripts/verify-demo-runtime.ts",
-        "source": "backend/package.json:37",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:38",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:demo:mfa-contract",
         "command": "tsx scripts/verify-demo-mfa-contract.ts",
-        "source": "backend/package.json:38",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:39",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#seed:demo:flows",
         "command": "tsx scripts/seed-events-payments-demo.ts",
-        "source": "backend/package.json:39",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:40",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#seed:demo:runtime",
         "command": "tsx scripts/seed-demo-runtime-data.ts",
-        "source": "backend/package.json:40",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:41",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:validate",
         "command": "prisma validate",
-        "source": "backend/package.json:41",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:42",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:format",
         "command": "prisma format",
-        "source": "backend/package.json:42",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:43",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:generate",
         "command": "prisma generate",
-        "source": "backend/package.json:43",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:44",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:migrate:dev",
         "command": "prisma migrate dev",
-        "source": "backend/package.json:44",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:45",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:seed",
         "command": "tsx prisma/seed.ts",
-        "source": "backend/package.json:45",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:46",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:studio",
         "command": "prisma studio",
-        "source": "backend/package.json:46",
-        "manifestHash": "bd40226f505bb5ffc9f7e8c857618befe203e88c302643e32818eef557950410",
+        "source": "backend/package.json:47",
+        "manifestHash": "f72104482856a1c1264493171733e9ed5308907b3fba0cec7edd8dff9c755c43",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {

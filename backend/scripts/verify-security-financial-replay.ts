@@ -58,7 +58,7 @@ async function main() {
     const form = () => {
       const body = new FormData();
       for (const [name, value] of Object.entries(expenseInput)) body.set(name, value);
-      body.set("supportingDocument", new Blob([evidence().buffer], { type: "application/pdf" }), "synthetic.pdf");
+      body.set("supportingDocument", new Blob([new Uint8Array(evidence().buffer)], { type: "application/pdf" }), "synthetic.pdf");
       return body;
     };
     // The version nibble is in the third group. Replacing the first "-4" in

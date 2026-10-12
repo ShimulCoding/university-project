@@ -24,7 +24,15 @@ async function main() {
   const fixture = express();
   // Mock identities are confined to this loopback unit harness. Production keys
   // always come from verified authentication, proved by the real API below.
-  fixture.use((request, _response, next) => { request.auth = { userId: request.headers["x-fixture-actor"] ?? "fixture-a" } as typeof request.auth; next(); });
+  fixture.use((request, _response, next) => {
+    const actorId = request.headers["x-fixture-actor"] ?? "fixture-a";
+    assert(typeof actorId === "string", "Fixture identity header must be a string");
+    request.auth = {
+      userId: actorId, sessionId: "fixture-session", sessionVersion: 0, roles: [],
+      user: { id: actorId, fullName: "Action limit fixture", email: "fixture@example.invalid", status: "ACTIVE", roles: [], eventRoles: [] },
+    };
+    next();
+  });
   const limits = createSensitiveActionLimits(150, { mutations: 2, documents: 2, reports: 2 });
   const router = express.Router(); router.use(limits.mutation);
   router.all("/action", (_request, response) => response.sendStatus(204)); fixture.use("/api/fixture", router);

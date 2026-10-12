@@ -326,7 +326,7 @@ function createUploadFile(overrides: Partial<Express.Multer.File> = {}) {
   } as Express.Multer.File;
 }
 
-function assertCondition(condition: unknown, message: string) {
+function assertCondition(condition: unknown, message: string): asserts condition {
   if (!condition) {
     throw new Error(message);
   }
@@ -369,7 +369,7 @@ function mockGovernanceClient() {
 async function withPatches<T>(entries: PatchEntry[], runner: () => Promise<T>) {
   const { prisma } = await import("../src/config/prisma");
   // Unit fixtures supply a current actor; database authority races are tested separately.
-  if (!entries.some((entry) => entry.target === prisma && entry.key === "$transaction")) {
+  if (!entries.some((entry) => Object.is(entry.target, prisma) && entry.key === "$transaction")) {
     entries = [{ target: prisma as unknown as Record<string, unknown>, key: "$transaction",
       value: async (callback: (client: unknown) => Promise<unknown>) => callback(mockGovernanceClient()),
     }, ...entries];
@@ -760,7 +760,7 @@ async function main() {
         { category: "Tech", label: "Sound", amount: "300.25" },
       ];
       let markedBudgetId: string | null = null;
-      let createdBudgetInput: Record<string, unknown> | null = null;
+      const createdBudgetInput: { value: Record<string, unknown> | null } = { value: null };
       let staleReportCount = 0;
       const auditEntries: Array<Record<string, unknown>> = [];
 
@@ -792,7 +792,7 @@ async function main() {
             target: budgetsRepository as unknown as Record<string, unknown>,
             key: "createBudget",
             value: async (input: Record<string, unknown>) => {
-              createdBudgetInput = input;
+              createdBudgetInput.value = input;
               return createBudgetContext({
                 id: makeCuid("newbudgetversion"),
                 version: input.version,
@@ -847,7 +847,7 @@ async function main() {
       );
 
       assertCondition(markedBudgetId === baseBudget.id, "Previous budget version was not marked as revised.");
-      assertCondition(createdBudgetInput?.version === 3, "Budget revision did not increment the version.");
+      assertCondition(createdBudgetInput.value?.version === 3, "Budget revision did not increment the version.");
       assertCondition(result.version === 3, "Returned revision did not expose the new version.");
       assertCondition(
         result.totalAmount === "1500.75",
@@ -956,6 +956,7 @@ async function main() {
       );
 
       assertCondition(createdDocuments.length === 1, "Budget request supporting document was not created.");
+      assertCondition(createdDocuments[0] !== undefined, "Budget request supporting document is missing.");
       assertCondition(
         createdDocuments[0].budgetRequestId === makeCuid("createdbudgetrequest"),
         "Budget request supporting document was not linked to the created request.",
@@ -1141,6 +1142,7 @@ async function main() {
 
       assertCondition(
         createdDocuments.length === 1 &&
+          createdDocuments[0] !== undefined &&
           createdDocuments[0].expenseRequestId === makeCuid("returnedexpenserequest"),
         "Expense request file-only update did not persist a linked supporting document.",
       );
@@ -1552,7 +1554,8 @@ async function main() {
       );
 
       assertCondition(
-        createdDecisionInputs[0].actorId === approverActor.id &&
+        createdDecisionInputs[0] !== undefined &&
+          createdDecisionInputs[0].actorId === approverActor.id &&
           createdDecisionInputs[0].budgetRequestId === makeCuid("budgetapprovalrequest"),
         "Budget approval decision did not preserve the approver identity and target request.",
       );
@@ -1672,7 +1675,8 @@ async function main() {
       );
 
       assertCondition(
-        createdDecisionInputs[1].comment === "Please attach the signed receipt." &&
+        createdDecisionInputs[1] !== undefined &&
+          createdDecisionInputs[1].comment === "Please attach the signed receipt." &&
           createdDecisionInputs[1].actorId === approverActor.id &&
           createdDecisionInputs[1].expenseRequestId === makeCuid("expenseapprovalrequest"),
         "Expense approval return decision did not preserve remarks and approver identity.",

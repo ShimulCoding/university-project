@@ -153,3 +153,18 @@ Append only. Dates use UTC in measurements and Asia/Dhaka for user-facing dates.
 - Decision: rerun/restage the corrected guard and source map. Repair existing verifier typing in a separate concern without ignoring errors, changing assertions or loosening strict configuration. Do not claim every verification gate green while it remains pending.
 
 - Final database-concern gates: fresh exact-index snapshot index-review-kxC6pR passes inventory39 (311app/92API/99operator), production backend build, transport10 and provisioning59. Corrected provisioner/source guards rerun with219 applicable rules over3 files:0 findings/0 parse errors. Staged redacted Gitleaks scanned106.29KB before the final source-map/evidence addition,0 leaks. Source map is copied from this index, not parallel type/pooler drafts; final stage/diff/secret review precedes commit.
+
+## 2026-10-12 / E0024 — isolated database concern committed/pushed
+
+- Commands: final stageddiff/Gitleaks; `git commit --author="Nayem <nayem692003@gmail.com>" -m "Nayem: Fixed isolated runtime database permission boundaries"`; immediate `git push origin perf/world-class-scalability`; `git status -sb`; main/originmain hash checks.
+- Result:8a1b83a pushed; final staged233.01KB scan0leaks; main remains816d7d6. Independent type and pooler drafts stayed unstaged/preserved. Exact-index gates and direct actual29/24suite results are documented; owner runtime remains unchanged.
+- Decision: next contributor Shimul; continue strict verifier concern, pooler runtime and fresh apps. Phase1 is not accepted and Phase2-9 are unexecuted.
+
+## 2026-10-12 / E0025 — strict verifier repair and regression proof
+
+- Hypothesis: exposing accurate assertion/Promise/fixture types makes all backend verifier scripts statically checkable while retaining every attack and regression assertion.
+- Commands: expandedTSC before/after; `node node_modules/typescript/bin/tsc -p backend/scripts/tsconfig.verification.json`; productTSC; guarded inherited24suite runner again; compiled snapshot-versus-current byte comparison.
+- Result:51 existing errors to0 under identical strict/noUnchecked/exactOptional settings. All24 inherited non-browser suites exit0 again, including project81/replay62/MFA71/session18. The two production repository JS files are byte-identical;168-output comparison has3 unrelated CRLF/LF-only differences, normalized equal, so full raw-output identity is not claimed. No compiler/test/security control weakened or owner credential/data altered.
+- Decision: add persistent verify:types command and strict project; final exact-index/security gates before separate Shimul commit. Pooler native build passes after immutable official CA bootstrap but belongs to its independent concern; its runtime/image/pooled gates remain open. Fresh owned native frontend build exit0 in42238ms, not a request capacity benchmark, does not touch owner.next.
+
+- Final strict-concern source gates: exact staged snapshot index-review-U2eu2m passes all-verifier/seed types, production build, inventory39 (311app/92API/100operator/63commands) and transport10. Semgrep74rules/12 changed TS files0 findings/0 parse errors. Review preserved every prior assertion and mocked boundary; extra presence checks fail closed. Final staged redacted secret/diff checks precede commit; pooler/backend-image drafts remain excluded.

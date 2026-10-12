@@ -9,6 +9,7 @@ import {
   getAssignedEventIds,
   hasEventScopedRole,
   scopeEventFilters,
+  type EventFilterScope,
 } from "../src/utils/event-scope";
 
 const eventA = "event-a";
@@ -80,7 +81,7 @@ assert(
   "Assigned event filtering returned an unexpected event set.",
 );
 
-const scopedFilters = scopeEventFilters(eventFinance, {}, [RoleCode.FINANCIAL_CONTROLLER]);
+const scopedFilters = scopeEventFilters<EventFilterScope>(eventFinance, {}, [RoleCode.FINANCIAL_CONTROLLER]);
 assert(scopedFilters.eventIds?.join(",") === eventA, "List filters were not event-scoped.");
 
 expectForbidden(

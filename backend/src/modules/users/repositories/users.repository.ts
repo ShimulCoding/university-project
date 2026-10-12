@@ -3,10 +3,10 @@ import type { AccountStatus } from "@prisma/client";
 import { prisma } from "../../../config/prisma";
 import type { DbClient } from "../../../types/database";
 import type { PaginationOptions } from "../../../utils/pagination";
-import { userWithActiveRolesInclude } from "../users.mappers";
+import { userWithActiveRolesInclude, type UserWithActiveRoles } from "../users.mappers";
 
 export const usersRepository = {
-  countUsers(db: DbClient = prisma) {
+  countUsers(db: DbClient = prisma): Promise<number> {
     return db.user.count();
   },
 
@@ -42,7 +42,7 @@ export const usersRepository = {
     });
   },
 
-  findById(userId: string, db: DbClient = prisma) {
+  findById(userId: string, db: DbClient = prisma): Promise<UserWithActiveRoles | null> {
     return db.user.findUnique({
       where: { id: userId },
       include: userWithActiveRolesInclude,

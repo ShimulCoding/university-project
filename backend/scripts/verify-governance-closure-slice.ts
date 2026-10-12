@@ -300,7 +300,7 @@ function createPublicSummaryContext(overrides: Record<string, unknown> = {}) {
 async function withPatches<T>(entries: PatchEntry[], runner: () => Promise<T>) {
   const { prisma } = await import("../src/config/prisma");
   // Unit fixtures supply a current actor; database authority races are tested separately.
-  if (!entries.some((entry) => entry.target === prisma && entry.key === "$transaction")) {
+  if (!entries.some((entry) => Object.is(entry.target, prisma) && entry.key === "$transaction")) {
     entries = [{ target: prisma as unknown as Record<string, unknown>, key: "$transaction",
       value: async (callback: (client: unknown) => Promise<unknown>) => callback({ user: { count: async () => 1 } }),
     }, ...entries];
@@ -324,7 +324,7 @@ async function withPatches<T>(entries: PatchEntry[], runner: () => Promise<T>) {
   }
 }
 
-function assertCondition(condition: unknown, message: string) {
+function assertCondition(condition: unknown, message: string): asserts condition {
   if (!condition) {
     throw new Error(message);
   }
@@ -564,7 +564,7 @@ async function main() {
       );
 
       assertCondition(
-        queue.complaints.length === 1 && queue.complaints[0].isEscalated,
+        queue.complaints.length === 1 && queue.complaints[0] !== undefined && queue.complaints[0].isEscalated,
         "Reviewer queue did not expose expected escalated item.",
       );
       assertCondition(
@@ -668,7 +668,7 @@ async function main() {
       );
 
       assertCondition(routingHistory.length === 2, "Routing history entries were not preserved.");
-      assertCondition(routingHistory[1].state === ComplaintState.ESCALATED, "Escalation history did not capture ESCALATED state.");
+      assertCondition(routingHistory[1] !== undefined && routingHistory[1].state === ComplaintState.ESCALATED, "Escalation history did not capture ESCALATED state.");
       assertCondition(escalatedComplaint.routingHistory.length === 2, "Mapped complaint did not expose routing history.");
       assertCondition(auditEntries.length === 2, "Complaint route/escalate actions were not audited.");
       return "route and escalate transitions append history with reviewer identity and notes";
@@ -677,7 +677,7 @@ async function main() {
 
   results.push(
     await runCheck("Complaint resolve and close lifecycle behavior", async () => {
-      let state = ComplaintState.UNDER_REVIEW;
+      let state: ComplaintState = ComplaintState.UNDER_REVIEW;
       const transitions: ComplaintState[] = [];
 
       await withPatches(
@@ -772,7 +772,8 @@ async function main() {
         "Submitter view leaked routing notes.",
       );
       assertCondition(
-        !("relativePath" in submitterView.evidence[0]) && !("storedName" in reviewerView.evidence[0]),
+        submitterView.evidence[0] !== undefined && reviewerView.evidence[0] !== undefined &&
+          !("relativePath" in submitterView.evidence[0]) && !("storedName" in reviewerView.evidence[0]),
         "Evidence response leaked storage metadata.",
       );
       return "complaint evidence exposes safe metadata only, and submitter view hides internal routing notes";
@@ -858,6 +859,7 @@ async function main() {
 
       const warningCodes = report.warnings.map((warning) => warning.code);
 
+      assertCondition(createdReports[0] !== undefined, "Reconciliation report was not created.");
       assertCondition(createdReports[0].totalIncome === "300.00", "Reconciliation total income is incorrect.");
       assertCondition(createdReports[0].totalExpense === "120.00", "Reconciliation total expense is incorrect.");
       assertCondition(createdReports[0].closingBalance === "180.00", "Reconciliation closing balance is incorrect.");
@@ -877,7 +879,7 @@ async function main() {
   results.push(
     await runCheck("Draft, reviewed, and finalized reconciliation distinctions", async () => {
       let latestReportId = makeCuid("reconciliationreport");
-      let currentStatus = ReconciliationState.DRAFT;
+      let currentStatus: ReconciliationState = ReconciliationState.DRAFT;
       const statusUpdates: ReconciliationState[] = [];
 
       await withPatches(

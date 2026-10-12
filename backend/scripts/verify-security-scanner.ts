@@ -32,7 +32,8 @@ async function main() {
         }
         if (mode === "disconnect") { socket.destroy(); return; }
         if (mode === "fragmented") { socket.write("stream:"); setTimeout(() => socket.end(" OK\0"), 10); return; }
-        socket.end(replies[mode]); return;
+        const reply = replies[mode]; assert(typeof reply === "string", "Unknown fixture scanner mode");
+        socket.end(reply); return;
       }
     });
   }).listen(0, "127.0.0.1");

@@ -1,6 +1,6 @@
 # Security operator handoff (local evidence, 2026-10-12)
 
-The database/network/backup/deployment steps below have **not** been executed. The subsequent local sign-in support configured the owner's confirmed development origin and issued an owner-authorized initial MFA grant privately; human authenticator enrollment remains required. Main and production remain unchanged. Changes to database users, credentials, PostgreSQL/firewall settings, backups or deployment require operator review. The application changes are on `security/local-hardening-2026-10-11`.
+The database/network/backup/deployment steps below have **not** been executed. The subsequent local sign-in support configured the owner's confirmed development origin and issued an owner-authorized initial MFA grant privately. The owner completed authenticator enrollment and a later authenticator sign-in; read-only metadata confirms both audited events and consumption of the grant. No real factor or recovery code was read by the agent. Main and production remain unchanged. Changes to database users, credentials, PostgreSQL/firewall settings, backups or deployment require operator review. The application changes are on `security/local-hardening-2026-10-11`.
 
 ## Confirmed local configuration
 
@@ -12,6 +12,8 @@ The database/network/backup/deployment steps below have **not** been executed. T
 ## 1. Privileged onboarding
 
 Follow [security-mfa-setup.md](security-mfa-setup.md) for the separate encryption key and supervised first-admin enrollment grant. Keep the existing factor key; replacing it makes enrolled factors unreadable. Store offline recovery codes privately. Password reset does not remove MFA; losing all factors/codes requires supervised operator recovery.
+
+Initial local owner enrollment is complete. Other privileged accounts still require their own supervised setup. Open the frontend on the same hostname as the configured API: mixing localhost with the LAN API allows the password response but drops the setup cookie. The matching-host browser case is verified in [local-network-sign-in-review.md](local-network-sign-in-review.md).
 
 After signing in as System Admin, assign actual personnel to the four older unstaffed events through **Events and teams**. The user chose to do this later. Assign separate accounts to each required role; never infer assignments from legacy global roles. Review every privileged account and revoke unexpected assignments through the audited UI.
 

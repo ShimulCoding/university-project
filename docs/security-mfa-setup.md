@@ -43,7 +43,7 @@ npm run mfa:authorize-enrollment --workspace backend -- --user-id <existing-user
 icacls '.cache\first-admin-enrollment.txt' /inheritance:r /grant:r "$($env:USERNAME):(F)" | Out-Null
 ```
 
-The utility only permits a loopback, nonproduction database, refuses to overwrite files, and never prints the code. It cannot replace an enrolled factor. Securely read/share the file with the verified person; grant expiry is 24 hours. The audit did not issue a grant for a real account.
+The utility only permits a loopback, nonproduction database, refuses to overwrite files, and never prints the code. It cannot replace an enrolled factor. Securely read/share the file with the verified person; grant expiry is 24 hours. The initial audit did not issue a real-account grant. Subsequent owner-authorized local support issued one privately, and the owner completed enrollment and a later authenticator sign-in on 2026-10-12. Do not issue another first-admin grant for this already enrolled account.
 
 3. Open System Admin sign-in, enter the existing password, enter the one-use authorization, add the displayed private key to a trusted authenticator, and verify its six-digit code. The password-stage challenge expires in five minutes. Save the eight recovery codes privately offline before continuing. Enrollment revokes prior sessions.
 4. After the first administrator is enrolled, use **Accounts and roles → Authorize authenticator setup** for each active event team or additional administrator. Confirm identity, reenter the current administrator password, and privately deliver the one-use code. Accounts already enrolled cannot replace their factors through this route. The web flow records grant/enrollment audits.

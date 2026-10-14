@@ -9,6 +9,7 @@ Status: review preparation, **phase acceptance pending**. Compare the security c
 - Are credentials absent from arguments, output, artifacts and Git? Do explicit configuration/ACL checks happen before owner-environment reads? Do diagnostic filters retain SQLSTATE without leaking arbitrary text?
 - Does sendFile retain filename-dotfile denial and service authorization/containment/integrity/audit? Does drain track actual promises after disconnected sockets, preserve accepted streams and disconnect only once?
 - Does SEC-05 isolation preserve the full development audit failure and reject missing/unsafe/contaminated artifacts? Are fresh Linux builds and image scans still explicitly pending?
+- Does inventory format3 ignore only Git CRLF conversion while continuing to reject source/content/whitespace drift? Are normalized source fingerprints kept distinct from deployment artifact byte verification? Read [portability review](inventory-portability-review.md).
 - Are pure unit contracts, direct/pooled real DB checks, browser/scanner integration and separate-instance evidence clearly distinguished? Does the pooler deny migration/other database/console access and unrelated UID secret reads with actual0400 mounts, rather than relying on Windows ACL or generic rejection? Does the sixth queued client fail at the measured deadline and recover? Read [pooler review](pooler-boundary-review.md).
 
 ## Reproduction and disposition

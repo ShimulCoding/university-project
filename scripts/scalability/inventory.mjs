@@ -1,9 +1,9 @@
-import { createHash } from "node:crypto";
 import { readFile, readdir, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { operatorInventory } from "./operator-inventory.mjs";
+import { normalizeCheckoutNewlines, sourceTextHash as hash } from "./source-text.mjs";
 
 // Never load application modules, environments, generated files, caches, or database clients.
 export const BASE_COMMIT = "415a869";
@@ -14,7 +14,6 @@ const fileMethods = new Set(["readFile", "writeFile", "mkdir", "unlink", "access
 const networkMethods = new Set(["fetch", "connect", "createTransport", "sendMail", "request"]);
 const posix = (path) => path.split(sep).join("/");
 const clean = (value) => value.replace(/\s+/g, " ").trim();
-const hash = (text) => createHash("sha256").update(text).digest("hex");
 const cite = (file, node) => `${file.path}:${file.ast.getLineAndCharacterOfPosition(node.getStart(file.ast)).line + 1}`;
 const walk = (node, visit) => { visit(node); ts.forEachChild(node, (child) => walk(child, visit)); };
 const text = (node, file) => clean(node.getText(file.ast));
@@ -295,7 +294,8 @@ async function buildApplicationInventory(root = ROOT) {
 export async function buildInventory(root = ROOT) {
   const inventory = await buildApplicationInventory(root);
   inventory.operators = await operatorInventory(root, BASE_COMMIT);
-  inventory.formatVersion = 2;
+  inventory.formatVersion = 3;
+  inventory.coverage.fingerprintEncoding = 'SHA-256 of UTF-8 text with CRLF normalized to LF; other bytes preserved. Deployment artifacts require separate byte verification.';
   inventory.counts.operatorSources = inventory.operators.entries.length;
   inventory.counts.npmCommands = inventory.operators.npmScripts.length;
   inventory.coverage.scope.push(...inventory.operators.sourceDiscovery.map((directory) => `${directory}/**`), 'backend/prisma/seed.ts', 'root/backend/frontend loose source/config scripts', 'workspace package scripts');
@@ -320,7 +320,7 @@ export async function writeOrCheck(inventory, check, root = ROOT) {
   for (const [path, output] of outputs) {
     if (check) {
       let existing; try { existing = await readFile(join(root, path), "utf8"); } catch (error) { if (error.code === "ENOENT") throw new Error(`Missing inventory output ${path}`); throw error; }
-      if (existing !== output) throw new Error(`Stale inventory output ${path}; regenerate and review the source change`);
+      if (normalizeCheckoutNewlines(existing) !== normalizeCheckoutNewlines(output)) throw new Error(`Stale inventory output ${path}; regenerate and review the source change`);
     } else { await mkdir(dirname(join(root, path)), { recursive: true }); await writeFile(join(root, path), output, "utf8"); }
   }
 }

@@ -1,8 +1,6 @@
-import { createHash } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-
-const digest = (content) => createHash('sha256').update(content).digest('hex');
+import { sourceTextHash as digest } from './source-text.mjs';
 
 // Reads source only. Never executes scripts, loads .env, or walks private/generated trees.
 export async function operatorInventory(root, evidenceCommit) {

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { mkdtemp, mkdir, writeFile, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { ROOT, buildInventory, extractPages, extractRoutes, extractSchema, pagePath, parseSource, renderMarkdown, writeOrCheck } from "./inventory.mjs";
 import { operatorInventory } from "./operator-inventory.mjs";
+import { sourceTextHash } from "./source-text.mjs";
 
 let checks = 0;
 function check(name, run) { run(); checks++; console.log(`PASS ${name}`); }
@@ -110,12 +111,41 @@ check("markdown is deterministic and contains every route/page/model/source", ()
 });
 const fixtureParent = join(ROOT, ".cache"); await mkdir(fixtureParent, { recursive: true });
 const fixtureRoot = await mkdtemp(join(fixtureParent, "scalability-inventory-verification-"));
+check("checkout normalization preserves content and meaningful whitespace drift", () => {
+  assert.equal(sourceTextHash('same\r\nsource\r\n'), sourceTextHash('same\nsource\n'));
+  for (const changed of ['same\rsource\n', 'same\nsource', 'same \nsource\n', 'same\nchanged\n', '\ufeffsame\nsource\n']) {
+    assert.notEqual(sourceTextHash(changed), sourceTextHash('same\nsource\n'));
+  }
+});
+await asyncCheck("real source inventory agrees across LF and CRLF checkouts", async () => {
+  const sources = [...new Set([...inventory.sourceFiles.map(file => file.path), ...inventory.operators.entries.map(file => file.path), 'backend/prisma/schema.prisma'])];
+  const copies = ['lf', 'crlf'].map(style => join(fixtureRoot, style));
+  for (const source of sources) {
+    const content = (await readFile(join(ROOT, source), 'utf8')).replace(/\r\n/g, '\n');
+    for (const [index, destination] of copies.entries()) {
+      const file = join(destination, source);
+      await mkdir(dirname(file), { recursive: true });
+      await writeFile(file, index === 0 ? content : content.replace(/\n/g, '\r\n'), 'utf8');
+    }
+  }
+  assert.deepEqual(await buildInventory(copies[0]), await buildInventory(copies[1]));
+});
 await asyncCheck("check rejects missing outputs", async () => assert.rejects(writeOrCheck(inventory, true, fixtureRoot), /Missing inventory output/));
 await writeOrCheck(inventory, false, fixtureRoot);
 await asyncCheck("generated inventory passes check without rewriting", async () => {
   const before = await readFile(join(fixtureRoot, "docs/scalability/inventory.json"), "utf8");
   await writeOrCheck(inventory, true, fixtureRoot);
   assert.equal(await readFile(join(fixtureRoot, "docs/scalability/inventory.json"), "utf8"), before);
+});
+await asyncCheck("Git-converted inventory output passes without rewriting; content edits fail", async () => {
+  const output = join(fixtureRoot, 'docs/scalability/inventory.json');
+  const crlf = (await readFile(output, 'utf8')).replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+  await writeFile(output, crlf, 'utf8');
+  await writeOrCheck(inventory, true, fixtureRoot);
+  assert.equal(await readFile(output, 'utf8'), crlf);
+  await writeFile(output, crlf.replace('"formatVersion": 3', '"formatVersion": 99'), 'utf8');
+  await assert.rejects(writeOrCheck(inventory, true, fixtureRoot), /Stale inventory output/);
+  await writeOrCheck(inventory, false, fixtureRoot);
 });
 await asyncCheck("new source coverage is detected as drift", async () => {
   const changed = structuredClone(inventory); changed.sourceFiles.push({ ...changed.sourceFiles[0], path: "backend/src/new-source.ts" });

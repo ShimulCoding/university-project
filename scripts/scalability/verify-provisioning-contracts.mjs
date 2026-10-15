@@ -2,13 +2,15 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import ts from "typescript";
+import dotenv from "dotenv";
 import { fileURLToPath } from "node:url";
 import { operatorParameters, privateConfigurationFile } from "./provision-local-database.mjs";
-import { fixtureConfig, fixtureDispatchEnvironment, fixtureTransactionPooler, reportedCheckCounts } from "./verify-local-database.mjs";
+import { fixtureConfig, fixtureDispatchEnvironment, fixtureTransactionPooler, reportedCheckCounts, verificationEnvironment, verificationCommand } from "./verify-local-database.mjs";
 
 // Pure input/process-boundary contracts. Real restricted-database integration
 // remains a separate gate; this script never connects, migrates or provisions.
@@ -251,7 +253,8 @@ async function dispatchContracts() {
   let dispatchedOptions;
   const taskProcess = { env: {}, execPath: process.execPath };
   const context = vm.createContext({
-    root, path, assert, URL, fixtureConfig, fixtureDispatchEnvironment, reportedCheckCounts, stage: "contract", process: taskProcess,
+    root, path, assert, URL, fixtureConfig, fixtureDispatchEnvironment, reportedCheckCounts, verificationEnvironment, verificationCommand,
+    verificationDirectory: async () => path.join(root, ".cache/scalability", database, "verification-contract"), stage: "contract", process: taskProcess,
     readFile: async (file) => { assert.equal(file, path.join(root, "backend/package.json")); return JSON.stringify(manifest); },
     spawn: (_command, _args, options) => { dispatchedOptions = options; attemptedSpawns++; throw spawnTripwire; },
   });
@@ -272,6 +275,11 @@ async function dispatchContracts() {
   await blocked("unknown verifier is rejected", "verify:not-a-script");
   manifest.scripts["verify:unsafe-contract"] = "tsx synthetic.ts; other-command";
   await blocked("shell-bearing manifest command is rejected", "verify:unsafe-contract");
+  await blocked("legacy demo runtime cannot fall back to owner API", "verify:demo:runtime");
+  for (const command of ["tsx ../outside.ts", "tsx scripts/verify-security-logging.ts --import injected.mjs", "tsx --require injected.cjs scripts/verify-security-logging.ts", "tsx scripts/../outside.ts"]) {
+    manifest.scripts["verify:unsafe-contract"] = command;
+    await blocked("unreviewed script path or injected arguments are rejected", "verify:unsafe-contract");
+  }
   for (const script of ["verify:security-mfa-browser", "verify:security-reset-browser", "verify:network-sign-in"]) {
     await blocked("browser dispatch requires explicit targets", script);
     await blocked("browser dispatch rejects owner ports", script, { VERIFY_FRONTEND_BASE_URL: "http://localhost:3000", VERIFY_API_BASE_URL: "http://localhost:4000/api" });
@@ -281,6 +289,10 @@ async function dispatchContracts() {
   await allowed("pure workspace reaches stopped verifier dispatch", "verify:event-workspaces");
   await allowed("owned browser targets reach stopped verifier dispatch", "verify:security-mfa-browser", { VERIFY_FRONTEND_BASE_URL: "http://127.0.0.1:3300", VERIFY_API_BASE_URL: "http://127.0.0.1:4300/api" });
   await allowed("ordinary security verifier reaches stopped dispatch", "verify:security-logging");
+  check("child cwd is isolated and script arguments are absolute", () => {
+    assert.equal(dispatchedOptions.cwd, path.join(root, ".cache/scalability", database, "verification-contract"));
+    assert.deepEqual(verificationCommand(manifest, "verify:security-logging"), [path.join(root, "node_modules/tsx/dist/cli.mjs"), "--tsconfig", path.join(root, "backend/tsconfig.json"), path.join(root, "backend/scripts/verify-security-logging.ts")]);
+  });
   await allowed("direct dispatch overrides inherited pooler metadata", "verify:security-logging", {
     VERIFY_FIXTURE_CONNECTION_MODE: "pgbouncer-transaction", VERIFY_FIXTURE_POOLER_PORT: "9999", VERIFY_FIXTURE_UPSTREAM_PORT: "8888", VERIFY_FIXTURE_POOLER_IMAGE_ID: "synthetic-unreviewed-image", VERIFY_FIXTURE_DATABASE_URL: "synthetic-wrong-target",
   });
@@ -332,6 +344,54 @@ async function dispatchContracts() {
   });
   await asyncCheck("unmarked child diagnostic JSON is ignored", async () => {
     assert.equal(await failedChild([JSON.stringify({ verificationFailure: false, kind: "AppError", code: "P2010", databaseCode: "42501", status: 500 })]), null);
+  });
+}
+
+async function environmentIsolationContracts() {
+  const inherited = { PATH: "synthetic-system-path", SYSTEMROOT: "synthetic-windows", DATABASE_URL: "synthetic-owner-database", SMTP_PASS: "synthetic-owner-mail-secret", MFA_ENCRYPTION_KEY: "synthetic-owner-mfa", NODE_OPTIONS: "--require synthetic-injection.cjs", NODE_EXTRA_CA_CERTS: "synthetic-owner-certificate", DOTENV_CONFIG_PATH: "synthetic-owner.env", CLAMD_HOST: "203.0.113.123", SEED_ADMIN_PASSWORD: "synthetic-owner-password", VERIFY_DEMO_MFA_CODES_JSON: "synthetic-owner-code", APP_SETTING: "synthetic-unreviewed-setting" };
+  const isolated = verificationEnvironment(baseline, inherited);
+  check("inherited secrets injection flags and unknown app settings do not reach child", () => {
+    assert.equal(isolated.PATH, inherited.PATH); assert.equal(isolated.SYSTEMROOT, inherited.SYSTEMROOT);
+    assert.equal(isolated.DATABASE_URL, baseline.runtimeDatabaseUrl);
+    for (const name of Object.keys(inherited).filter((key) => !["PATH", "SYSTEMROOT", "DATABASE_URL"].includes(key))) assert.equal(isolated[name], undefined);
+  });
+  check("runtime fixture cannot inject process flags", () => {
+    const config = structuredClone(baseline); config.runtimeEnvironment.NODE_OPTIONS = "--require synthetic.cjs";
+    assert.throws(() => verificationEnvironment(config));
+  });
+  check("fixture scanner cannot contact external host", () => {
+    const config = structuredClone(baseline); config.runtimeEnvironment.CLAMD_HOST = "203.0.113.123";
+    assert.throws(() => verificationEnvironment(config));
+  });
+  for (const candidate of [{ VERIFY_BROWSER: "true" }, { VERIFY_DESIGN: "yes" }, { VERIFY_BROWSER_CHANNEL: "unreviewed" }, { VERIFY_OPENSSL_PATH: "unreviewed-openssl.exe" }, { VERIFY_DESIGN_SCREENSHOTS: path.join(root, "backend") }, { VERIFY_FRONTEND_BASE_URL: "http://127.0.0.1:3300?capability=synthetic" }, { VERIFY_API_BASE_URL: "http://synthetic:synthetic@127.0.0.1:4300/api" }, { VERIFY_API_BASE_URL: "http://127.0.0.1:4300/api#synthetic" }]) {
+    check("ambiguous remote executable or outside output override is denied", () => assert.throws(() => verificationEnvironment(baseline, candidate)));
+  }
+  const source = await readFile(path.join(root, "backend/src/config/load-env.ts"), "utf8");
+  const directory = await mkdtemp(path.join(root, ".cache/scalability/env-contract-"));
+  const projectDirectory = path.join(directory, "synthetic-project"), safeDirectory = path.join(directory, "isolated-child");
+  await mkdir(path.join(projectDirectory, "backend"), { recursive: true }); await mkdir(safeDirectory);
+  const tripwire = "SYNTHETIC_OWNER_ONLY_CANARY";
+  await writeFile(path.join(projectDirectory, "backend/.env"), `${tripwire}=synthetic-tripwire-value\n`, { flag: "wx" });
+  const load = (cwd, values) => {
+    const probed = [];
+    const modules = { "node:fs": { existsSync: (file) => { probed.push(file); return existsSync(file); } }, "node:path": path,
+      dotenv: { config: (options) => dotenv.config({ ...options, path: options?.path ?? path.join(cwd, ".env"), processEnv: values, quiet: true }) } };
+    const loaded = loadOwnedTypeScript(source, "backend/src/config/load-env.ts", modules, { process: { cwd: () => cwd } });
+    loaded.loadProjectEnv();
+    return probed;
+  };
+  check("actual env loader reproduces synthetic owner file fallback from project cwd", () => {
+    const values = verificationEnvironment(baseline, inherited);
+    const paths = load(projectDirectory, values);
+    assert.equal(values[tripwire], "synthetic-tripwire-value");
+    assert.deepEqual(paths, [path.join(projectDirectory, ".env"), path.join(projectDirectory, "backend/.env")]);
+  });
+  check("actual env loader in empty isolated cwd never probes synthetic project or owner dotenv", () => {
+    const values = verificationEnvironment(baseline, inherited);
+    const paths = load(safeDirectory, values);
+    assert.equal(values[tripwire], undefined);
+    assert.deepEqual(paths, [path.join(safeDirectory, ".env"), path.join(safeDirectory, "backend/.env")]);
+    assert.equal(values.DATABASE_URL, baseline.runtimeDatabaseUrl);
   });
 }
 
@@ -459,6 +519,7 @@ async function main() {
     assert.equal(result.code, 1); assert.equal(JSON.parse(result.stderr).status, "failed"); assert.equal(result.stdout, "");
   });
   await dispatchContracts();
+  await environmentIsolationContracts();
   await fixtureBoundaryContracts();
   currentCase = "independent Python input and version guards";
   await pythonContracts();

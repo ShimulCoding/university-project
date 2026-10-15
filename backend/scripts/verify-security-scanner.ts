@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createServer, Socket } from "node:net";
 import { spawnSync } from "node:child_process";
+import path from "node:path";
 import { DocumentCategory } from "@prisma/client";
 import { scanClamdBuffer } from "../src/utils/clamd-stream";
 import { scannerRequired, uploadScanner } from "../src/utils/upload-scanner";
@@ -82,10 +83,10 @@ async function main() {
     await assert.rejects(() => storeValidatedUploads([file(), file(Buffer.from("%PDF-1.4\nsynthetic-second-file"))], options)); checks++;
     assert.deepEqual(removed, ["synthetic-2"], "Batch rejection left its first newly stored file behind"); checks++;
     for (const overrides of [ { NODE_ENV: "production", UPLOAD_SCAN_REQUIRED: "false", CLAMD_HOST: undefined }, { NODE_ENV: "test", UPLOAD_SCAN_REQUIRED: "true", CLAMD_HOST: undefined }, { NODE_ENV: "test", UPLOAD_SCAN_REQUIRED: "true", CLAMD_HOST: "http://127.0.0.1" } ]) {
-      const child = spawnSync(process.execPath, ["dist/config/env.js"], { encoding: "utf8", timeout: 5000, maxBuffer: 8192, env: { ...process.env, ...overrides } });
+      const child = spawnSync(process.execPath, [path.join(__dirname, "../dist/config/env.js")], { encoding: "utf8", timeout: 5000, maxBuffer: 8192, env: { ...process.env, ...overrides } });
       assert.notEqual(child.status, 0); checks++;
     }
-    const configured = spawnSync(process.execPath, ["dist/config/env.js"], { encoding: "utf8", timeout: 5000, maxBuffer: 8192, env: { ...process.env, NODE_ENV: "production", UPLOAD_SCAN_REQUIRED: "false", CLAMD_HOST: "127.0.0.1" } });
+    const configured = spawnSync(process.execPath, [path.join(__dirname, "../dist/config/env.js")], { encoding: "utf8", timeout: 5000, maxBuffer: 8192, env: { ...process.env, NODE_ENV: "production", UPLOAD_SCAN_REQUIRED: "false", CLAMD_HOST: "127.0.0.1" } });
     assert.equal(configured.status, 0); checks++;
   } finally {
     uploadScanner.scan = scan; storageProvider.saveFile = save; storageProvider.removeFile = remove;

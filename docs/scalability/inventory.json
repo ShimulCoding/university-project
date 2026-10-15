@@ -18525,40 +18525,40 @@
         "path": "backend/scripts/verify-security-scanner.ts",
         "source": "backend/scripts/verify-security-scanner.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 101,
-        "sha256": "33f516d3971641d617c643307d3bc46e61a26d09ac644a1cda66d7574a017748",
+        "lines": 102,
+        "sha256": "88c88e04495e6f8947e52178f72c0a5a47a0e6ab38caec13fdbfc7d2955d8cc8",
         "effects": [
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-scanner.ts:4"
+            "source": "backend/scripts/verify-security-scanner.ts:5"
           },
           {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
-            "source": "backend/scripts/verify-security-scanner.ts:85"
+            "source": "backend/scripts/verify-security-scanner.ts:86"
           },
           {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
-            "source": "backend/scripts/verify-security-scanner.ts:88"
+            "source": "backend/scripts/verify-security-scanner.ts:89"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-scanner.ts:98"
+            "source": "backend/scripts/verify-security-scanner.ts:99"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-scanner.ts:100"
+            "source": "backend/scripts/verify-security-scanner.ts:101"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-scanner.ts:35",
-          "backend/scripts/verify-security-scanner.ts:39",
-          "backend/scripts/verify-security-scanner.ts:45",
+          "backend/scripts/verify-security-scanner.ts:36",
+          "backend/scripts/verify-security-scanner.ts:40",
           "backend/scripts/verify-security-scanner.ts:46",
-          "backend/scripts/verify-security-scanner.ts:62",
+          "backend/scripts/verify-security-scanner.ts:47",
           "backend/scripts/verify-security-scanner.ts:63",
-          "backend/scripts/verify-security-scanner.ts:84",
-          "backend/scripts/verify-security-scanner.ts:88",
-          "backend/scripts/verify-security-scanner.ts:97"
+          "backend/scripts/verify-security-scanner.ts:64",
+          "backend/scripts/verify-security-scanner.ts:85",
+          "backend/scripts/verify-security-scanner.ts:89",
+          "backend/scripts/verify-security-scanner.ts:98"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -18570,20 +18570,16 @@
         "path": "backend/scripts/verify-security-seed.ts",
         "source": "backend/scripts/verify-security-seed.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 62,
-        "sha256": "9a217f0cd5605778949fe2e5ed930be1ed38f835a3f271f29b96da5e255e9d08",
+        "lines": 63,
+        "sha256": "580830880b823723b319e0448e6aecf1e624b561c34319d5257482df40f37328",
         "effects": [
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-seed.ts:3"
+            "source": "backend/scripts/verify-security-seed.ts:4"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-seed.ts:11"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-seed.ts:23"
+            "source": "backend/scripts/verify-security-seed.ts:12"
           },
           {
             "kind": "database candidate",
@@ -18591,27 +18587,27 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-seed.ts:28"
+            "source": "backend/scripts/verify-security-seed.ts:25"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-seed.ts:32"
+            "source": "backend/scripts/verify-security-seed.ts:29"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-seed.ts:36"
+            "source": "backend/scripts/verify-security-seed.ts:33"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-seed.ts:39"
+            "source": "backend/scripts/verify-security-seed.ts:37"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-seed.ts:42"
+            "source": "backend/scripts/verify-security-seed.ts:40"
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-seed.ts:48"
+            "source": "backend/scripts/verify-security-seed.ts:43"
           },
           {
             "kind": "database candidate",
@@ -18623,23 +18619,27 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-seed.ts:52"
+            "source": "backend/scripts/verify-security-seed.ts:51"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-seed.ts:53"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-seed.ts:59"
+            "source": "backend/scripts/verify-security-seed.ts:60"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-seed.ts:61"
+            "source": "backend/scripts/verify-security-seed.ts:62"
           }
         ],
         "guardCandidates": [
-          "backend/scripts/verify-security-seed.ts:9",
           "backend/scripts/verify-security-seed.ts:10",
           "backend/scripts/verify-security-seed.ts:11",
-          "backend/scripts/verify-security-seed.ts:16",
-          "backend/scripts/verify-security-seed.ts:19"
+          "backend/scripts/verify-security-seed.ts:12",
+          "backend/scripts/verify-security-seed.ts:17",
+          "backend/scripts/verify-security-seed.ts:20"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -20445,9 +20445,13 @@
         "path": "scripts/scalability/verify-local-database.mjs",
         "source": "scripts/scalability/verify-local-database.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 246,
-        "sha256": "4340c6fd3b051af1c5756048ce8818d5b2700373e9f096f20fdb6ed328497b09",
+        "lines": 301,
+        "sha256": "0afc0fcef172d5dbecae8331215458b97aa374f13589d5c3f5414fdfcbf9d77c",
         "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:4"
+          },
           {
             "kind": "database candidate",
             "source": "scripts/scalability/verify-local-database.mjs:7"
@@ -20561,20 +20565,24 @@
             "source": "scripts/scalability/verify-local-database.mjs:177"
           },
           {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:240"
+          },
+          {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
-            "source": "scripts/scalability/verify-local-database.mjs:204"
+            "source": "scripts/scalability/verify-local-database.mjs:260"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-local-database.mjs:238"
+            "source": "scripts/scalability/verify-local-database.mjs:293"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-local-database.mjs:242"
+            "source": "scripts/scalability/verify-local-database.mjs:297"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-local-database.mjs:243"
+            "source": "scripts/scalability/verify-local-database.mjs:298"
           }
         ],
         "guardCandidates": [
@@ -20602,12 +20610,19 @@
           "scripts/scalability/verify-local-database.mjs:168",
           "scripts/scalability/verify-local-database.mjs:173",
           "scripts/scalability/verify-local-database.mjs:185",
-          "scripts/scalability/verify-local-database.mjs:191",
+          "scripts/scalability/verify-local-database.mjs:190",
+          "scripts/scalability/verify-local-database.mjs:193",
           "scripts/scalability/verify-local-database.mjs:195",
-          "scripts/scalability/verify-local-database.mjs:201",
-          "scripts/scalability/verify-local-database.mjs:206",
-          "scripts/scalability/verify-local-database.mjs:238",
-          "scripts/scalability/verify-local-database.mjs:240"
+          "scripts/scalability/verify-local-database.mjs:198",
+          "scripts/scalability/verify-local-database.mjs:205",
+          "scripts/scalability/verify-local-database.mjs:208",
+          "scripts/scalability/verify-local-database.mjs:221",
+          "scripts/scalability/verify-local-database.mjs:222",
+          "scripts/scalability/verify-local-database.mjs:225",
+          "scripts/scalability/verify-local-database.mjs:236",
+          "scripts/scalability/verify-local-database.mjs:256",
+          "scripts/scalability/verify-local-database.mjs:293",
+          "scripts/scalability/verify-local-database.mjs:295"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -20770,20 +20785,20 @@
         "path": "scripts/scalability/verify-provisioning-contracts.mjs",
         "source": "scripts/scalability/verify-provisioning-contracts.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 470,
-        "sha256": "ca0825da7bc35df76321c35f89434bc8d8730204269de820ed2bae03c1a5acdb",
+        "lines": 531,
+        "sha256": "089746425860772960b396023207a7e66448948c882a76307a49490c9a70bcd3",
         "effects": [
           {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:5"
+          },
+          {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:45"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:47"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:144"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:180"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:146"
           },
           {
             "kind": "database candidate",
@@ -20791,120 +20806,142 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:183"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:184"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:187"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:185"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:188"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:189"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:190"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:372"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:374"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:417"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:477"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:443"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:503"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:466"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:527"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:466"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:527"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:469"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:530"
           }
         ],
         "guardCandidates": [
-          "scripts/scalability/verify-provisioning-contracts.mjs:11",
-          "scripts/scalability/verify-provisioning-contracts.mjs:17",
-          "scripts/scalability/verify-provisioning-contracts.mjs:21",
-          "scripts/scalability/verify-provisioning-contracts.mjs:24",
-          "scripts/scalability/verify-provisioning-contracts.mjs:27",
-          "scripts/scalability/verify-provisioning-contracts.mjs:34",
-          "scripts/scalability/verify-provisioning-contracts.mjs:94",
-          "scripts/scalability/verify-provisioning-contracts.mjs:100",
-          "scripts/scalability/verify-provisioning-contracts.mjs:101",
-          "scripts/scalability/verify-provisioning-contracts.mjs:105",
-          "scripts/scalability/verify-provisioning-contracts.mjs:106",
-          "scripts/scalability/verify-provisioning-contracts.mjs:109",
-          "scripts/scalability/verify-provisioning-contracts.mjs:110",
-          "scripts/scalability/verify-provisioning-contracts.mjs:114",
-          "scripts/scalability/verify-provisioning-contracts.mjs:115",
+          "scripts/scalability/verify-provisioning-contracts.mjs:13",
+          "scripts/scalability/verify-provisioning-contracts.mjs:19",
+          "scripts/scalability/verify-provisioning-contracts.mjs:23",
+          "scripts/scalability/verify-provisioning-contracts.mjs:26",
+          "scripts/scalability/verify-provisioning-contracts.mjs:29",
+          "scripts/scalability/verify-provisioning-contracts.mjs:36",
+          "scripts/scalability/verify-provisioning-contracts.mjs:96",
+          "scripts/scalability/verify-provisioning-contracts.mjs:102",
+          "scripts/scalability/verify-provisioning-contracts.mjs:103",
+          "scripts/scalability/verify-provisioning-contracts.mjs:107",
+          "scripts/scalability/verify-provisioning-contracts.mjs:108",
+          "scripts/scalability/verify-provisioning-contracts.mjs:111",
+          "scripts/scalability/verify-provisioning-contracts.mjs:112",
           "scripts/scalability/verify-provisioning-contracts.mjs:116",
-          "scripts/scalability/verify-provisioning-contracts.mjs:121",
+          "scripts/scalability/verify-provisioning-contracts.mjs:117",
+          "scripts/scalability/verify-provisioning-contracts.mjs:118",
           "scripts/scalability/verify-provisioning-contracts.mjs:123",
-          "scripts/scalability/verify-provisioning-contracts.mjs:124",
           "scripts/scalability/verify-provisioning-contracts.mjs:125",
-          "scripts/scalability/verify-provisioning-contracts.mjs:132",
-          "scripts/scalability/verify-provisioning-contracts.mjs:148",
+          "scripts/scalability/verify-provisioning-contracts.mjs:126",
+          "scripts/scalability/verify-provisioning-contracts.mjs:127",
+          "scripts/scalability/verify-provisioning-contracts.mjs:134",
           "scripts/scalability/verify-provisioning-contracts.mjs:150",
-          "scripts/scalability/verify-provisioning-contracts.mjs:156",
+          "scripts/scalability/verify-provisioning-contracts.mjs:152",
           "scripts/scalability/verify-provisioning-contracts.mjs:158",
           "scripts/scalability/verify-provisioning-contracts.mjs:160",
-          "scripts/scalability/verify-provisioning-contracts.mjs:163",
-          "scripts/scalability/verify-provisioning-contracts.mjs:166",
-          "scripts/scalability/verify-provisioning-contracts.mjs:167",
+          "scripts/scalability/verify-provisioning-contracts.mjs:162",
+          "scripts/scalability/verify-provisioning-contracts.mjs:165",
+          "scripts/scalability/verify-provisioning-contracts.mjs:168",
           "scripts/scalability/verify-provisioning-contracts.mjs:169",
           "scripts/scalability/verify-provisioning-contracts.mjs:171",
-          "scripts/scalability/verify-provisioning-contracts.mjs:174",
-          "scripts/scalability/verify-provisioning-contracts.mjs:175",
+          "scripts/scalability/verify-provisioning-contracts.mjs:173",
+          "scripts/scalability/verify-provisioning-contracts.mjs:176",
           "scripts/scalability/verify-provisioning-contracts.mjs:177",
-          "scripts/scalability/verify-provisioning-contracts.mjs:178",
+          "scripts/scalability/verify-provisioning-contracts.mjs:179",
           "scripts/scalability/verify-provisioning-contracts.mjs:180",
           "scripts/scalability/verify-provisioning-contracts.mjs:182",
-          "scripts/scalability/verify-provisioning-contracts.mjs:183",
-          "scripts/scalability/verify-provisioning-contracts.mjs:188",
-          "scripts/scalability/verify-provisioning-contracts.mjs:189",
-          "scripts/scalability/verify-provisioning-contracts.mjs:198",
-          "scripts/scalability/verify-provisioning-contracts.mjs:204",
-          "scripts/scalability/verify-provisioning-contracts.mjs:205",
+          "scripts/scalability/verify-provisioning-contracts.mjs:184",
+          "scripts/scalability/verify-provisioning-contracts.mjs:185",
+          "scripts/scalability/verify-provisioning-contracts.mjs:190",
+          "scripts/scalability/verify-provisioning-contracts.mjs:191",
+          "scripts/scalability/verify-provisioning-contracts.mjs:200",
           "scripts/scalability/verify-provisioning-contracts.mjs:206",
-          "scripts/scalability/verify-provisioning-contracts.mjs:210",
-          "scripts/scalability/verify-provisioning-contracts.mjs:216",
-          "scripts/scalability/verify-provisioning-contracts.mjs:220",
+          "scripts/scalability/verify-provisioning-contracts.mjs:207",
+          "scripts/scalability/verify-provisioning-contracts.mjs:208",
+          "scripts/scalability/verify-provisioning-contracts.mjs:212",
+          "scripts/scalability/verify-provisioning-contracts.mjs:218",
           "scripts/scalability/verify-provisioning-contracts.mjs:222",
           "scripts/scalability/verify-provisioning-contracts.mjs:224",
-          "scripts/scalability/verify-provisioning-contracts.mjs:227",
-          "scripts/scalability/verify-provisioning-contracts.mjs:228",
-          "scripts/scalability/verify-provisioning-contracts.mjs:231",
-          "scripts/scalability/verify-provisioning-contracts.mjs:235",
-          "scripts/scalability/verify-provisioning-contracts.mjs:238",
+          "scripts/scalability/verify-provisioning-contracts.mjs:226",
+          "scripts/scalability/verify-provisioning-contracts.mjs:229",
+          "scripts/scalability/verify-provisioning-contracts.mjs:230",
+          "scripts/scalability/verify-provisioning-contracts.mjs:233",
+          "scripts/scalability/verify-provisioning-contracts.mjs:237",
           "scripts/scalability/verify-provisioning-contracts.mjs:240",
-          "scripts/scalability/verify-provisioning-contracts.mjs:241",
-          "scripts/scalability/verify-provisioning-contracts.mjs:254",
-          "scripts/scalability/verify-provisioning-contracts.mjs:277",
-          "scripts/scalability/verify-provisioning-contracts.mjs:280",
-          "scripts/scalability/verify-provisioning-contracts.mjs:282",
+          "scripts/scalability/verify-provisioning-contracts.mjs:242",
+          "scripts/scalability/verify-provisioning-contracts.mjs:243",
+          "scripts/scalability/verify-provisioning-contracts.mjs:256",
+          "scripts/scalability/verify-provisioning-contracts.mjs:257",
           "scripts/scalability/verify-provisioning-contracts.mjs:285",
-          "scripts/scalability/verify-provisioning-contracts.mjs:287",
-          "scripts/scalability/verify-provisioning-contracts.mjs:289",
+          "scripts/scalability/verify-provisioning-contracts.mjs:288",
+          "scripts/scalability/verify-provisioning-contracts.mjs:290",
           "scripts/scalability/verify-provisioning-contracts.mjs:293",
-          "scripts/scalability/verify-provisioning-contracts.mjs:294",
-          "scripts/scalability/verify-provisioning-contracts.mjs:295",
-          "scripts/scalability/verify-provisioning-contracts.mjs:296",
-          "scripts/scalability/verify-provisioning-contracts.mjs:298",
+          "scripts/scalability/verify-provisioning-contracts.mjs:297",
           "scripts/scalability/verify-provisioning-contracts.mjs:299",
-          "scripts/scalability/verify-provisioning-contracts.mjs:347",
-          "scripts/scalability/verify-provisioning-contracts.mjs:348",
+          "scripts/scalability/verify-provisioning-contracts.mjs:301",
+          "scripts/scalability/verify-provisioning-contracts.mjs:305",
+          "scripts/scalability/verify-provisioning-contracts.mjs:306",
+          "scripts/scalability/verify-provisioning-contracts.mjs:307",
+          "scripts/scalability/verify-provisioning-contracts.mjs:308",
+          "scripts/scalability/verify-provisioning-contracts.mjs:310",
+          "scripts/scalability/verify-provisioning-contracts.mjs:311",
+          "scripts/scalability/verify-provisioning-contracts.mjs:351",
+          "scripts/scalability/verify-provisioning-contracts.mjs:355",
+          "scripts/scalability/verify-provisioning-contracts.mjs:356",
+          "scripts/scalability/verify-provisioning-contracts.mjs:358",
+          "scripts/scalability/verify-provisioning-contracts.mjs:362",
+          "scripts/scalability/verify-provisioning-contracts.mjs:366",
+          "scripts/scalability/verify-provisioning-contracts.mjs:370",
+          "scripts/scalability/verify-provisioning-contracts.mjs:394",
           "scripts/scalability/verify-provisioning-contracts.mjs:407",
-          "scripts/scalability/verify-provisioning-contracts.mjs:428",
-          "scripts/scalability/verify-provisioning-contracts.mjs:431",
-          "scripts/scalability/verify-provisioning-contracts.mjs:434",
-          "scripts/scalability/verify-provisioning-contracts.mjs:439",
-          "scripts/scalability/verify-provisioning-contracts.mjs:440",
-          "scripts/scalability/verify-provisioning-contracts.mjs:442",
-          "scripts/scalability/verify-provisioning-contracts.mjs:443",
-          "scripts/scalability/verify-provisioning-contracts.mjs:444",
-          "scripts/scalability/verify-provisioning-contracts.mjs:450",
-          "scripts/scalability/verify-provisioning-contracts.mjs:462"
+          "scripts/scalability/verify-provisioning-contracts.mjs:408",
+          "scripts/scalability/verify-provisioning-contracts.mjs:467",
+          "scripts/scalability/verify-provisioning-contracts.mjs:488",
+          "scripts/scalability/verify-provisioning-contracts.mjs:491",
+          "scripts/scalability/verify-provisioning-contracts.mjs:494",
+          "scripts/scalability/verify-provisioning-contracts.mjs:499",
+          "scripts/scalability/verify-provisioning-contracts.mjs:500",
+          "scripts/scalability/verify-provisioning-contracts.mjs:502",
+          "scripts/scalability/verify-provisioning-contracts.mjs:503",
+          "scripts/scalability/verify-provisioning-contracts.mjs:504",
+          "scripts/scalability/verify-provisioning-contracts.mjs:510",
+          "scripts/scalability/verify-provisioning-contracts.mjs:523"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",

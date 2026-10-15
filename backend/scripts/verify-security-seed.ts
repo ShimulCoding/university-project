@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import { Prisma, RoleCode } from "@prisma/client";
 import { localSeedConfig, requireDemoSeedPassword, seedPassword } from "../src/utils/local-seed-policy";
 import { assertFreshDemoDataset, createSeedAccount, seedLocalDataset } from "../src/utils/local-seed";
@@ -52,7 +53,7 @@ async function main() {
   await createSeedAccount(demoStudent.tx, { fullName: "Synthetic", email: "student@example.invalid", roles: [RoleCode.GENERAL_STUDENT] }, "synthetic", "operator");
   assert.equal(demoStudent.writes.filter((entry) => entry.model === "audit").length, 1); checks++;
   for (const file of ["scripts/seed-demo-runtime-data.ts", "scripts/seed-events-payments-demo.ts"]) {
-    const source = readFileSync(file, "utf8");
+    const source = readFileSync(path.join(__dirname, path.basename(file)), "utf8");
     assert(!source.includes("user.upsert") && !source.includes("eventTeamMember.upsert") && !source.includes("DemoPass123!")); checks++;
     assert(source.indexOf("requireDemoSeedPassword(process.env)") < source.lastIndexOf("await ensureRoleCatalog()")); checks++;
   }

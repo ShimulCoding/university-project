@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, realpath, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { PrismaClient } from "@prisma/client";
@@ -186,24 +186,79 @@ export function reportedCheckCounts(stdout) {
   return [...stdout.matchAll(/\b(\d+) (?:[\w/, -]{0,100} )?checks(?: passed[.;]|\))/g)].map((match) => Number(match[1]));
 }
 
+export function verificationEnvironment(config, inherited = {}) {
+  fixtureConfig(config);
+  const osNames = new Set(["PATH", "SYSTEMROOT", "WINDIR", "COMSPEC", "TEMP", "TMP", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "PROGRAMDATA", "PROGRAMFILES", "PROGRAMFILES(X86)", "PROGRAMW6432", "PATHEXT"]);
+  const environment = Object.fromEntries(Object.entries(inherited).filter(([key, value]) => osNames.has(key.toUpperCase()) && typeof value === "string"));
+  const runtimeNames = new Set(["NODE_ENV", "PORT", "FRONTEND_URL", "DATABASE_URL", "ENABLE_LOCAL_ADMIN_BOOTSTRAP", "TRUST_PROXY_HOPS", "JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET", "MFA_ENCRYPTION_KEY", "BCRYPT_SALT_ROUNDS", "UPLOADS_ROOT", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "SMTP_FROM", "SMTP_SECURE", "ACCESS_TOKEN_TTL", "REFRESH_TOKEN_TTL", "ACCESS_TOKEN_COOKIE_NAME", "REFRESH_TOKEN_COOKIE_NAME", "UPLOAD_SCAN_REQUIRED", "CLAMD_HOST", "CLAMD_PORT", "CLAMD_TIMEOUT_MS"]);
+  for (const [key, value] of Object.entries(config.runtimeEnvironment)) {
+    assert(runtimeNames.has(key) && typeof value === "string" && !value.includes("\0"), "Only explicit reviewed fixture runtime settings are accepted");
+    environment[key] = value;
+  }
+  if (environment.CLAMD_HOST !== undefined) assert(["localhost", "127.0.0.1", "::1"].includes(environment.CLAMD_HOST), "Fixture scanning must remain on loopback");
+  for (const name of ["VERIFY_BROWSER", "VERIFY_DESIGN"]) {
+    if (inherited[name] !== undefined) {
+      assert(inherited[name] === "0" || inherited[name] === "1", "Verification flags require explicit boolean digits");
+      environment[name] = inherited[name];
+    }
+  }
+  for (const [key, expected] of [["VERIFY_FRONTEND_BASE_URL", config.runtimeEnvironment.FRONTEND_URL], ["VERIFY_API_BASE_URL", `http://127.0.0.1:${config.runtimeEnvironment.PORT}/api`]]) {
+    if (inherited[key] !== undefined) {
+      const candidate = new URL(inherited[key]);
+      assert(candidate.protocol === "http:" && candidate.hostname === "127.0.0.1" && candidate.username === "" && candidate.password === "" && candidate.search === "" && candidate.hash === "" && candidate.href.replace(/\/$/, "") === expected, "Verification targets must exactly match the owned fixture");
+      environment[key] = inherited[key];
+    }
+  }
+  if (inherited.VERIFY_BROWSER_CHANNEL !== undefined) {
+    assert(["msedge", "chrome", "chromium"].includes(inherited.VERIFY_BROWSER_CHANNEL), "Only installed reviewed browser channels are accepted");
+    environment.VERIFY_BROWSER_CHANNEL = inherited.VERIFY_BROWSER_CHANNEL;
+  }
+  if (inherited.VERIFY_OPENSSL_PATH !== undefined) {
+    assert(path.resolve(inherited.VERIFY_OPENSSL_PATH) === path.resolve("C:/Program Files/Git/usr/bin/openssl.exe"), "Only the reviewed installed OpenSSL is accepted");
+    environment.VERIFY_OPENSSL_PATH = inherited.VERIFY_OPENSSL_PATH;
+  }
+  if (inherited.VERIFY_DESIGN_SCREENSHOTS !== undefined) {
+    const relative = path.relative(path.join(root, ".cache/scalability", config.database), path.resolve(inherited.VERIFY_DESIGN_SCREENSHOTS));
+    assert(relative && !relative.startsWith("..") && !path.isAbsolute(relative), "Screenshots must remain in this owned fixture directory");
+    environment.VERIFY_DESIGN_SCREENSHOTS = path.resolve(inherited.VERIFY_DESIGN_SCREENSHOTS);
+  }
+  return { ...environment, ...fixtureDispatchEnvironment(config) };
+}
+
+export function verificationCommand(manifest, script) {
+  assert(/^verify:[a-z0-9:-]+$/.test(script) && Object.hasOwn(manifest.scripts, script) && script !== "verify:demo:runtime", "Only existing isolated backend verification scripts are allowed");
+  const match = /^tsx (scripts\/[a-z0-9][a-z0-9-]*\.ts)$/.exec(manifest.scripts[script]);
+  assert(match, "Only one reviewed repository TypeScript entry without injected arguments is accepted");
+  return [path.join(root, "node_modules/tsx/dist/cli.mjs"), "--tsconfig", path.join(root, "backend/tsconfig.json"), path.join(root, "backend", match[1])];
+}
+
+export async function verificationDirectory(config) {
+  const directory = path.join(root, ".cache/scalability", config.database);
+  assert.equal(await realpath(directory), directory, "Fixture parent cannot redirect outside the owned path");
+  const cwd = await mkdtemp(path.join(directory, "verification-"));
+  const marker = path.join(cwd, "runner.json");
+  await writeFile(marker, JSON.stringify({ purpose: "isolated_verification_working_directory" }), { flag: "wx", mode: 0o600 });
+  await privateConfigurationFile(marker); // Verify inherited private ACL before starting an application process.
+  assert.deepEqual(await readdir(cwd), ["runner.json"], "A fresh verification directory cannot contain dotenv files or project configuration");
+  return cwd;
+}
+
 async function runScript(config, script) {
   stage = "owned_verification_child";
-  const fixtureEnvironment = fixtureDispatchEnvironment(config);
+  const environment = verificationEnvironment(config, process.env);
   const manifest = JSON.parse(await readFile(path.join(root, "backend/package.json"), "utf8"));
-  assert(/^verify:[a-z0-9:-]+$/.test(script) && manifest.scripts[script], "Only existing backend verification scripts are allowed");
-  assert(manifest.scripts[script].startsWith("tsx ") && !/[;&|`$<>]/.test(manifest.scripts[script]), "Only reviewed tsx verification commands are accepted");
-  assert.equal(config.runtimeEnvironment.DATABASE_URL, config.runtimeDatabaseUrl);
-  const workspaceUsesFrontend = script === "verify:event-workspaces" && (process.env.VERIFY_FRONTEND_BASE_URL || process.env.VERIFY_BROWSER === "1" || process.env.VERIFY_DESIGN === "1");
+  const command = verificationCommand(manifest, script);
+  const workspaceUsesFrontend = script === "verify:event-workspaces" && (environment.VERIFY_FRONTEND_BASE_URL || environment.VERIFY_BROWSER === "1" || environment.VERIFY_DESIGN === "1");
   if (["verify:security-mfa-browser", "verify:security-reset-browser", "verify:network-sign-in"].includes(script) || workspaceUsesFrontend) {
-    const frontend = process.env.VERIFY_FRONTEND_BASE_URL, api = process.env.VERIFY_API_BASE_URL;
+    const frontend = environment.VERIFY_FRONTEND_BASE_URL, api = environment.VERIFY_API_BASE_URL;
     assert(frontend && api, "Owned browser/API targets must be supplied explicitly before isolated browser verification");
     const frontUrl = new URL(frontend), apiUrl = new URL(api);
     assert(frontUrl.origin === config.runtimeEnvironment.FRONTEND_URL && apiUrl.origin === `http://127.0.0.1:${config.runtimeEnvironment.PORT}` && apiUrl.pathname === "/api", "Browser/API targets must match the owned fixture application configuration");
   }
+  const cwd = await verificationDirectory(config);
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(root, "node_modules/tsx/dist/cli.mjs"), ...manifest.scripts[script].slice(4).trim().split(/\s+/)], {
-      cwd: path.join(root, "backend"), windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
-      env: { ...process.env, ...config.runtimeEnvironment, ...fixtureEnvironment },
+    const child = spawn(process.execPath, command, {
+      cwd, windowsHide: true, stdio: ["ignore", "pipe", "pipe"], env: environment,
     });
     let stdout = "", stderr = "";
     child.stdout.on("data", (data) => { if (stdout.length < 1024 * 1024) stdout += data.toString(); });

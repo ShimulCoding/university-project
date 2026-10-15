@@ -1,4 +1,4 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { lstat, readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { sourceTextHash as digest } from './source-text.mjs';
 
@@ -25,8 +25,14 @@ export async function operatorInventory(root, evidenceCommit) {
   const sourceDiscovery = ['backend/scripts', 'frontend/scripts', 'scripts', 'infra', 'backend/prisma/migrations', '.github/workflows'];
   for (const directory of sourceDiscovery) await collect(directory);
   for (const directory of ['', 'backend', 'frontend']) await collect(directory, false);
-  try { await readFile(join(root, 'backend/prisma/seed.ts'), 'utf8'); candidates.add('backend/prisma/seed.ts'); }
-  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  const explicitSources = ['backend/prisma/seed.ts', 'docs/security-runtime-grants.sql'];
+  for (const file of explicitSources) {
+    try {
+      const entry = await lstat(join(root, file));
+      if (entry.isSymbolicLink() || !entry.isFile()) throw new Error(`Explicit operator source must be an ordinary file: ${file}`);
+      candidates.add(file);
+    } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }
   const entries = [];
   for (const file of [...candidates].sort()) {
     const content = await readFile(join(root, file), 'utf8');
@@ -65,5 +71,5 @@ export async function operatorInventory(root, evidenceCommit) {
         trustBoundary: 'Operator/build/test command; trace imported and external effects before execution.' });
     }
   }
-  return { entries, npmScripts, sourceDiscovery };
+  return { entries, npmScripts, sourceDiscovery, explicitSources };
 }

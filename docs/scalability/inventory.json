@@ -12,7 +12,7 @@
     "recurringSchedulers": 1,
     "timers": 9,
     "inputSinkCandidates": 224,
-    "operatorSources": 111,
+    "operatorSources": 116,
     "npmCommands": 63
   },
   "coverage": {
@@ -27,6 +27,7 @@
       "backend/prisma/migrations/**",
       ".github/workflows/**",
       "backend/prisma/seed.ts",
+      "docs/security-runtime-grants.sql",
       "root/backend/frontend loose source/config scripts",
       "workspace package scripts"
     ],
@@ -18827,6 +18828,25 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "docs/security-runtime-grants.sql",
+        "source": "docs/security-runtime-grants.sql:1",
+        "kind": "maintenance/operator script; inspect before execution",
+        "lines": 250,
+        "sha256": "c2834655e3810bb38a0f60083844ad72f5e4d02240ab15903af26df8b246a8a7",
+        "effects": [
+          {
+            "kind": "database candidate",
+            "source": "docs/security-runtime-grants.sql:193"
+          }
+        ],
+        "guardCandidates": [],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "fix.js",
         "source": "fix.js:1",
         "kind": "maintenance/operator script; inspect before execution",
@@ -19718,7 +19738,7 @@
         "source": "scripts/scalability/inventory.mjs:1",
         "kind": "verification/profiling tool",
         "lines": 333,
-        "sha256": "d2325abc5cd5c4e1cfb4a5de23868799409ea6968f73046bc579b00abe90b323",
+        "sha256": "b6dd3ddf2bbbab54de79b2cdb1dfc8b4ebd9e7454e99fd82be5679c9628ac894",
         "effects": [
           {
             "kind": "filesystem write candidate",
@@ -19778,10 +19798,6 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/inventory.mjs:301"
-          },
-          {
-            "kind": "database candidate",
             "source": "scripts/scalability/inventory.mjs:313"
           },
           {
@@ -19804,8 +19820,8 @@
         "path": "scripts/scalability/operator-inventory.mjs",
         "source": "scripts/scalability/operator-inventory.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 70,
-        "sha256": "53adbe8c59797dafe9a1b33c6353a5ac4878f156fe55159909d28c7e127e83de",
+        "lines": 76,
+        "sha256": "3a6abcb6a755723c7d16f1673c47feeebf081ac139303a2d01165dec0b695a90",
         "effects": [
           {
             "kind": "database candidate",
@@ -19817,19 +19833,116 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/operator-inventory.mjs:43"
+            "source": "scripts/scalability/operator-inventory.mjs:49"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/operator-inventory.mjs:44"
+            "source": "scripts/scalability/operator-inventory.mjs:50"
           },
           {
             "kind": "libpq database/network candidate",
-            "source": "scripts/scalability/operator-inventory.mjs:46"
+            "source": "scripts/scalability/operator-inventory.mjs:52"
           }
         ],
         "guardCandidates": [
-          "scripts/scalability/operator-inventory.mjs:49"
+          "scripts/scalability/operator-inventory.mjs:55"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/postgres-cutover-fixture.py",
+        "source": "scripts/scalability/postgres-cutover-fixture.py:1",
+        "kind": "verification/profiling tool",
+        "lines": 85,
+        "sha256": "ad9b0cbb596a2443319151028e1454fece9ed098fbbc874a6b38944676441ae6",
+        "effects": [
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:44"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:45"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:48"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:50"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:51"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:51"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:52"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:53"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:54"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:56"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:57"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:58"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:61"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:63"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:65"
+          },
+          {
+            "kind": "libpq database/network candidate",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:67"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:68"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:80"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/postgres-cutover-fixture.py:83"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/postgres-cutover-fixture.py:10",
+          "scripts/scalability/postgres-cutover-fixture.py:24",
+          "scripts/scalability/postgres-cutover-fixture.py:30",
+          "scripts/scalability/postgres-cutover-fixture.py:47",
+          "scripts/scalability/postgres-cutover-fixture.py:68"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -20197,6 +20310,420 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "scripts/scalability/verify-cutover-grant-contracts.mjs",
+        "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 117,
+        "sha256": "06c6bc126623223d2651aa2409b2b2918882f48523750940a6a1919921accba1",
+        "effects": [
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:32"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:34"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:36"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:52"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:53"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:65"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:79"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:89"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:104"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:111"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:113"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:116"
+          }
+        ],
+        "guardCandidates": [],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/verify-cutover-grants-local.mjs",
+        "source": "scripts/scalability/verify-cutover-grants-local.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 299,
+        "sha256": "5c140c583b28e3fca4e9f616eb7c1c5dacf76ad2517d0cf23ef4a011c856276d",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:4"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:7"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:25"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:28"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:35"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:70"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:71"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:75"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:76"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:80"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:82"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:83"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:84"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:85"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:86"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:87"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:88"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:89"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:94"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:96"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:97"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:98"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:99"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:108"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:111"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:115"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:117"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:121"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:125"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:127"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:128"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:128"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:129"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:130"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:132"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:133"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:136"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:140"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:172"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:174"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:197"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:204"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:207"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:209"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:213"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:214"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:215"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:216"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:217"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:228"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:235"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:239"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:240"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:241"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:242"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:244"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:245"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:254"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:258"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:263"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:264"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:265"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:266"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:267"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:268"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:269"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:270"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:277"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:279"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:282"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:291"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:292"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:295"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:296"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/verify-cutover-grants-local.mjs:9",
+          "scripts/scalability/verify-cutover-grants-local.mjs:19",
+          "scripts/scalability/verify-cutover-grants-local.mjs:24",
+          "scripts/scalability/verify-cutover-grants-local.mjs:25",
+          "scripts/scalability/verify-cutover-grants-local.mjs:30",
+          "scripts/scalability/verify-cutover-grants-local.mjs:48",
+          "scripts/scalability/verify-cutover-grants-local.mjs:56",
+          "scripts/scalability/verify-cutover-grants-local.mjs:66",
+          "scripts/scalability/verify-cutover-grants-local.mjs:120",
+          "scripts/scalability/verify-cutover-grants-local.mjs:123",
+          "scripts/scalability/verify-cutover-grants-local.mjs:124",
+          "scripts/scalability/verify-cutover-grants-local.mjs:125",
+          "scripts/scalability/verify-cutover-grants-local.mjs:126",
+          "scripts/scalability/verify-cutover-grants-local.mjs:137",
+          "scripts/scalability/verify-cutover-grants-local.mjs:138",
+          "scripts/scalability/verify-cutover-grants-local.mjs:140",
+          "scripts/scalability/verify-cutover-grants-local.mjs:164",
+          "scripts/scalability/verify-cutover-grants-local.mjs:166",
+          "scripts/scalability/verify-cutover-grants-local.mjs:281",
+          "scripts/scalability/verify-cutover-grants-local.mjs:291",
+          "scripts/scalability/verify-cutover-grants-local.mjs:294"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/verify-cutover-handoff.ps1",
+        "source": "scripts/scalability/verify-cutover-handoff.ps1:1",
+        "kind": "verification/profiling tool",
+        "lines": 113,
+        "sha256": "9256c9518b52c59074f8e39709c85ebb2c03b7446c792967cb7c9fbc5f554dc6",
+        "effects": [],
+        "guardCandidates": [
+          "scripts/scalability/verify-cutover-handoff.ps1:19",
+          "scripts/scalability/verify-cutover-handoff.ps1:32",
+          "scripts/scalability/verify-cutover-handoff.ps1:34"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "scripts/scalability/verify-host-recovery-contracts.ps1",
         "source": "scripts/scalability/verify-host-recovery-contracts.ps1:1",
         "kind": "verification/profiling tool",
@@ -20217,8 +20744,8 @@
         "path": "scripts/scalability/verify-inventory.mjs",
         "source": "scripts/scalability/verify-inventory.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 209,
-        "sha256": "217ddbebf67d6ff890083d0a218c187ae1c1632aaa312b18cf4660736727ae42",
+        "lines": 229,
+        "sha256": "f901120aa2e66d3472c2ce6aef7d240418dadf956f1293f5620067aba020f720",
         "effects": [
           {
             "kind": "filesystem write candidate",
@@ -20258,23 +20785,19 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:87"
+            "source": "scripts/scalability/verify-inventory.mjs:88"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:89"
+            "source": "scripts/scalability/verify-inventory.mjs:90"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:112"
+            "source": "scripts/scalability/verify-inventory.mjs:113"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:121"
-          },
-          {
-            "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:127"
+            "source": "scripts/scalability/verify-inventory.mjs:122"
           },
           {
             "kind": "filesystem write candidate",
@@ -20282,19 +20805,19 @@
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:143"
+            "source": "scripts/scalability/verify-inventory.mjs:129"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:146"
+            "source": "scripts/scalability/verify-inventory.mjs:144"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:168"
+            "source": "scripts/scalability/verify-inventory.mjs:147"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:172"
+            "source": "scripts/scalability/verify-inventory.mjs:169"
           },
           {
             "kind": "filesystem write candidate",
@@ -20306,19 +20829,19 @@
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:181"
+            "source": "scripts/scalability/verify-inventory.mjs:175"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:183"
+            "source": "scripts/scalability/verify-inventory.mjs:182"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:189"
+            "source": "scripts/scalability/verify-inventory.mjs:184"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:195"
+            "source": "scripts/scalability/verify-inventory.mjs:190"
           },
           {
             "kind": "filesystem write candidate",
@@ -20326,7 +20849,7 @@
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:200"
+            "source": "scripts/scalability/verify-inventory.mjs:197"
           },
           {
             "kind": "filesystem write candidate",
@@ -20334,11 +20857,47 @@
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-inventory.mjs:205"
+            "source": "scripts/scalability/verify-inventory.mjs:202"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:206"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:207"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:207"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:208"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:209"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:215"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:215"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:221"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-inventory.mjs:225"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-inventory.mjs:208"
+            "source": "scripts/scalability/verify-inventory.mjs:228"
           }
         ],
         "guardCandidates": [
@@ -20351,43 +20910,51 @@
           "scripts/scalability/verify-inventory.mjs:69",
           "scripts/scalability/verify-inventory.mjs:70",
           "scripts/scalability/verify-inventory.mjs:71",
-          "scripts/scalability/verify-inventory.mjs:91",
-          "scripts/scalability/verify-inventory.mjs:104",
-          "scripts/scalability/verify-inventory.mjs:112",
+          "scripts/scalability/verify-inventory.mjs:92",
+          "scripts/scalability/verify-inventory.mjs:105",
           "scripts/scalability/verify-inventory.mjs:113",
-          "scripts/scalability/verify-inventory.mjs:122",
-          "scripts/scalability/verify-inventory.mjs:133",
+          "scripts/scalability/verify-inventory.mjs:114",
+          "scripts/scalability/verify-inventory.mjs:123",
           "scripts/scalability/verify-inventory.mjs:134",
-          "scripts/scalability/verify-inventory.mjs:136",
+          "scripts/scalability/verify-inventory.mjs:135",
           "scripts/scalability/verify-inventory.mjs:137",
           "scripts/scalability/verify-inventory.mjs:138",
-          "scripts/scalability/verify-inventory.mjs:141",
-          "scripts/scalability/verify-inventory.mjs:144",
-          "scripts/scalability/verify-inventory.mjs:147",
+          "scripts/scalability/verify-inventory.mjs:139",
+          "scripts/scalability/verify-inventory.mjs:142",
+          "scripts/scalability/verify-inventory.mjs:145",
           "scripts/scalability/verify-inventory.mjs:148",
-          "scripts/scalability/verify-inventory.mjs:152",
-          "scripts/scalability/verify-inventory.mjs:156",
-          "scripts/scalability/verify-inventory.mjs:160",
-          "scripts/scalability/verify-inventory.mjs:162",
-          "scripts/scalability/verify-inventory.mjs:165",
-          "scripts/scalability/verify-inventory.mjs:168",
+          "scripts/scalability/verify-inventory.mjs:149",
+          "scripts/scalability/verify-inventory.mjs:153",
+          "scripts/scalability/verify-inventory.mjs:157",
+          "scripts/scalability/verify-inventory.mjs:161",
+          "scripts/scalability/verify-inventory.mjs:163",
+          "scripts/scalability/verify-inventory.mjs:166",
           "scripts/scalability/verify-inventory.mjs:169",
-          "scripts/scalability/verify-inventory.mjs:172",
+          "scripts/scalability/verify-inventory.mjs:170",
           "scripts/scalability/verify-inventory.mjs:173",
           "scripts/scalability/verify-inventory.mjs:174",
           "scripts/scalability/verify-inventory.mjs:175",
-          "scripts/scalability/verify-inventory.mjs:181",
-          "scripts/scalability/verify-inventory.mjs:183",
+          "scripts/scalability/verify-inventory.mjs:176",
+          "scripts/scalability/verify-inventory.mjs:182",
           "scripts/scalability/verify-inventory.mjs:184",
-          "scripts/scalability/verify-inventory.mjs:189",
+          "scripts/scalability/verify-inventory.mjs:185",
           "scripts/scalability/verify-inventory.mjs:190",
-          "scripts/scalability/verify-inventory.mjs:195",
+          "scripts/scalability/verify-inventory.mjs:191",
           "scripts/scalability/verify-inventory.mjs:196",
           "scripts/scalability/verify-inventory.mjs:197",
-          "scripts/scalability/verify-inventory.mjs:199",
-          "scripts/scalability/verify-inventory.mjs:205",
+          "scripts/scalability/verify-inventory.mjs:198",
+          "scripts/scalability/verify-inventory.mjs:200",
           "scripts/scalability/verify-inventory.mjs:206",
-          "scripts/scalability/verify-inventory.mjs:208"
+          "scripts/scalability/verify-inventory.mjs:207",
+          "scripts/scalability/verify-inventory.mjs:208",
+          "scripts/scalability/verify-inventory.mjs:209",
+          "scripts/scalability/verify-inventory.mjs:210",
+          "scripts/scalability/verify-inventory.mjs:215",
+          "scripts/scalability/verify-inventory.mjs:216",
+          "scripts/scalability/verify-inventory.mjs:220",
+          "scripts/scalability/verify-inventory.mjs:225",
+          "scripts/scalability/verify-inventory.mjs:226",
+          "scripts/scalability/verify-inventory.mjs:228"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -21504,6 +22071,10 @@
       "infra",
       "backend/prisma/migrations",
       ".github/workflows"
+    ],
+    "explicitSources": [
+      "backend/prisma/seed.ts",
+      "docs/security-runtime-grants.sql"
     ]
   }
 }

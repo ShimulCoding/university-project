@@ -19,29 +19,58 @@ After signing in as System Admin, assign actual personnel to the four older unst
 
 ## 2. Separate runtime and migration privileges
 
-Review [security-runtime-grants.sql](security-runtime-grants.sql). It creates a new `mu_runtime` role for the current 27-model schema, grants only required table operations, and denies audit/retry-marker update/delete/truncate and DDL. No default grants to future tables are included; review privileges with each migration. This role has not been provisioned or runtime-tested; local audit fixtures still use the original operator connection.
+Review [security-runtime-grants.sql](security-runtime-grants.sql) and [the cutover acceptance record](scalability/runtime-cutover-sql-review.md). The template creates a **new, previously absent runtime role** only after validating the explicitly selected database/operator, separate restricted migration owner, 27 tables, 259 columns, 18 enums, effective PUBLIC privileges and protected-history relationships. It grants column UPDATE excluding every primary key and referenced parent key; table-wide UPDATE can indirectly rewrite audit/retry history through foreign-key cascades. No future/default grants, ownership transfers or shared PUBLIC revocations occur.
 
-An authorized local PostgreSQL administrator can run it with the installed psql client. Enter the existing operator role and password interactively; do not put a connection URL/password in shell history:
+Only fresh fake databases have received this policy. The original application's superuser connection remains unchanged and SEC-22 stays open. **Do not run the following against that database without separate owner approval, a verified backup/restore and reviewed ownership/ACL preparation.** The existing migrator must already own the reviewed database/tables/types, have no elevated attributes or memberships, and the public schema must belong to it or `pg_database_owner`. The current owner database is not assumed to meet these preconditions; the template refuses unsafe preparation instead of changing other clients.
+
+After those requirements and staging acceptance are met, choose the exact approved target and identities interactively. The installed Windows psql client below prompts for the operator password; no connection URL/password enters shell history. Every failed psql command stops the sequence. The scoped environment removes inherited `PG*` settings (including service, address, options and password overrides), pins the actual network address to loopback, and restores the original settings on success or failure:
 
 ```powershell
-$operatorRole = Read-Host 'Existing database administrator role'
-& 'C:/Program Files/PostgreSQL/16/bin/psql.exe' -h 127.0.0.1 -p 5432 -U $operatorRole -d mu_cse_transparency -W -v ON_ERROR_STOP=1 -f docs/security-runtime-grants.sql
-& 'C:/Program Files/PostgreSQL/16/bin/psql.exe' -h 127.0.0.1 -p 5432 -U $operatorRole -d mu_cse_transparency -W -c '\password mu_runtime'
+$cutoverDatabase = Read-Host 'Separately approved local database'
+$cutoverPort = Read-Host 'Approved local PostgreSQL port'
+$cutoverOperator = Read-Host 'Existing named database administrator'
+$cutoverMigrator = Read-Host 'Existing restricted migration owner'
+$cutoverRuntime = Read-Host 'New runtime role (must not exist)'
+foreach ($cutoverIdentifier in @($cutoverDatabase, $cutoverOperator, $cutoverMigrator, $cutoverRuntime)) {
+    if ($cutoverIdentifier -cnotmatch '^[a-z_][a-z0-9_]{1,62}$') { throw 'Invalid reviewed identifier' }
+}
+if ($cutoverPort -notmatch '^\d{1,5}$' -or [int]$cutoverPort -lt 1 -or [int]$cutoverPort -gt 65535) { throw 'Invalid approved port' }
+$cutoverArguments = @('-X', '-h', '127.0.0.1', '-p', $cutoverPort, '-U', $cutoverOperator, '-d', $cutoverDatabase, '-W', '-v', 'ON_ERROR_STOP=1')
+$cutoverPgEnvironment = @{}
+Get-ChildItem Env: | Where-Object { $_.Name -like 'PG*' } | ForEach-Object { $cutoverPgEnvironment[$_.Name] = $_.Value }
+try {
+    foreach ($cutoverPgName in @($cutoverPgEnvironment.Keys)) { [Environment]::SetEnvironmentVariable($cutoverPgName, $null, 'Process') }
+    $env:PGHOSTADDR = '127.0.0.1'
+    $env:PGCONNECT_TIMEOUT = '5'
+    & 'C:/Program Files/PostgreSQL/16/bin/psql.exe' @cutoverArguments -v "database_name=$cutoverDatabase" -v "runtime_role=$cutoverRuntime" -v "migration_role=$cutoverMigrator" -v "operator_role=$cutoverOperator" -v 'reviewed_policy=2026-10-12-column-grants-v1' -f docs/security-runtime-grants.sql
+    if ($LASTEXITCODE -ne 0) { throw 'Grant transaction failed; do not change runtime credentials or configuration' }
+    & 'C:/Program Files/PostgreSQL/16/bin/psql.exe' @cutoverArguments -c "\password $cutoverRuntime"
+    if ($LASTEXITCODE -ne 0) { throw 'Password setup failed; do not change runtime configuration' }
+} finally {
+    foreach ($cutoverPgEntry in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'PG*' })) { [Environment]::SetEnvironmentVariable($cutoverPgEntry.Name, $null, 'Process') }
+    foreach ($cutoverPgName in @($cutoverPgEnvironment.Keys)) { [Environment]::SetEnvironmentVariable($cutoverPgName, $cutoverPgEnvironment[$cutoverPgName], 'Process') }
+    $cutoverPgEnvironment.Clear()
+}
 ```
 
-Provision a unique generated runtime password through that interactive prompt and update the **private** runtime `DATABASE_URL` with correctly URL-encoded credentials. Preserve the original migration/operator credential in a separate restricted secret store, not the deployed application's environment. Add a bounded Prisma pool (`connection_limit=10`) appropriate to the current single-process local setup; size it again for the actual deployment.
+PostgreSQL's [libpq address rules](https://www.postgresql.org/docs/16/libpq-connect.html#LIBPQ-CONNECT-HOSTADDR) state that `hostaddr` selects the network address when both `host` and `hostaddr` are supplied. `-h 127.0.0.1` alone therefore does not neutralize an inherited `PGHOSTADDR`; the [environment documentation](https://www.postgresql.org/docs/16/libpq-envars.html) also defines service/options/password defaults. Do not print the saved environment values.
+
+Provision a unique generated runtime password through that interactive prompt. Use it first in a separately reviewed staging runtime; update the original **private** `DATABASE_URL` only as part of its approved cutover. Keep migration/operator credentials in a separate restricted secret store, outside the deployed application. Choose bounded Prisma/pooler limits from measured deployment capacity; the fake pooler's five server connections are an isolation experiment, not a production sizing recommendation.
 
 Before switching a staging runtime, verify its role:
 
 ```sql
-SELECT rolsuper, rolcreatedb, rolcreaterole, rolbypassrls FROM pg_roles WHERE rolname = current_user;
+SELECT rolsuper, rolcreatedb, rolcreaterole, rolinherit, rolreplication, rolbypassrls FROM pg_roles WHERE rolname = current_user;
 SELECT has_schema_privilege(current_user, 'public', 'CREATE') AS can_create_schema_objects,
-       has_table_privilege(current_user, 'public."AuditLog"', 'UPDATE, DELETE, TRUNCATE') AS can_edit_audit;
+       has_database_privilege(current_user, current_database(), 'CREATE, TEMP') AS can_create_database_objects,
+       has_table_privilege(current_user, 'public."AuditLog"', 'UPDATE, DELETE, TRUNCATE') AS can_edit_audit,
+       has_any_column_privilege(current_user, 'public."AuditLog"', 'UPDATE') AS can_update_audit_columns,
+       has_column_privilege(current_user, 'public."User"', 'id', 'UPDATE') AS can_rewrite_history_actor;
 ```
 
-All flags must be false. Verify ordinary sign-in, event/team management, financial writes, protected documents and token maintenance with the runtime credential. Run migration/fixture-cleanup verification using the separate authorized local operator credential: isolated fixture suites delete their own audit rows, which the deployed runtime intentionally cannot do. Never restore the superuser credential to fix a runtime permission failure; investigate the specific denied operation and review its grant.
+All flags must be false. The template also checks every table/column, primary/referenced key, migration table and grant option; the short query above does not replace that full gate. Verify ordinary sign-in, event/team management, financial writes, protected documents and token maintenance using the runtime credential. Isolated suites use their separately verified migration identity only to create/clean their own fixtures; the deployed runtime intentionally cannot delete audit rows. Never restore the superuser credential to make a verification pass; investigate the precise denied operation and review its grant.
 
-Also verify `has_table_privilege(current_user, 'public."FinancialIdempotency"', 'UPDATE, DELETE, TRUNCATE')` is false. Read-only inspection confirmed that the current original connection can change both audit and retry history; the proposed restricted role is not yet in use. A superuser/OS administrator can still alter records, so forward audit events to a separate collector rather than calling database history tamper-proof.
+Also verify `has_table_privilege(current_user, 'public."FinancialIdempotency"', 'UPDATE, DELETE, TRUNCATE')` and `has_any_column_privilege(current_user, 'public."FinancialIdempotency"', 'UPDATE')` are false. The original connection can still change audit and retry history; its restricted-role cutover is unexecuted. A superuser/OS administrator can alter records, and a stolen runtime credential can insert forged history or change permitted ordinary fields. Separate audit collection and restore verification remain necessary; these grants do not make database history tamper-proof.
 
 ## 3. Network and TLS
 

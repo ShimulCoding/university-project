@@ -5,6 +5,7 @@ Status: review preparation, **phase acceptance pending**. Compare the security c
 ## Review questions
 
 - Can runtime permissions mutate protected history directly, through PK cascades, object ownership, PUBLIC privileges, role membership or GRANT? Does the rollback negative control leave grants and rows unchanged?
+- Does the exact operator SQL refuse each tested unsafe setup at its intended exception, and preserve schema/ACL/checksums/data through rollback? Do both documented psql commands neutralize inherited hostaddr/service/options/password settings and restore them even on either failure? Read [grant review](runtime-cutover-sql-review.md); source coverage explicitly includes docs/security-runtime-grants.sql.
 - Do actual application/service clients stay restricted while fixture cleanup alone uses the migrator? Can malformed URLs, private-path symlinks, CLI aliases or browser defaults hit owner data/ports?
 - Are credentials absent from arguments, output, artifacts and Git? Do explicit configuration/ACL checks happen before owner-environment reads? Do diagnostic filters retain SQLSTATE without leaking arbitrary text?
 - Can the isolated dispatcher inherit unspecified application/process settings or load owner dotenv from its cwd? Do actual child ACL/empty-directory checks precede module imports, and do absolute verifier paths preserve all seed/scanner assertions? Read [environment isolation](runtime-verifier-isolation-review.md).

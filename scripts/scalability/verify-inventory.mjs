@@ -83,6 +83,7 @@ check("invalid TypeScript cannot silently reduce coverage", () => assert.throws(
 const inventory = await buildInventory();
 check("operator scripts and every npm entry participate in coverage", () => {
   assert(inventory.operators.entries.some((entry) => entry.path === 'backend/prisma/seed.ts'));
+  assert(inventory.operators.entries.some((entry) => entry.path === 'docs/security-runtime-grants.sql'));
   assert(inventory.operators.entries.some((entry) => entry.path === 'backend/scripts/authorize-mfa-enrollment.ts'));
   assert(inventory.operators.entries.some((entry) => entry.path.startsWith('backend/prisma/migrations/')));
   assert(inventory.operators.entries.some((entry) => entry.path === 'scripts/scalability/workload-model.mjs'));
@@ -200,6 +201,25 @@ await asyncCheck("generated Python bytecode is excluded without weakening source
   await mkdir(join(badRoot, 'infra'), { recursive: true });
   await writeFile(join(badRoot, 'infra/bytecode-outside-cache.pyc'), 'unexpected binary requires review');
   await assert.rejects(operatorInventory(badRoot, 'fake'), /Uncovered operator\/config format.*bytecode-outside-cache\.pyc/);
+});
+await asyncCheck("explicit grant SQL is covered without walking other documentation", async () => {
+  await mkdir(join(fixtureRoot, 'docs'), { recursive: true });
+  await writeFile(join(fixtureRoot, 'docs/security-runtime-grants.sql'), 'CREATE ROLE synthetic_no_execution;\n');
+  await writeFile(join(fixtureRoot, 'docs/unrelated.sql'), 'must-not-be-read\n');
+  await writeFile(join(fixtureRoot, 'docs/.env'), 'must-not-be-read\n');
+  const before = await operatorInventory(fixtureRoot, 'fake');
+  const grant = before.entries.find(entry => entry.path === 'docs/security-runtime-grants.sql');
+  assert(grant && grant.effects.some(effect => effect.kind === 'database candidate'));
+  assert(!before.entries.some(entry => entry.path === 'docs/unrelated.sql' || entry.path === 'docs/.env'));
+  assert(before.explicitSources.includes('docs/security-runtime-grants.sql'));
+  await writeFile(join(fixtureRoot, 'docs/security-runtime-grants.sql'), '-- changed reviewed grant\nCREATE ROLE synthetic_no_execution;\n');
+  const after = await operatorInventory(fixtureRoot, 'fake');
+  assert.notEqual(grant.sha256, after.entries.find(entry => entry.path === grant.path).sha256);
+});
+await asyncCheck("explicit grant source directories are refused instead of silently omitted", async () => {
+  const invalid = join(fixtureRoot, 'invalid-explicit-grant');
+  await mkdir(join(invalid, 'docs/security-runtime-grants.sql'), { recursive: true });
+  await assert.rejects(operatorInventory(invalid, 'fake'), /Explicit operator source must be an ordinary file/);
 });
 await asyncCheck("unmodeled operator formats fail before reading/executing them", async () => {
   await writeFile(join(fixtureRoot, 'infra/entrypoint.unmodeled'), 'must-not-be-executed');

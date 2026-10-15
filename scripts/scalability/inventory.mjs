@@ -298,7 +298,7 @@ export async function buildInventory(root = ROOT) {
   inventory.coverage.fingerprintEncoding = 'SHA-256 of UTF-8 text with CRLF normalized to LF; other bytes preserved. Deployment artifacts require separate byte verification.';
   inventory.counts.operatorSources = inventory.operators.entries.length;
   inventory.counts.npmCommands = inventory.operators.npmScripts.length;
-  inventory.coverage.scope.push(...inventory.operators.sourceDiscovery.map((directory) => `${directory}/**`), 'backend/prisma/seed.ts', 'root/backend/frontend loose source/config scripts', 'workspace package scripts');
+  inventory.coverage.scope.push(...inventory.operators.sourceDiscovery.map((directory) => `${directory}/**`), ...inventory.operators.explicitSources, 'root/backend/frontend loose source/config scripts', 'workspace package scripts');
   inventory.coverage.excluded = inventory.coverage.excluded.filter((entry) => !entry.startsWith('verification/seed'));
   inventory.coverage.excluded.push('binary font/image assets: byte budgets in browser/artifact profiling; not executable entry points');
   inventory.coverage.sourceCountExplanation = `The prior security map indexed 307 TypeScript application files. Current application coverage: ${inventory.counts.applicationTypeScriptFiles} TypeScript files plus ${inventory.counts.supportingSourceFiles} supporting sources. Operator/config/migration sources are counted separately.`;

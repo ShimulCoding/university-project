@@ -17308,8 +17308,8 @@
         "path": "backend/scripts/verify-security-action-limits.ts",
         "source": "backend/scripts/verify-security-action-limits.ts:1",
         "kind": "verification/profiling tool",
-        "lines": 136,
-        "sha256": "d25b1f079deec64116ce883a35cf29f0102b50d4497ee24afdf8af44476fb82f",
+        "lines": 158,
+        "sha256": "c711674b130ccbef92806501b898c9824b7788b1a21986646ba80a7198b4dbcc",
         "effects": [
           {
             "kind": "database candidate",
@@ -17317,51 +17317,27 @@
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:54"
+            "source": "backend/scripts/verify-security-action-limits.ts:60"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:67"
+            "source": "backend/scripts/verify-security-action-limits.ts:85"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:69"
+            "source": "backend/scripts/verify-security-action-limits.ts:87"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:72"
+            "source": "backend/scripts/verify-security-action-limits.ts:90"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:75"
+            "source": "backend/scripts/verify-security-action-limits.ts:93"
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:76"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:80"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:84"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:89"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:92"
-          },
-          {
-            "kind": "database candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:94"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:95"
           },
           {
             "kind": "network candidate",
@@ -17369,31 +17345,7 @@
           },
           {
             "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:101"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:102"
-          },
-          {
-            "kind": "network candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:103"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:104"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:105"
-          },
-          {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:106"
-          },
-          {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:107"
           },
           {
             "kind": "database candidate",
@@ -17404,63 +17356,116 @@
             "source": "backend/scripts/verify-security-action-limits.ts:112"
           },
           {
-            "kind": "network candidate",
+            "kind": "database candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:114"
           },
           {
-            "kind": "network candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:118"
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:115"
           },
           {
-            "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:120"
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:119"
           },
           {
             "kind": "network candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:121"
           },
           {
-            "kind": "output candidate; inspect PII/capabilities",
+            "kind": "network candidate",
             "source": "backend/scripts/verify-security-action-limits.ts:122"
           },
           {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:123"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:124"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:126"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:127"
+          },
+          {
             "kind": "database candidate",
-            "source": "backend/scripts/verify-security-action-limits.ts:132"
+            "source": "backend/scripts/verify-security-action-limits.ts:128"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:131"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:134"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:136"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:140"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:142"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:143"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "backend/scripts/verify-security-action-limits.ts:135"
+            "source": "backend/scripts/verify-security-action-limits.ts:144"
+          },
+          {
+            "kind": "database candidate",
+            "source": "backend/scripts/verify-security-action-limits.ts:154"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-action-limits.ts:157"
           }
         ],
         "guardCandidates": [
           "backend/scripts/verify-security-action-limits.ts:6",
           "backend/scripts/verify-security-action-limits.ts:14",
-          "backend/scripts/verify-security-action-limits.ts:20",
-          "backend/scripts/verify-security-action-limits.ts:24",
-          "backend/scripts/verify-security-action-limits.ts:27",
-          "backend/scripts/verify-security-action-limits.ts:28",
-          "backend/scripts/verify-security-action-limits.ts:31",
-          "backend/scripts/verify-security-action-limits.ts:32",
-          "backend/scripts/verify-security-action-limits.ts:38",
+          "backend/scripts/verify-security-action-limits.ts:22",
+          "backend/scripts/verify-security-action-limits.ts:26",
+          "backend/scripts/verify-security-action-limits.ts:29",
+          "backend/scripts/verify-security-action-limits.ts:30",
+          "backend/scripts/verify-security-action-limits.ts:33",
+          "backend/scripts/verify-security-action-limits.ts:34",
           "backend/scripts/verify-security-action-limits.ts:39",
           "backend/scripts/verify-security-action-limits.ts:42",
-          "backend/scripts/verify-security-action-limits.ts:43",
           "backend/scripts/verify-security-action-limits.ts:44",
-          "backend/scripts/verify-security-action-limits.ts:47",
+          "backend/scripts/verify-security-action-limits.ts:45",
           "backend/scripts/verify-security-action-limits.ts:48",
+          "backend/scripts/verify-security-action-limits.ts:49",
+          "backend/scripts/verify-security-action-limits.ts:50",
           "backend/scripts/verify-security-action-limits.ts:53",
           "backend/scripts/verify-security-action-limits.ts:54",
+          "backend/scripts/verify-security-action-limits.ts:59",
           "backend/scripts/verify-security-action-limits.ts:60",
-          "backend/scripts/verify-security-action-limits.ts:61",
-          "backend/scripts/verify-security-action-limits.ts:89",
-          "backend/scripts/verify-security-action-limits.ts:92",
+          "backend/scripts/verify-security-action-limits.ts:70",
+          "backend/scripts/verify-security-action-limits.ts:71",
+          "backend/scripts/verify-security-action-limits.ts:75",
+          "backend/scripts/verify-security-action-limits.ts:76",
+          "backend/scripts/verify-security-action-limits.ts:80",
           "backend/scripts/verify-security-action-limits.ts:109",
           "backend/scripts/verify-security-action-limits.ts:112",
-          "backend/scripts/verify-security-action-limits.ts:127",
-          "backend/scripts/verify-security-action-limits.ts:128",
-          "backend/scripts/verify-security-action-limits.ts:129",
-          "backend/scripts/verify-security-action-limits.ts:130",
-          "backend/scripts/verify-security-action-limits.ts:135"
+          "backend/scripts/verify-security-action-limits.ts:131",
+          "backend/scripts/verify-security-action-limits.ts:134",
+          "backend/scripts/verify-security-action-limits.ts:149",
+          "backend/scripts/verify-security-action-limits.ts:150",
+          "backend/scripts/verify-security-action-limits.ts:151",
+          "backend/scripts/verify-security-action-limits.ts:152",
+          "backend/scripts/verify-security-action-limits.ts:157"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",

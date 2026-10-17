@@ -14,6 +14,8 @@ import { signAccessToken } from "../src/utils/tokens";
 import { createFixtureMfa } from "./helpers/mfa-fixtures";
 
 let checks = 0;
+let phase: "setup" | "unit-budget" | "unit-expiry" | "work-admission" | "upload-admission" | "api-mutations" | "api-reports" | "api-documents" = "setup";
+let unitBudgetStartedAt = 0, unitAllowanceReturnedMs = 0, unitDenialReturnedMs = 0;
 function check(condition: unknown, message: string) { assert(condition, message); checks++; }
 async function main() {
   await verifyFixtureDatabase();
@@ -33,9 +35,13 @@ async function main() {
     };
     next();
   });
-  const limits = createSensitiveActionLimits(150, { mutations: 2, documents: 2, reports: 2 });
+  // Exhaustion/identity checks span several HTTP round trips. Their store must
+  // remain live while the independent short-window fixture proves real expiry.
+  const limits = createSensitiveActionLimits(60_000, { mutations: 2, documents: 2, reports: 2 });
   const router = express.Router(); router.use(limits.mutation);
   router.all("/action", (_request, response) => response.sendStatus(204)); fixture.use("/api/fixture", router);
+  const expiry = express.Router(); expiry.use(createSensitiveActionLimits(150, { mutations: 2, documents: 2, reports: 2 }).mutation);
+  expiry.post("/action", (_request, response) => response.sendStatus(204)); fixture.use("/api/expiry", expiry);
   const recovery = express.Router(); recovery.use(limits.mutation); recovery.post("/action", (_request, response) => response.sendStatus(204)); fixture.use("/api/auth", recovery);
   const expensive = createWorkAdmission(1, "Fixture busy");
   let entered: (() => void) | undefined, uploadEntered = 0, uploadsClosed = 0, workClosed = 0;
@@ -52,16 +58,28 @@ async function main() {
     const unitAddress = unitServer.address(), address = server.address(); assert(unitAddress && typeof unitAddress !== "string" && address && typeof address !== "string");
     const unit = `http://127.0.0.1:${unitAddress.port}`, base = `http://127.0.0.1:${address.port}/api`;
     const short = (method = "POST", actor = "fixture-a", path = "/api/fixture/action") => fetch(unit + path, { method, headers: { "x-fixture-actor": actor } });
+    phase = "unit-budget";
     for (const method of ["GET", "HEAD", "OPTIONS"]) check((await short(method)).status === 204, "Read-only request consumed mutation budget");
+    unitBudgetStartedAt = performance.now();
     check((await short()).status === 204 && (await short("PATCH")).status === 204, "Allowance prematurely denied");
+    unitAllowanceReturnedMs = Math.ceil(performance.now() - unitBudgetStartedAt);
     const blocked = await short("DELETE");
+    unitDenialReturnedMs = Math.ceil(performance.now() - unitBudgetStartedAt);
     check(blocked.status === 429 && Boolean(blocked.headers.get("ratelimit")) && Boolean(blocked.headers.get("retry-after")), "No bounded denial/retry headers");
     check((await short("GET")).status === 204, "Exhausted mutation budget blocked navigation");
     check((await short("POST", "fixture-b")).status === 204, "Different actors shared budget");
     for (let index = 0; index < 3; index++) check((await short("POST", "fixture-a", "/api/auth/action")).status === 204, "Recovery was blocked by operational budget");
+    phase = "unit-expiry";
+    // A concurrent burst avoids putting unrelated identity/recovery requests
+    // between short-window consumption and the actual exhausted response.
+    const expiryBurst = await Promise.all(Array.from({ length: 3 }, () => short("POST", "fixture-expiry", "/api/expiry/action")));
+    check(JSON.stringify(expiryBurst.map(response => response.status).sort((left, right) => left - right)) === "[204,204,429]", "Short-window expiry fixture did not exhaust its two-request allowance");
+    const expiryDenied = expiryBurst.find(response => response.status === 429)!;
+    check(Boolean(expiryDenied.headers.get("ratelimit")) && Boolean(expiryDenied.headers.get("retry-after")), "Short-window exhaustion omitted bounded retry headers");
     await new Promise(resolve => setTimeout(resolve, 180));
-    check((await short()).status === 204, "Expired window did not restore allowance");
+    check((await short("POST", "fixture-expiry", "/api/expiry/action")).status === 204, "Expired window did not restore allowance");
 
+    phase = "work-admission";
     const cancellation = new AbortController();
     const began = new Promise<void>(resolve => { entered = resolve; });
     const working = fetch(unit + "/work", { method: "POST", signal: cancellation.signal }).catch(() => undefined);
@@ -76,6 +94,7 @@ async function main() {
     check((await fetch(unit + "/failed-work", { method: "POST" })).status === 500, "Exception leaked admission slot");
     // A parsed upload controller still holds buffers while its service promise
     // runs. Closing the response must not free that memory admission slot early.
+    phase = "upload-admission";
     const uploadControllers = [new AbortController(), new AbortController()];
     const uploads = uploadControllers.map(controller => fetch(unit + "/uploads", { method: "POST", signal: controller.signal }).catch(() => undefined));
     while (uploadEntered < 2) await new Promise(resolve => setTimeout(resolve, 5));
@@ -86,6 +105,7 @@ async function main() {
     releases.splice(0).forEach(release => release());
     await new Promise(resolve => setTimeout(resolve, 20));
 
+    phase = "api-mutations";
     const event = await prisma.event.create({ data: { title: "Action limit fixture", slug: `action-limit-${run}`, status: "COMPLETED" } }); eventId = event.id;
     const tokens: string[] = [];
     for (const index of [0, 1, 2]) {
@@ -102,10 +122,12 @@ async function main() {
     check((await fetch(base + "/auth/me", { headers: headers(0) })).status === 200, "Operational budget blocked current-session read");
     check((await fetch(base + "/auth/update-email", { method: "PATCH", headers: headers(0), body: "{}" })).status === 400, "Operational budget blocked recovery validation");
     check((await fetch(base + "/users/not-a-user/profile", { method: "PATCH", headers: headers(1), body: "{}" })).status === 403, "Real accounts shared mutation quota");
+    phase = "api-reports";
     for (let index = 0; index < 5; index++) check((await fetch(base + "/reconciliation/generate", { method: "POST", headers: headers(1), body: JSON.stringify({ eventId }) })).status === 201, "Legitimate report generation rejected");
     check((await fetch(base + "/reconciliation/generate", { method: "POST", headers: headers(1), body: JSON.stringify({ eventId }) })).status === 429, "Report flood was not denied");
     check(await prisma.reconciliationReport.count({ where: { eventId } }) === 5, "Rate denial still created a report");
 
+    phase = "api-documents";
     const complaint = await prisma.complaint.create({ data: { submittedById: users[0]!, subject: "Action limit fixture", description: "Synthetic private evidence" } }); complaintId = complaint.id;
     const bytes = Buffer.from("%PDF-1.4\n%%EOF\n");
     const stored = await storageProvider.saveFile({ buffer: bytes, originalName: "document.pdf", destinationDir: documentDirectories.COMPLAINT_EVIDENCE }); filePath = stored.relativePath;
@@ -132,4 +154,4 @@ async function main() {
     await prisma.$disconnect(); await disconnectFixtureDatabase();
   }
 }
-void main().catch((error: unknown) => { console.error(JSON.stringify(fixtureFailureDiagnostics(error))); process.exitCode = 1; });
+void main().catch((error: unknown) => { console.error(JSON.stringify({ ...fixtureFailureDiagnostics(error), phase, completedChecks: checks, nextCheck: checks + 1, unitAllowanceReturnedMs, unitDenialReturnedMs })); process.exitCode = 1; });

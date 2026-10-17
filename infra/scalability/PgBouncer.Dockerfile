@@ -49,6 +49,8 @@ RUN set -eu; \
       'APT::Get::AllowUnauthenticated "false";' \
       > /etc/apt/apt.conf.d/99verified-pooler; \
     apt-get update -o APT::Update::Error-Mode=any; \
+    test "$(apt-cache show perl-base=5.36.0-7+deb12u4 | sed -n 's/^SHA256: //p')" \
+      = d7d1943aec9597629bf73075efcc5ef6dc9bda96d78e80d843156ecd448478b8; \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
       ca-certificates=20250419~deb12u1 \
       curl=7.88.1-10+deb12u15 \
@@ -58,7 +60,10 @@ RUN set -eu; \
       libssl-dev=3.0.22-1~deb12u1 \
       make=4.3-4.1 \
       openssl=3.0.22-1~deb12u1 \
-      pkg-config=1.8.1-1; \
+      pkg-config=1.8.1-1 \
+      perl-base=5.36.0-7+deb12u4; \
+    test "$(dpkg-query -W -f='${Version}' perl-base)" = 5.36.0-7+deb12u4; \
+    test -s /usr/share/doc/perl-base/copyright; \
     mkdir -p /out/bin /out/licenses/pgbouncer /out/licenses/build-packages /out/licenses/bootstrap /out/provenance; \
     cp /usr/local/share/pgbouncer/bootstrap/ca-certificates.copyright /out/licenses/bootstrap/ca-certificates.copyright; \
     cp --parents /usr/share/common-licenses/GPL-2 /usr/share/common-licenses/MPL-2.0 /out/licenses/build-packages/; \
@@ -128,11 +133,16 @@ RUN set -eu; \
     rm -f /etc/apt/sources.list; \
     find /etc/apt/sources.list.d -type f ! -name debian.sources -delete; \
     apt-get update -o APT::Update::Error-Mode=any; \
+    test "$(apt-cache show perl-base=5.36.0-7+deb12u4 | sed -n 's/^SHA256: //p')" \
+      = d7d1943aec9597629bf73075efcc5ef6dc9bda96d78e80d843156ecd448478b8; \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
       ca-certificates=20250419~deb12u1 \
       libevent-2.1-7=2.1.12-stable-8+deb12u1 \
       libssl3=3.0.22-1~deb12u1 \
-      openssl=3.0.22-1~deb12u1; \
+      openssl=3.0.22-1~deb12u1 \
+      perl-base=5.36.0-7+deb12u4; \
+    test "$(dpkg-query -W -f='${Version}' perl-base)" = 5.36.0-7+deb12u4; \
+    test -s /usr/share/doc/perl-base/copyright; \
     mkdir -p /usr/local/share/pgbouncer/provenance /run/pgbouncer; \
     dpkg-query -W -f='${binary:Package}\t${Version}\t${Architecture}\n' \
       | LC_ALL=C sort > /usr/local/share/pgbouncer/provenance/runtime-packages.tsv; \

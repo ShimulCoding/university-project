@@ -103,7 +103,7 @@ async function fixtureBoundaryContracts() {
   const boundaryFile = "backend/scripts/helpers/fixture-boundary.ts";
   const boundary = loadOwnedTypeScript(await readFile(path.join(root, boundaryFile), "utf8"), boundaryFile, { "node:assert/strict": assert });
   check("dispatcher and pure helper use the exact independently specified owned image", () => {
-    const imageId = "sha256:b5b268e6b371aab1cc3ef00cc92a0106e2c30643bc98e4534982e5b07df367a2";
+    const imageId = "sha256:7e303539703c688c9fca8a47c5bf6135cfb43e385f511acaf713d76bdde5371a";
     assert.equal(fixtureTransactionPooler.imageId, imageId);
     assert.deepEqual(JSON.parse(JSON.stringify(boundary.fixtureTransactionPooler)), fixtureTransactionPooler);
   });

@@ -9,10 +9,12 @@ Status: review preparation, **phase acceptance pending**. Compare the security c
 - Do actual application/service clients stay restricted while fixture cleanup alone uses the migrator? Can malformed URLs, private-path symlinks, CLI aliases or browser defaults hit owner data/ports?
 - Are credentials absent from arguments, output, artifacts and Git? Do explicit configuration/ACL checks happen before owner-environment reads? Do diagnostic filters retain SQLSTATE without leaking arbitrary text?
 - Can the isolated dispatcher inherit unspecified application/process settings or load owner dotenv from its cwd? Do actual child ACL/empty-directory checks precede module imports, and do absolute verifier paths preserve all seed/scanner assertions? Read [environment isolation](runtime-verifier-isolation-review.md).
+- Does the legacy generated Prisma client load dotenv at module import independently of cwd? Require the corrected materialized-workspace/resolution proof and actual reruns; prior selected fake database assertions do not prove full environment isolation. Read [LOG](LOG.md) E0035; the replacement workspace concern remains in progress.
 - Does sendFile retain filename-dotfile denial and service authorization/containment/integrity/audit? Does drain track actual promises after disconnected sockets, preserve accepted streams and disconnect only once?
 - Does SEC-05 isolation preserve the full development audit failure and reject missing/unsafe/contaminated artifacts? Are fresh Linux builds and image scans still explicitly pending?
 - Does inventory format3 ignore only Git CRLF conversion while continuing to reject source/content/whitespace drift? Are normalized source fingerprints kept distinct from deployment artifact byte verification? Read [portability review](inventory-portability-review.md).
 - Are pure unit contracts, direct/pooled real DB checks, browser/scanner integration and separate-instance evidence clearly distinguished? Does the pooler deny migration/other database/console access and unrelated UID secret reads with actual0400 mounts, rather than relying on Windows ACL or generic rejection? Does the sixth queued client fail at the measured deadline and recover? Read [pooler review](pooler-boundary-review.md).
+- Does the [pooler vendor update](pooler-os-update-review.md) retain signed source/hash/notice checks, exact fixture pins and all runtime restrictions? Are same-feed removals separated from current advisory acceptance and its still-nonzero scanner exit?
 
 ## Reproduction and disposition
 

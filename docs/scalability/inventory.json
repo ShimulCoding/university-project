@@ -15455,7 +15455,7 @@
         "source": "backend/scripts/helpers/fixture-boundary.ts:1",
         "kind": "maintenance/operator script; inspect before execution",
         "lines": 76,
-        "sha256": "1cbfa8ac7ccb7b89aa0fecb1a2059a97bc95cc0e1354ba60ad02ee65495245bf",
+        "sha256": "748ddb764009b5919cb7144a3e116219ac58b1bbe40f6d78500350f91f023734",
         "effects": [
           {
             "kind": "database candidate",
@@ -19402,8 +19402,8 @@
         "path": "infra/scalability/PgBouncer.Dockerfile",
         "source": "infra/scalability/PgBouncer.Dockerfile:1",
         "kind": "build/runtime configuration",
-        "lines": 173,
-        "sha256": "445ec976ff060c5435707fe5f6c7e15e026fa202c890053196089327fa863e72",
+        "lines": 183,
+        "sha256": "6965108766f58b9c9991d79f4bf9990ec5ef7cdd270602a84243b56632c33934",
         "effects": [
           {
             "kind": "filesystem write candidate",
@@ -19411,23 +19411,23 @@
           },
           {
             "kind": "filesystem write candidate",
-            "source": "infra/scalability/PgBouncer.Dockerfile:62"
+            "source": "infra/scalability/PgBouncer.Dockerfile:67"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "infra/scalability/PgBouncer.Dockerfile:78"
+            "source": "infra/scalability/PgBouncer.Dockerfile:83"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "infra/scalability/PgBouncer.Dockerfile:128"
+            "source": "infra/scalability/PgBouncer.Dockerfile:133"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "infra/scalability/PgBouncer.Dockerfile:136"
+            "source": "infra/scalability/PgBouncer.Dockerfile:146"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "infra/scalability/PgBouncer.Dockerfile:148"
+            "source": "infra/scalability/PgBouncer.Dockerfile:158"
           }
         ],
         "guardCandidates": [],
@@ -21013,7 +21013,7 @@
         "source": "scripts/scalability/verify-local-database.mjs:1",
         "kind": "verification/profiling tool",
         "lines": 301,
-        "sha256": "0afc0fcef172d5dbecae8331215458b97aa374f13589d5c3f5414fdfcbf9d77c",
+        "sha256": "755ef725b48b0e315cf4b0e9d88335b4f0ea3d92b3349244f813e5fc6c409654",
         "effects": [
           {
             "kind": "filesystem write candidate",
@@ -21319,28 +21319,28 @@
         "path": "scripts/scalability/verify-pgbouncer-build-contracts.mjs",
         "source": "scripts/scalability/verify-pgbouncer-build-contracts.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 215,
-        "sha256": "3230b23f0c1e56f9870623e47213211f1d97bd1ee44ce0266282577c462d482c",
+        "lines": 228,
+        "sha256": "ae6977724443d534740d6e4520415103cb3936624ae64df8fcd76fadcf1fa58e",
         "effects": [
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-pgbouncer-build-contracts.mjs:109"
+            "source": "scripts/scalability/verify-pgbouncer-build-contracts.mjs:110"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-pgbouncer-build-contracts.mjs:205"
+            "source": "scripts/scalability/verify-pgbouncer-build-contracts.mjs:218"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-pgbouncer-build-contracts.mjs:211"
+            "source": "scripts/scalability/verify-pgbouncer-build-contracts.mjs:224"
           }
         ],
         "guardCandidates": [
-          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:113",
-          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:158",
+          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:114",
           "scripts/scalability/verify-pgbouncer-build-contracts.mjs:166",
-          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:199",
-          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:202"
+          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:174",
+          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:212",
+          "scripts/scalability/verify-pgbouncer-build-contracts.mjs:215"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -21353,7 +21353,7 @@
         "source": "scripts/scalability/verify-provisioning-contracts.mjs:1",
         "kind": "verification/profiling tool",
         "lines": 531,
-        "sha256": "089746425860772960b396023207a7e66448948c882a76307a49490c9a70bcd3",
+        "sha256": "6094717e013e73a1b2ddaa42f8071391d35c01c630ba6ce6fa86104c303a1df8",
         "effects": [
           {
             "kind": "filesystem write candidate",

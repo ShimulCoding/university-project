@@ -12,6 +12,7 @@ const builder = 'postgres:16.15-bookworm@sha256:0ea6700a3b4f0ae6ce746519073558ae
 const runtime = 'debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587';
 const sourceHash = 'afd25dd61ee6775d37b40629b87ce08736b3e6955f3057bb212e410fbf21c71d';
 const sourceUrl = 'https://www.pgbouncer.org/downloads/files/1.26.0/pgbouncer-1.26.0.tar.gz';
+const perlPackageHash = 'd7d1943aec9597629bf73075efcc5ef6dc9bda96d78e80d843156ecd448478b8';
 
 // A deliberately narrow contract parser, not a general Dockerfile interpreter.
 // Unsupported syntax fails instead of silently escaping the source-only gate.
@@ -114,12 +115,19 @@ export function verifyBuildContract(source, ignoreSource) {
 
   const installs = runs.flatMap(run => [...run.matchAll(/apt-get install --yes --no-install-recommends\s+([^;]+)/g)].map(match => match[1].trim().split(/\s+/)));
   assert.deepEqual(installs, [
-    ['ca-certificates=20250419~deb12u1', 'curl=7.88.1-10+deb12u15', 'gcc=4:12.2.0-3', 'libc6-dev=2.36-9+deb12u14', 'libevent-dev=2.1.12-stable-8+deb12u1', 'libssl-dev=3.0.22-1~deb12u1', 'make=4.3-4.1', 'openssl=3.0.22-1~deb12u1', 'pkg-config=1.8.1-1'],
-    ['ca-certificates=20250419~deb12u1', 'libevent-2.1-7=2.1.12-stable-8+deb12u1', 'libssl3=3.0.22-1~deb12u1', 'openssl=3.0.22-1~deb12u1'],
+    ['ca-certificates=20250419~deb12u1', 'curl=7.88.1-10+deb12u15', 'gcc=4:12.2.0-3', 'libc6-dev=2.36-9+deb12u14', 'libevent-dev=2.1.12-stable-8+deb12u1', 'libssl-dev=3.0.22-1~deb12u1', 'make=4.3-4.1', 'openssl=3.0.22-1~deb12u1', 'pkg-config=1.8.1-1', 'perl-base=5.36.0-7+deb12u4'],
+    ['ca-certificates=20250419~deb12u1', 'libevent-2.1-7=2.1.12-stable-8+deb12u1', 'libssl3=3.0.22-1~deb12u1', 'openssl=3.0.22-1~deb12u1', 'perl-base=5.36.0-7+deb12u4'],
   ], 'Exact package dependency pins drifted');
+  for (const packageRun of [aptRun, runtimeRuns[0]]) {
+    const index = packageRun.indexOf('apt-cache show perl-base=5.36.0-7+deb12u4');
+    assert(index > packageRun.indexOf('apt-get update') && index < packageRun.indexOf('apt-get install'), 'Validate patch archive identity from authenticated APT metadata before install');
+    assert(packageRun.includes("sed -n 's/^SHA256: //p')\" = " + perlPackageHash), 'Exact signed patch archive identity required');
+    assert(packageRun.includes("test \"$(dpkg-query -W -f='${Version}' perl-base)\" = 5.36.0-7+deb12u4;"), 'Installed patch version must match');
+    assert(packageRun.includes('test -s /usr/share/doc/perl-base/copyright;'), 'Genuine patch package notice must exist');
+  }
   assert.equal((runs.join('\n').match(/dpkg --print-architecture/g) ?? []).length, 2, 'Both stages must reject unexpected architecture');
   assert.equal((runs.join('\n').match(/test "\$\(dpkg --print-architecture\)" = amd64;/g) ?? []).length, 2, 'This reviewed build supports only native amd64');
-  assert.equal((runs.join('\n').match(/dpkg-query -W/g) ?? []).length, 2, 'Resolved dependency manifests required');
+  assert.equal((runs.join('\n').match(/dpkg-query -W -f='\$\{binary:Package\}\\t\$\{Version\}\\t\$\{Architecture\}\\n'/g) ?? []).length, 2, 'Resolved dependency manifests required in both stages');
   assert(compileRun.includes(sourceUrl) && compileRun.includes(`${sourceUrl}.sha256`), 'Official source/manifest missing');
   assert.equal((compileRun.match(new RegExp(sourceHash, 'g')) ?? []).length, 2, 'Fixed source hash must guard manifest and archive');
   const hashCheck = compileRun.indexOf('sha256sum --check --status');
@@ -175,6 +183,11 @@ function main() {
     ['disabled Release expiry', text => text.replace('Acquire::Check-Valid-Until "true";', 'Acquire::Check-Valid-Until "false";')],
     ['disabled TLS verification', text => text.replace('Acquire::https::Verify-Peer "true";', 'Acquire::https::Verify-Peer "false";')],
     ['floating package', text => text.replace('libssl-dev=3.0.22-1~deb12u1', 'libssl-dev')],
+    ['old perl patch', text => text.replaceAll('5.36.0-7+deb12u4', '5.36.0-7+deb12u3')],
+    ['floating perl patch', text => text.replaceAll('perl-base=5.36.0-7+deb12u4', 'perl-base')],
+    ['perl archive hash drift', text => text.replaceAll(perlPackageHash, '0'.repeat(64))],
+    ['missing installed perl proof', text => text.replaceAll("test \"$(dpkg-query -W -f='${Version}' perl-base)\" = 5.36.0-7+deb12u4;", '')],
+    ['missing genuine perl notice', text => text.replaceAll('test -s /usr/share/doc/perl-base/copyright;', '')],
     ['source corruption', text => text.replaceAll(sourceHash, '0'.repeat(64))],
     ['unverified source', text => text.replace(/sha256sum --check --status(?=; \\\r?\n\s+tar --extract)/, 'true')],
     ['silent source checksum failure', text => text.replace(/sha256sum --check --status(?=; \\\r?\n\s+tar --extract)/, 'sha256sum --check --status || true')],

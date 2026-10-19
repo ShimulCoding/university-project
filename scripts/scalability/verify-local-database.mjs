@@ -3,8 +3,8 @@ import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { mkdtemp, readFile, readdir, realpath, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { PrismaClient } from "@prisma/client";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { requireVerificationWorkspace, verificationPrisma } from "./verification-workspace-boundary.mjs";
 import { operatorParameters, privateConfigurationFile } from "./provision-local-database.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -70,7 +70,8 @@ export function fixtureDispatchEnvironment(config) {
   };
 }
 
-function client(url) { return new PrismaClient({ datasources: { db: { url } }, log: [] }); }
+let PrismaClient;
+function client(url) { assert(PrismaClient, "Verified workspace must precede ORM construction"); return new PrismaClient({ datasources: { db: { url } }, log: [] }); }
 function privilegeDenied(error) { return error?.code === "P2010" && error?.meta?.code === "42501"; }
 
 async function assertIdentity(db, database, role) {
@@ -92,6 +93,7 @@ async function operatorClient(config, operatorFile) {
 }
 
 export async function verify(config, operatorFile) {
+  PrismaClient = await verificationPrisma();
   config = fixtureConfig(config);
   const runtime = client(config.runtimeDatabaseUrl), migration = client(config.migrationDatabaseUrl);
   const operator = await operatorClient(config, operatorFile);
@@ -222,14 +224,15 @@ export function verificationEnvironment(config, inherited = {}) {
     assert(relative && !relative.startsWith("..") && !path.isAbsolute(relative), "Screenshots must remain in this owned fixture directory");
     environment.VERIFY_DESIGN_SCREENSHOTS = path.resolve(inherited.VERIFY_DESIGN_SCREENSHOTS);
   }
-  return { ...environment, ...fixtureDispatchEnvironment(config) };
+  return { ...environment, TSX_TSCONFIG_PATH: path.join(root,"backend/tsconfig.json"), ...fixtureDispatchEnvironment(config) };
 }
 
 export function verificationCommand(manifest, script) {
   assert(/^verify:[a-z0-9:-]+$/.test(script) && Object.hasOwn(manifest.scripts, script) && script !== "verify:demo:runtime", "Only existing isolated backend verification scripts are allowed");
   const match = /^tsx (scripts\/[a-z0-9][a-z0-9-]*\.ts)$/.exec(manifest.scripts[script]);
   assert(match, "Only one reviewed repository TypeScript entry without injected arguments is accepted");
-  return [path.join(root, "node_modules/tsx/dist/cli.mjs"), "--tsconfig", path.join(root, "backend/tsconfig.json"), path.join(root, "backend", match[1])];
+  // Supported tsx loader registration avoids a redundant CLI child process.
+  return ["--import", pathToFileURL(path.join(root, "scripts/scalability/verification-workspace-bootstrap.mjs")).href, "--import", pathToFileURL(path.join(root, "node_modules/tsx/dist/loader.mjs")).href, path.join(root, "backend", match[1])];
 }
 
 export async function verificationDirectory(config) {
@@ -243,7 +246,8 @@ export async function verificationDirectory(config) {
   return cwd;
 }
 
-async function runScript(config, script) {
+export async function runScript(config, script) {
+  await requireVerificationWorkspace();
   stage = "owned_verification_child";
   const environment = verificationEnvironment(config, process.env);
   const manifest = JSON.parse(await readFile(path.join(root, "backend/package.json"), "utf8"));
@@ -261,12 +265,24 @@ async function runScript(config, script) {
       cwd, windowsHide: true, stdio: ["ignore", "pipe", "pipe"], env: environment,
     });
     let stdout = "", stderr = "";
+    let timedOut=false;
+    const timeout=setTimeout(()=>{timedOut=true;child.kill();},300_000);
     child.stdout.on("data", (data) => { if (stdout.length < 1024 * 1024) stdout += data.toString(); });
     child.stderr.on("data", (data) => { if (stderr.length < 1024 * 1024) stderr += data.toString(); });
-    child.on("error", () => reject(new Error("Verification child could not start")));
+    child.on("error", () => {clearTimeout(timeout);reject(new Error("Verification child could not start"));});
     child.on("close", (code) => {
+      clearTimeout(timeout);
       const counts = reportedCheckCounts(stdout);
-      if (code !== 0) {
+      let invalidBoundaryReport=false;
+      const boundaryReports=stdout.split(/\r?\n/).flatMap(line=>{
+        try{
+          const value=JSON.parse(line);if(value.materializedWorkspaceBoundary!==true)return [];
+          const counters=[value.outsideSourceReadAttempts,value.outsideModuleResolutions,value.outsideNativeLoadAttempts];
+          if(!counters.every(count=>Number.isSafeInteger(count)&&count>=0)||!Array.isArray(value.nativeModules)||!value.nativeModules.every(name=>typeof name==="string"&&/^node_modules\/[a-zA-Z0-9_@./-]+\.node$/.test(name)&&!name.split("/").includes(".."))){invalidBoundaryReport=true;return [];}
+          return [{materializedWorkspaceBoundary:true,outsideSourceReadAttempts:counters[0],outsideModuleResolutions:counters[1],outsideNativeLoadAttempts:counters[2],nativeModules:value.nativeModules}];
+        }catch{return [];}
+      });
+      if (code !== 0 || timedOut || invalidBoundaryReport || boundaryReports.length!==1 || boundaryReports.some(value=>value.outsideSourceReadAttempts!==0||value.outsideModuleResolutions!==0||value.outsideNativeLoadAttempts!==0)) {
         const failure = new Error("Verification child failed; private output suppressed");
         for (const line of stderr.split(/\r?\n/)) {
           try {
@@ -280,7 +296,7 @@ async function runScript(config, script) {
         }
         reject(failure);
       }
-      else resolve({ status: "passed", script, exitCode: code, reportedCheckCounts: counts });
+      else resolve({ status: "passed", script, exitCode: code, reportedCheckCounts: counts, boundaryReports });
       stdout = ""; stderr = "";
     });
   });

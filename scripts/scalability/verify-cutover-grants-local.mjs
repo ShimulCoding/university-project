@@ -4,7 +4,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { copyFile, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { PrismaClient } from "@prisma/client";
+import { verificationPrisma } from "./verification-workspace-boundary.mjs";
 import { operatorParameters, privateConfigurationFile } from "./provision-local-database.mjs";
 import { fixtureConfig } from "./verify-local-database.mjs";
 import { verifyCutoverGrantSource } from "./verify-cutover-grant-contracts.mjs";
@@ -12,6 +12,7 @@ import { verifyCutoverGrantSource } from "./verify-cutover-grant-contracts.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const postgresBin = "C:/Program Files/PostgreSQL/16/bin";
 let stage = "arguments", currentCase = "initialization", retainedDirectory, completedChecks = 0;
+let PrismaClient;
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const roleFlags = "rolsuper OR rolcreatedb OR rolcreaterole OR rolinherit OR rolreplication OR rolbypassrls";
 
@@ -101,7 +102,8 @@ async function dataState(db, ids) {
   return { fingerprint: hash(JSON.stringify(rows)), rows: rows.reduce((sum, value) => sum + value.length, 0) };
 }
 
-async function verifyLocal(operatorFile) {
+export async function verifyLocal(operatorFile) {
+  PrismaClient = await verificationPrisma();
   stage = "private_operator_guard";
   assert(operatorFile, "An explicit approved fake operator file is required");
   const parameters = cutoverEndpoint(operatorParameters(JSON.parse(await readFile(await privateConfigurationFile(operatorFile), "utf8"))));

@@ -3,13 +3,14 @@ import {spawn} from 'node:child_process';
 import {readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {PrismaClient} from '@prisma/client';
+import {verificationPrisma} from './verification-workspace-boundary.mjs';
 import {fixtureConfig,fixtureTransactionPooler} from './verify-local-database.mjs';
 import {privateConfigurationFile} from './provision-local-database.mjs';
 import {poolerSettings,runtimeAuth} from './prepare-local-pooler.mjs';
 
 const root=path.resolve(fileURLToPath(new URL('../..',import.meta.url)));
 let stage='arguments';
+let PrismaClient;
 function requireValue(condition) {assert(condition,'Owned pooler contract failed');}
 export function denialKind(error,probe) {
   const code=error.code??error.errorCode;
@@ -158,6 +159,7 @@ async function connectionProof(config) {
 }
 
 export async function verify(directoryArgument) {
+  PrismaClient=await verificationPrisma();
   stage='private_configuration';
   const directory=await privateConfigurationFile(directoryArgument);
   requireValue(/^pooler-[a-f0-9]{32}$/.test(path.basename(directory)));

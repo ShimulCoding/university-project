@@ -8,7 +8,7 @@ import path from "node:path";
 import vm from "node:vm";
 import ts from "typescript";
 import dotenv from "dotenv";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { operatorParameters, privateConfigurationFile } from "./provision-local-database.mjs";
 import { fixtureConfig, fixtureDispatchEnvironment, fixtureTransactionPooler, reportedCheckCounts, verificationEnvironment, verificationCommand } from "./verify-local-database.mjs";
 
@@ -253,8 +253,9 @@ async function dispatchContracts() {
   let dispatchedOptions;
   const taskProcess = { env: {}, execPath: process.execPath };
   const context = vm.createContext({
-    root, path, assert, URL, fixtureConfig, fixtureDispatchEnvironment, reportedCheckCounts, verificationEnvironment, verificationCommand,
+    root, path, assert, URL, setTimeout, clearTimeout, fixtureConfig, fixtureDispatchEnvironment, reportedCheckCounts, verificationEnvironment, verificationCommand,
     verificationDirectory: async () => path.join(root, ".cache/scalability", database, "verification-contract"), stage: "contract", process: taskProcess,
+    requireVerificationWorkspace: async () => {}, // Actual root refusal is separately exercised by the materialized-workspace contracts.
     readFile: async (file) => { assert.equal(file, path.join(root, "backend/package.json")); return JSON.stringify(manifest); },
     spawn: (_command, _args, options) => { dispatchedOptions = options; attemptedSpawns++; throw spawnTripwire; },
   });
@@ -291,7 +292,8 @@ async function dispatchContracts() {
   await allowed("ordinary security verifier reaches stopped dispatch", "verify:security-logging");
   check("child cwd is isolated and script arguments are absolute", () => {
     assert.equal(dispatchedOptions.cwd, path.join(root, ".cache/scalability", database, "verification-contract"));
-    assert.deepEqual(verificationCommand(manifest, "verify:security-logging"), [path.join(root, "node_modules/tsx/dist/cli.mjs"), "--tsconfig", path.join(root, "backend/tsconfig.json"), path.join(root, "backend/scripts/verify-security-logging.ts")]);
+    assert.deepEqual(verificationCommand(manifest, "verify:security-logging"), ["--import", pathToFileURL(path.join(root, "scripts/scalability/verification-workspace-bootstrap.mjs")).href, "--import", pathToFileURL(path.join(root, "node_modules/tsx/dist/loader.mjs")).href, path.join(root, "backend/scripts/verify-security-logging.ts")]);
+    assert.equal(dispatchedOptions.env.TSX_TSCONFIG_PATH,path.join(root,"backend/tsconfig.json"));
   });
   await allowed("direct dispatch overrides inherited pooler metadata", "verify:security-logging", {
     VERIFY_FIXTURE_CONNECTION_MODE: "pgbouncer-transaction", VERIFY_FIXTURE_POOLER_PORT: "9999", VERIFY_FIXTURE_UPSTREAM_PORT: "8888", VERIFY_FIXTURE_POOLER_IMAGE_ID: "synthetic-unreviewed-image", VERIFY_FIXTURE_DATABASE_URL: "synthetic-wrong-target",
@@ -344,6 +346,22 @@ async function dispatchContracts() {
   });
   await asyncCheck("unmarked child diagnostic JSON is ignored", async () => {
     assert.equal(await failedChild([JSON.stringify({ verificationFailure: false, kind: "AppError", code: "P2010", databaseCode: "42501", status: 500 })]), null);
+  });
+  const boundary={materializedWorkspaceBoundary:true,outsideSourceReadAttempts:0,outsideModuleResolutions:0,outsideNativeLoadAttempts:0,nativeModules:["node_modules/.prisma/client/query_engine-windows.dll.node"]};
+  const successfulChild=async reports=>{
+    context.spawn=()=>{
+      const child=new EventEmitter();child.stdout=new EventEmitter();child.stderr=new EventEmitter();
+      queueMicrotask(()=>{child.stdout.emit("data",Buffer.from(reports.map(value=>JSON.stringify(value)).join("\n")));child.emit("close",0);});
+      return child;
+    };
+    return run(structuredClone(baseline),"verify:security-logging");
+  };
+  await asyncCheck("successful child requires actual zero-violation read module and native boundary report",async()=>{
+    const report=await successfulChild([{...boundary,unapproved:"synthetic-private-marker"}]);
+    assert.deepEqual(JSON.parse(JSON.stringify(report.boundaryReports)),[boundary]);
+  });
+  for(const reports of [[],[boundary,boundary],[{...boundary,outsideSourceReadAttempts:1}],[{...boundary,outsideModuleResolutions:1}],[{...boundary,outsideNativeLoadAttempts:1}],[{...boundary,nativeModules:["../../synthetic-private.node"]}]])await asyncCheck("missing duplicate escaping or nonzero execution boundary fails an otherwise successful child",async()=>{
+    await assert.rejects(successfulChild(reports),/Verification child failed/);
   });
 }
 

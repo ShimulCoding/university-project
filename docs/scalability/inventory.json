@@ -12,7 +12,7 @@
     "recurringSchedulers": 1,
     "timers": 9,
     "inputSinkCandidates": 224,
-    "operatorSources": 116,
+    "operatorSources": 122,
     "npmCommands": 63
   },
   "coverage": {
@@ -19739,6 +19739,37 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "scripts/scalability/build-verification-workspace.mjs",
+        "source": "scripts/scalability/build-verification-workspace.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 38,
+        "sha256": "4ddf429b258e97ff77c72c8a68037275da2864dc5515bc86fc4ac15db24bf73c",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/build-verification-workspace.mjs:26"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/build-verification-workspace.mjs:27"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/build-verification-workspace.mjs:35"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/build-verification-workspace.mjs:36"
+          }
+        ],
+        "guardCandidates": [],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "scripts/scalability/inventory.mjs",
         "source": "scripts/scalability/inventory.mjs:1",
         "kind": "verification/profiling tool",
@@ -20120,16 +20151,12 @@
         "path": "scripts/scalability/prepare-local-pooler.mjs",
         "source": "scripts/scalability/prepare-local-pooler.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 113,
-        "sha256": "1760dd4a89a69645d589dd4cd06fbc73edad01639e8df146c755a86d02ad4828",
+        "lines": 114,
+        "sha256": "e8b06f682be0eb9f735b6d3635a723cd84842df9292061298c01f3983ad40793",
         "effects": [
           {
             "kind": "filesystem write candidate",
             "source": "scripts/scalability/prepare-local-pooler.mjs:3"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/prepare-local-pooler.mjs:7"
           },
           {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
@@ -20137,23 +20164,19 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/prepare-local-pooler.mjs:60"
+            "source": "scripts/scalability/prepare-local-pooler.mjs:61"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/prepare-local-pooler.mjs:63"
+            "source": "scripts/scalability/prepare-local-pooler.mjs:64"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/prepare-local-pooler.mjs:66"
+            "source": "scripts/scalability/prepare-local-pooler.mjs:67"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/prepare-local-pooler.mjs:71"
-          },
-          {
-            "kind": "filesystem write candidate",
-            "source": "scripts/scalability/prepare-local-pooler.mjs:75"
+            "source": "scripts/scalability/prepare-local-pooler.mjs:72"
           },
           {
             "kind": "filesystem write candidate",
@@ -20161,46 +20184,154 @@
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/prepare-local-pooler.mjs:86"
+            "source": "scripts/scalability/prepare-local-pooler.mjs:77"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/prepare-local-pooler.mjs:88"
+            "source": "scripts/scalability/prepare-local-pooler.mjs:87"
           },
           {
             "kind": "filesystem write candidate",
             "source": "scripts/scalability/prepare-local-pooler.mjs:89"
           },
           {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/prepare-local-pooler.mjs:104"
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:90"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/prepare-local-pooler.mjs:110"
+            "source": "scripts/scalability/prepare-local-pooler.mjs:105"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
             "source": "scripts/scalability/prepare-local-pooler.mjs:111"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/prepare-local-pooler.mjs:112"
           }
         ],
         "guardCandidates": [
           "scripts/scalability/prepare-local-pooler.mjs:8",
           "scripts/scalability/prepare-local-pooler.mjs:39",
-          "scripts/scalability/prepare-local-pooler.mjs:40",
-          "scripts/scalability/prepare-local-pooler.mjs:42",
+          "scripts/scalability/prepare-local-pooler.mjs:41",
           "scripts/scalability/prepare-local-pooler.mjs:43",
-          "scripts/scalability/prepare-local-pooler.mjs:45",
-          "scripts/scalability/prepare-local-pooler.mjs:48",
-          "scripts/scalability/prepare-local-pooler.mjs:50",
+          "scripts/scalability/prepare-local-pooler.mjs:44",
+          "scripts/scalability/prepare-local-pooler.mjs:46",
+          "scripts/scalability/prepare-local-pooler.mjs:49",
           "scripts/scalability/prepare-local-pooler.mjs:51",
-          "scripts/scalability/prepare-local-pooler.mjs:69",
-          "scripts/scalability/prepare-local-pooler.mjs:83",
+          "scripts/scalability/prepare-local-pooler.mjs:52",
+          "scripts/scalability/prepare-local-pooler.mjs:70",
           "scripts/scalability/prepare-local-pooler.mjs:84",
           "scripts/scalability/prepare-local-pooler.mjs:85",
           "scripts/scalability/prepare-local-pooler.mjs:86",
           "scripts/scalability/prepare-local-pooler.mjs:87",
-          "scripts/scalability/prepare-local-pooler.mjs:89"
+          "scripts/scalability/prepare-local-pooler.mjs:88",
+          "scripts/scalability/prepare-local-pooler.mjs:90"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/prepare-verification-workspace.mjs",
+        "source": "scripts/scalability/prepare-verification-workspace.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 209,
+        "sha256": "595b9d16f5c1e8c958113e981d0a42e75101b7073b0d4c65aab656ff57126888",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:5"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:11"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:36"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:104"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:105"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:150"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:160"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:161"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:165"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:171"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:172"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:191"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:193"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:200"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:206"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/prepare-verification-workspace.mjs:207"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/prepare-verification-workspace.mjs:25",
+          "scripts/scalability/prepare-verification-workspace.mjs:119",
+          "scripts/scalability/prepare-verification-workspace.mjs:120",
+          "scripts/scalability/prepare-verification-workspace.mjs:124",
+          "scripts/scalability/prepare-verification-workspace.mjs:134",
+          "scripts/scalability/prepare-verification-workspace.mjs:135",
+          "scripts/scalability/prepare-verification-workspace.mjs:136",
+          "scripts/scalability/prepare-verification-workspace.mjs:137",
+          "scripts/scalability/prepare-verification-workspace.mjs:140",
+          "scripts/scalability/prepare-verification-workspace.mjs:141",
+          "scripts/scalability/prepare-verification-workspace.mjs:147",
+          "scripts/scalability/prepare-verification-workspace.mjs:154",
+          "scripts/scalability/prepare-verification-workspace.mjs:155",
+          "scripts/scalability/prepare-verification-workspace.mjs:156",
+          "scripts/scalability/prepare-verification-workspace.mjs:158",
+          "scripts/scalability/prepare-verification-workspace.mjs:159",
+          "scripts/scalability/prepare-verification-workspace.mjs:161",
+          "scripts/scalability/prepare-verification-workspace.mjs:164",
+          "scripts/scalability/prepare-verification-workspace.mjs:168",
+          "scripts/scalability/prepare-verification-workspace.mjs:171",
+          "scripts/scalability/prepare-verification-workspace.mjs:173",
+          "scripts/scalability/prepare-verification-workspace.mjs:180",
+          "scripts/scalability/prepare-verification-workspace.mjs:206",
+          "scripts/scalability/prepare-verification-workspace.mjs:207"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -20315,6 +20446,62 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "scripts/scalability/verification-workspace-bootstrap.mjs",
+        "source": "scripts/scalability/verification-workspace-bootstrap.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 5,
+        "sha256": "290df69050d02584be284e507d24ce097f2b9fffa6b477312f42aeee2ead943c",
+        "effects": [],
+        "guardCandidates": [],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/verification-workspace-boundary.mjs",
+        "source": "scripts/scalability/verification-workspace-boundary.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 220,
+        "sha256": "dcdd7d0fdd8efbc32b84fbfb8b25a0793d98399f4c2b9bbd503544c33fdbf0a7",
+        "effects": [
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verification-workspace-boundary.mjs:15"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/verification-workspace-boundary.mjs:31"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verification-workspace-boundary.mjs:47"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verification-workspace-boundary.mjs:124"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verification-workspace-boundary.mjs:192"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verification-workspace-boundary.mjs:218"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/verification-workspace-boundary.mjs:198",
+          "scripts/scalability/verification-workspace-boundary.mjs:205"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "scripts/scalability/verify-cutover-grant-contracts.mjs",
         "source": "scripts/scalability/verify-cutover-grant-contracts.mjs:1",
         "kind": "verification/profiling tool",
@@ -20381,8 +20568,8 @@
         "path": "scripts/scalability/verify-cutover-grants-local.mjs",
         "source": "scripts/scalability/verify-cutover-grants-local.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 299,
-        "sha256": "5c140c583b28e3fca4e9f616eb7c1c5dacf76ad2517d0cf23ef4a011c856276d",
+        "lines": 301,
+        "sha256": "a48880be06341ac644010c47953564797c86662563e85c871be30781c231233b",
         "effects": [
           {
             "kind": "filesystem write candidate",
@@ -20390,23 +20577,15 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:7"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:26"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:25"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:28"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:29"
           },
           {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:35"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:70"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:36"
           },
           {
             "kind": "database candidate",
@@ -20414,7 +20593,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:75"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:72"
           },
           {
             "kind": "database candidate",
@@ -20422,11 +20601,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:80"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:77"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:82"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:81"
           },
           {
             "kind": "database candidate",
@@ -20458,11 +20637,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:94"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:90"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:96"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:95"
           },
           {
             "kind": "database candidate",
@@ -20478,39 +20657,31 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:108"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:100"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:111"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:110"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:115"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:113"
           },
           {
             "kind": "database candidate",
             "source": "scripts/scalability/verify-cutover-grants-local.mjs:117"
           },
           {
-            "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:121"
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:119"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:125"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:123"
           },
           {
             "kind": "filesystem write candidate",
             "source": "scripts/scalability/verify-cutover-grants-local.mjs:127"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:128"
-          },
-          {
-            "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:128"
           },
           {
             "kind": "filesystem write candidate",
@@ -20522,23 +20693,31 @@
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:132"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:133"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:130"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:136"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:131"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:140"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:132"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:134"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:172"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:135"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:138"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:142"
           },
           {
             "kind": "database candidate",
@@ -20546,15 +20725,15 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:197"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:176"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:204"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:199"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:207"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:206"
           },
           {
             "kind": "database candidate",
@@ -20562,11 +20741,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:213"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:214"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:211"
           },
           {
             "kind": "database candidate",
@@ -20582,19 +20757,19 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:228"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:218"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:235"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:219"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:239"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:230"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:240"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:237"
           },
           {
             "kind": "database candidate",
@@ -20606,27 +20781,27 @@
           },
           {
             "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:243"
+          },
+          {
+            "kind": "database candidate",
             "source": "scripts/scalability/verify-cutover-grants-local.mjs:244"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:245"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:246"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:254"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:247"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:258"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:256"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:263"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:264"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:260"
           },
           {
             "kind": "database candidate",
@@ -20654,55 +20829,63 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:277"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:271"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:272"
           },
           {
             "kind": "database candidate",
             "source": "scripts/scalability/verify-cutover-grants-local.mjs:279"
           },
           {
-            "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:282"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:291"
-          },
-          {
-            "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:292"
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:281"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:295"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:284"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-cutover-grants-local.mjs:296"
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:293"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:294"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:297"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-cutover-grants-local.mjs:298"
           }
         ],
         "guardCandidates": [
           "scripts/scalability/verify-cutover-grants-local.mjs:9",
-          "scripts/scalability/verify-cutover-grants-local.mjs:19",
-          "scripts/scalability/verify-cutover-grants-local.mjs:24",
+          "scripts/scalability/verify-cutover-grants-local.mjs:20",
           "scripts/scalability/verify-cutover-grants-local.mjs:25",
-          "scripts/scalability/verify-cutover-grants-local.mjs:30",
-          "scripts/scalability/verify-cutover-grants-local.mjs:48",
-          "scripts/scalability/verify-cutover-grants-local.mjs:56",
-          "scripts/scalability/verify-cutover-grants-local.mjs:66",
-          "scripts/scalability/verify-cutover-grants-local.mjs:120",
-          "scripts/scalability/verify-cutover-grants-local.mjs:123",
-          "scripts/scalability/verify-cutover-grants-local.mjs:124",
+          "scripts/scalability/verify-cutover-grants-local.mjs:26",
+          "scripts/scalability/verify-cutover-grants-local.mjs:31",
+          "scripts/scalability/verify-cutover-grants-local.mjs:49",
+          "scripts/scalability/verify-cutover-grants-local.mjs:57",
+          "scripts/scalability/verify-cutover-grants-local.mjs:67",
+          "scripts/scalability/verify-cutover-grants-local.mjs:122",
           "scripts/scalability/verify-cutover-grants-local.mjs:125",
           "scripts/scalability/verify-cutover-grants-local.mjs:126",
-          "scripts/scalability/verify-cutover-grants-local.mjs:137",
-          "scripts/scalability/verify-cutover-grants-local.mjs:138",
+          "scripts/scalability/verify-cutover-grants-local.mjs:127",
+          "scripts/scalability/verify-cutover-grants-local.mjs:128",
+          "scripts/scalability/verify-cutover-grants-local.mjs:139",
           "scripts/scalability/verify-cutover-grants-local.mjs:140",
-          "scripts/scalability/verify-cutover-grants-local.mjs:164",
+          "scripts/scalability/verify-cutover-grants-local.mjs:142",
           "scripts/scalability/verify-cutover-grants-local.mjs:166",
-          "scripts/scalability/verify-cutover-grants-local.mjs:281",
-          "scripts/scalability/verify-cutover-grants-local.mjs:291",
-          "scripts/scalability/verify-cutover-grants-local.mjs:294"
+          "scripts/scalability/verify-cutover-grants-local.mjs:168",
+          "scripts/scalability/verify-cutover-grants-local.mjs:283",
+          "scripts/scalability/verify-cutover-grants-local.mjs:293",
+          "scripts/scalability/verify-cutover-grants-local.mjs:296"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -21017,8 +21200,8 @@
         "path": "scripts/scalability/verify-local-database.mjs",
         "source": "scripts/scalability/verify-local-database.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 301,
-        "sha256": "755ef725b48b0e315cf4b0e9d88335b4f0ea3d92b3349244f813e5fc6c409654",
+        "lines": 317,
+        "sha256": "082600227f2decf8911312edebbb4d85fe4ff8cfbd50f7294ecf99922be8cd60",
         "effects": [
           {
             "kind": "filesystem write candidate",
@@ -21026,15 +21209,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:7"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:73"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:76"
+            "source": "scripts/scalability/verify-local-database.mjs:74"
           },
           {
             "kind": "database candidate",
@@ -21042,7 +21217,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:81"
+            "source": "scripts/scalability/verify-local-database.mjs:78"
           },
           {
             "kind": "database candidate",
@@ -21050,11 +21225,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:104"
+            "source": "scripts/scalability/verify-local-database.mjs:83"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:107"
+            "source": "scripts/scalability/verify-local-database.mjs:106"
           },
           {
             "kind": "database candidate",
@@ -21062,11 +21237,7 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:126"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:127"
+            "source": "scripts/scalability/verify-local-database.mjs:111"
           },
           {
             "kind": "database candidate",
@@ -21102,15 +21273,19 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:146"
+            "source": "scripts/scalability/verify-local-database.mjs:136"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:157"
+            "source": "scripts/scalability/verify-local-database.mjs:137"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:158"
+            "source": "scripts/scalability/verify-local-database.mjs:148"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:159"
           },
           {
             "kind": "database candidate",
@@ -21118,15 +21293,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:161"
+            "source": "scripts/scalability/verify-local-database.mjs:162"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:174"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:175"
+            "source": "scripts/scalability/verify-local-database.mjs:163"
           },
           {
             "kind": "database candidate",
@@ -21137,24 +21308,32 @@
             "source": "scripts/scalability/verify-local-database.mjs:177"
           },
           {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:178"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-database.mjs:179"
+          },
+          {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-local-database.mjs:240"
+            "source": "scripts/scalability/verify-local-database.mjs:243"
           },
           {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
-            "source": "scripts/scalability/verify-local-database.mjs:260"
+            "source": "scripts/scalability/verify-local-database.mjs:264"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-local-database.mjs:293"
+            "source": "scripts/scalability/verify-local-database.mjs:309"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-local-database.mjs:297"
+            "source": "scripts/scalability/verify-local-database.mjs:313"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-local-database.mjs:298"
+            "source": "scripts/scalability/verify-local-database.mjs:314"
           }
         ],
         "guardCandidates": [
@@ -21175,26 +21354,26 @@
           "scripts/scalability/verify-local-database.mjs:61",
           "scripts/scalability/verify-local-database.mjs:62",
           "scripts/scalability/verify-local-database.mjs:65",
-          "scripts/scalability/verify-local-database.mjs:95",
-          "scripts/scalability/verify-local-database.mjs:115",
-          "scripts/scalability/verify-local-database.mjs:116",
-          "scripts/scalability/verify-local-database.mjs:123",
-          "scripts/scalability/verify-local-database.mjs:168",
-          "scripts/scalability/verify-local-database.mjs:173",
-          "scripts/scalability/verify-local-database.mjs:185",
-          "scripts/scalability/verify-local-database.mjs:190",
-          "scripts/scalability/verify-local-database.mjs:193",
+          "scripts/scalability/verify-local-database.mjs:97",
+          "scripts/scalability/verify-local-database.mjs:117",
+          "scripts/scalability/verify-local-database.mjs:118",
+          "scripts/scalability/verify-local-database.mjs:125",
+          "scripts/scalability/verify-local-database.mjs:170",
+          "scripts/scalability/verify-local-database.mjs:175",
+          "scripts/scalability/verify-local-database.mjs:187",
+          "scripts/scalability/verify-local-database.mjs:192",
           "scripts/scalability/verify-local-database.mjs:195",
-          "scripts/scalability/verify-local-database.mjs:198",
-          "scripts/scalability/verify-local-database.mjs:205",
-          "scripts/scalability/verify-local-database.mjs:208",
-          "scripts/scalability/verify-local-database.mjs:221",
-          "scripts/scalability/verify-local-database.mjs:222",
-          "scripts/scalability/verify-local-database.mjs:225",
-          "scripts/scalability/verify-local-database.mjs:236",
-          "scripts/scalability/verify-local-database.mjs:256",
-          "scripts/scalability/verify-local-database.mjs:293",
-          "scripts/scalability/verify-local-database.mjs:295"
+          "scripts/scalability/verify-local-database.mjs:197",
+          "scripts/scalability/verify-local-database.mjs:200",
+          "scripts/scalability/verify-local-database.mjs:207",
+          "scripts/scalability/verify-local-database.mjs:210",
+          "scripts/scalability/verify-local-database.mjs:223",
+          "scripts/scalability/verify-local-database.mjs:224",
+          "scripts/scalability/verify-local-database.mjs:227",
+          "scripts/scalability/verify-local-database.mjs:239",
+          "scripts/scalability/verify-local-database.mjs:260",
+          "scripts/scalability/verify-local-database.mjs:309",
+          "scripts/scalability/verify-local-database.mjs:311"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -21206,8 +21385,8 @@
         "path": "scripts/scalability/verify-local-pooler.mjs",
         "source": "scripts/scalability/verify-local-pooler.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 229,
-        "sha256": "265f0632cb39fa0ce261b944dc80f4881d2f14273f7e2f7d21a6565885b242e4",
+        "lines": 231,
+        "sha256": "e8a37492ff5322b9ec7ab00ea6f69e78ef30cb4e0202f3280afec533a0262bd3",
         "effects": [
           {
             "kind": "filesystem write candidate",
@@ -21215,31 +21394,23 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:6"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:18"
+            "source": "scripts/scalability/verify-local-pooler.mjs:19"
           },
           {
             "kind": "subprocess candidate; inspect argument/environment boundaries",
-            "source": "scripts/scalability/verify-local-pooler.mjs:67"
+            "source": "scripts/scalability/verify-local-pooler.mjs:68"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:76"
+            "source": "scripts/scalability/verify-local-pooler.mjs:77"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:78"
+            "source": "scripts/scalability/verify-local-pooler.mjs:79"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:84"
-          },
-          {
-            "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:89"
+            "source": "scripts/scalability/verify-local-pooler.mjs:85"
           },
           {
             "kind": "database candidate",
@@ -21247,19 +21418,19 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:108"
+            "source": "scripts/scalability/verify-local-pooler.mjs:91"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:112"
+            "source": "scripts/scalability/verify-local-pooler.mjs:109"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:114"
+            "source": "scripts/scalability/verify-local-pooler.mjs:113"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:118"
+            "source": "scripts/scalability/verify-local-pooler.mjs:115"
           },
           {
             "kind": "database candidate",
@@ -21267,11 +21438,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:122"
+            "source": "scripts/scalability/verify-local-pooler.mjs:120"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:133"
+            "source": "scripts/scalability/verify-local-pooler.mjs:123"
           },
           {
             "kind": "database candidate",
@@ -21279,40 +21450,44 @@
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:146"
+            "source": "scripts/scalability/verify-local-pooler.mjs:135"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:148"
+            "source": "scripts/scalability/verify-local-pooler.mjs:147"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:153"
+            "source": "scripts/scalability/verify-local-pooler.mjs:149"
           },
           {
             "kind": "database candidate",
             "source": "scripts/scalability/verify-local-pooler.mjs:154"
           },
           {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-local-pooler.mjs:155"
+          },
+          {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-local-pooler.mjs:197"
+            "source": "scripts/scalability/verify-local-pooler.mjs:199"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-local-pooler.mjs:226"
+            "source": "scripts/scalability/verify-local-pooler.mjs:228"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-local-pooler.mjs:227"
+            "source": "scripts/scalability/verify-local-pooler.mjs:229"
           }
         ],
         "guardCandidates": [
           "scripts/scalability/verify-local-pooler.mjs:7",
-          "scripts/scalability/verify-local-pooler.mjs:32",
-          "scripts/scalability/verify-local-pooler.mjs:141",
-          "scripts/scalability/verify-local-pooler.mjs:168",
-          "scripts/scalability/verify-local-pooler.mjs:169",
-          "scripts/scalability/verify-local-pooler.mjs:203"
+          "scripts/scalability/verify-local-pooler.mjs:33",
+          "scripts/scalability/verify-local-pooler.mjs:142",
+          "scripts/scalability/verify-local-pooler.mjs:170",
+          "scripts/scalability/verify-local-pooler.mjs:171",
+          "scripts/scalability/verify-local-pooler.mjs:205"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -21357,8 +21532,8 @@
         "path": "scripts/scalability/verify-provisioning-contracts.mjs",
         "source": "scripts/scalability/verify-provisioning-contracts.mjs:1",
         "kind": "verification/profiling tool",
-        "lines": 531,
-        "sha256": "6094717e013e73a1b2ddaa42f8071391d35c01c630ba6ce6fa86104c303a1df8",
+        "lines": 549,
+        "sha256": "9b910d88d9d5847d2bfa09933e862e4004d40a1ab75f9a1bf7b9b8431ff02acf",
         "effects": [
           {
             "kind": "filesystem write candidate",
@@ -21393,32 +21568,36 @@
             "source": "scripts/scalability/verify-provisioning-contracts.mjs:190"
           },
           {
-            "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:372"
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:350"
           },
           {
             "kind": "filesystem write candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:374"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:390"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:392"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:477"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:495"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:503"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:521"
           },
           {
             "kind": "database candidate",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:527"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:545"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:527"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:545"
           },
           {
             "kind": "output candidate; inspect PII/capabilities",
-            "source": "scripts/scalability/verify-provisioning-contracts.mjs:530"
+            "source": "scripts/scalability/verify-provisioning-contracts.mjs:548"
           }
         ],
         "guardCandidates": [
@@ -21480,40 +21659,40 @@
           "scripts/scalability/verify-provisioning-contracts.mjs:243",
           "scripts/scalability/verify-provisioning-contracts.mjs:256",
           "scripts/scalability/verify-provisioning-contracts.mjs:257",
-          "scripts/scalability/verify-provisioning-contracts.mjs:285",
-          "scripts/scalability/verify-provisioning-contracts.mjs:288",
-          "scripts/scalability/verify-provisioning-contracts.mjs:290",
-          "scripts/scalability/verify-provisioning-contracts.mjs:293",
-          "scripts/scalability/verify-provisioning-contracts.mjs:297",
+          "scripts/scalability/verify-provisioning-contracts.mjs:286",
+          "scripts/scalability/verify-provisioning-contracts.mjs:289",
+          "scripts/scalability/verify-provisioning-contracts.mjs:291",
+          "scripts/scalability/verify-provisioning-contracts.mjs:294",
           "scripts/scalability/verify-provisioning-contracts.mjs:299",
           "scripts/scalability/verify-provisioning-contracts.mjs:301",
-          "scripts/scalability/verify-provisioning-contracts.mjs:305",
-          "scripts/scalability/verify-provisioning-contracts.mjs:306",
+          "scripts/scalability/verify-provisioning-contracts.mjs:303",
           "scripts/scalability/verify-provisioning-contracts.mjs:307",
           "scripts/scalability/verify-provisioning-contracts.mjs:308",
+          "scripts/scalability/verify-provisioning-contracts.mjs:309",
           "scripts/scalability/verify-provisioning-contracts.mjs:310",
-          "scripts/scalability/verify-provisioning-contracts.mjs:311",
-          "scripts/scalability/verify-provisioning-contracts.mjs:351",
-          "scripts/scalability/verify-provisioning-contracts.mjs:355",
-          "scripts/scalability/verify-provisioning-contracts.mjs:356",
-          "scripts/scalability/verify-provisioning-contracts.mjs:358",
-          "scripts/scalability/verify-provisioning-contracts.mjs:362",
-          "scripts/scalability/verify-provisioning-contracts.mjs:366",
-          "scripts/scalability/verify-provisioning-contracts.mjs:370",
-          "scripts/scalability/verify-provisioning-contracts.mjs:394",
-          "scripts/scalability/verify-provisioning-contracts.mjs:407",
-          "scripts/scalability/verify-provisioning-contracts.mjs:408",
-          "scripts/scalability/verify-provisioning-contracts.mjs:467",
-          "scripts/scalability/verify-provisioning-contracts.mjs:488",
-          "scripts/scalability/verify-provisioning-contracts.mjs:491",
-          "scripts/scalability/verify-provisioning-contracts.mjs:494",
-          "scripts/scalability/verify-provisioning-contracts.mjs:499",
-          "scripts/scalability/verify-provisioning-contracts.mjs:500",
-          "scripts/scalability/verify-provisioning-contracts.mjs:502",
-          "scripts/scalability/verify-provisioning-contracts.mjs:503",
-          "scripts/scalability/verify-provisioning-contracts.mjs:504",
-          "scripts/scalability/verify-provisioning-contracts.mjs:510",
-          "scripts/scalability/verify-provisioning-contracts.mjs:523"
+          "scripts/scalability/verify-provisioning-contracts.mjs:312",
+          "scripts/scalability/verify-provisioning-contracts.mjs:313",
+          "scripts/scalability/verify-provisioning-contracts.mjs:369",
+          "scripts/scalability/verify-provisioning-contracts.mjs:373",
+          "scripts/scalability/verify-provisioning-contracts.mjs:374",
+          "scripts/scalability/verify-provisioning-contracts.mjs:376",
+          "scripts/scalability/verify-provisioning-contracts.mjs:380",
+          "scripts/scalability/verify-provisioning-contracts.mjs:384",
+          "scripts/scalability/verify-provisioning-contracts.mjs:388",
+          "scripts/scalability/verify-provisioning-contracts.mjs:412",
+          "scripts/scalability/verify-provisioning-contracts.mjs:425",
+          "scripts/scalability/verify-provisioning-contracts.mjs:426",
+          "scripts/scalability/verify-provisioning-contracts.mjs:485",
+          "scripts/scalability/verify-provisioning-contracts.mjs:506",
+          "scripts/scalability/verify-provisioning-contracts.mjs:509",
+          "scripts/scalability/verify-provisioning-contracts.mjs:512",
+          "scripts/scalability/verify-provisioning-contracts.mjs:517",
+          "scripts/scalability/verify-provisioning-contracts.mjs:518",
+          "scripts/scalability/verify-provisioning-contracts.mjs:520",
+          "scripts/scalability/verify-provisioning-contracts.mjs:521",
+          "scripts/scalability/verify-provisioning-contracts.mjs:522",
+          "scripts/scalability/verify-provisioning-contracts.mjs:528",
+          "scripts/scalability/verify-provisioning-contracts.mjs:541"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
@@ -21562,6 +21741,189 @@
           "scripts/scalability/verify-runtime-dependencies.mjs:173",
           "scripts/scalability/verify-runtime-dependencies.mjs:174",
           "scripts/scalability/verify-runtime-dependencies.mjs:219"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/verify-verification-workspace.mjs",
+        "source": "scripts/scalability/verify-verification-workspace.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 250,
+        "sha256": "f8c776d4fcfa4d04c4fcb56ba4e53cf647983cde104d7c6060cd995745b8fe1b",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:5"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:22"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:27"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:28"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:29"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:37"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:39"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:43"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:117"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:183"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:185"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:186"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:192"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:193"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:195"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:197"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:217"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:218"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:232"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:233"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:234"
+          },
+          {
+            "kind": "database candidate",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:241"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:241"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:243"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:245"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:247"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-verification-workspace.mjs:248"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/verify-verification-workspace.mjs:20",
+          "scripts/scalability/verify-verification-workspace.mjs:25",
+          "scripts/scalability/verify-verification-workspace.mjs:48",
+          "scripts/scalability/verify-verification-workspace.mjs:49",
+          "scripts/scalability/verify-verification-workspace.mjs:50",
+          "scripts/scalability/verify-verification-workspace.mjs:51",
+          "scripts/scalability/verify-verification-workspace.mjs:134",
+          "scripts/scalability/verify-verification-workspace.mjs:185",
+          "scripts/scalability/verify-verification-workspace.mjs:193",
+          "scripts/scalability/verify-verification-workspace.mjs:205",
+          "scripts/scalability/verify-verification-workspace.mjs:217",
+          "scripts/scalability/verify-verification-workspace.mjs:218"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "scripts/scalability/verify-workspace-backend-suites.mjs",
+        "source": "scripts/scalability/verify-workspace-backend-suites.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 43,
+        "sha256": "0c61832f296f1526180f1ab34c4f75dab707c8a3dda6cd434dadc12bfe0d4c4a",
+        "effects": [
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-workspace-backend-suites.mjs:3"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-workspace-backend-suites.mjs:30"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-workspace-backend-suites.mjs:31"
+          },
+          {
+            "kind": "filesystem write candidate",
+            "source": "scripts/scalability/verify-workspace-backend-suites.mjs:34"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-workspace-backend-suites.mjs:40"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "scripts/scalability/verify-workspace-backend-suites.mjs:41"
+          }
+        ],
+        "guardCandidates": [
+          "scripts/scalability/verify-workspace-backend-suites.mjs:6",
+          "scripts/scalability/verify-workspace-backend-suites.mjs:13",
+          "scripts/scalability/verify-workspace-backend-suites.mjs:15",
+          "scripts/scalability/verify-workspace-backend-suites.mjs:16",
+          "scripts/scalability/verify-workspace-backend-suites.mjs:18",
+          "scripts/scalability/verify-workspace-backend-suites.mjs:21",
+          "scripts/scalability/verify-workspace-backend-suites.mjs:40"
         ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",

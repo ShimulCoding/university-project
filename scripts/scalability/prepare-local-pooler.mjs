@@ -4,7 +4,7 @@ import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {PrismaClient} from '@prisma/client';
+import {verificationPrisma} from './verification-workspace-boundary.mjs';
 import {fixtureConfig,fixtureTransactionPooler} from './verify-local-database.mjs';
 import {operatorParameters,privateConfigurationFile} from './provision-local-database.mjs';
 import {toWslPath} from './prepare-local-container.mjs';
@@ -37,6 +37,7 @@ function ownedCommand(command,args,input='') {
 const docker=args=>ownedCommand('docker',args);
 
 export async function prepare(fixtureFile,operatorFile,containerDirectory) {
+  const PrismaClient=await verificationPrisma();
   assert(fixtureFile&&operatorFile&&containerDirectory,'Explicit owned configurations are required');
   stage='private_configuration';
   const config=fixtureConfig(JSON.parse(await readFile(await privateConfigurationFile(fixtureFile),'utf8')));

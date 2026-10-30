@@ -1,5 +1,7 @@
 # Phase 1 independent review brief
 
+2026-10-30: independently reconstruct [the Next-only patch's](next-security-patch-review.md)13 lock records and match candidate5fd0b4ea to its fresh npm-ci/12-gate/CSP15/workspace1135/MFA74 evidence. Keep its six remaining audit findings/nonzero exits distinct from the complete uncommitted draft's0 audit/106proof/24suite evidence. Do not credit a new DoS fix from a cyclic control rejected by both versions. Native/Linux/image/license/integration/shared-outage and50k capacity acceptance remain open.
+
 Status: review preparation, **phase acceptance pending**. Compare the security carry-over changes after phase0 snapshot13134ea. Read [report](phase-1-report.md), [database boundary](database-boundary-review.md), [file response](file-response-review.md), [drain](graceful-drain-review.md), [dependency isolation](sec05-dependency-boundary.md), [PLAN](PLAN.md) and [LOG](LOG.md). Main changes and owner cutover are not authorized.
 
 ## Review questions

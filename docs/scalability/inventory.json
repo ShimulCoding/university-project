@@ -12,8 +12,8 @@
     "recurringSchedulers": 1,
     "timers": 9,
     "inputSinkCandidates": 224,
-    "operatorSources": 122,
-    "npmCommands": 63
+    "operatorSources": 123,
+    "npmCommands": 64
   },
   "coverage": {
     "scope": [
@@ -19040,8 +19040,8 @@
         "path": "frontend/package.json",
         "source": "frontend/package.json:1",
         "kind": "maintenance/operator script; inspect before execution",
-        "lines": 51,
-        "sha256": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "lines": 52,
+        "sha256": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "effects": [],
         "guardCandidates": [],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
@@ -19251,6 +19251,37 @@
           }
         ],
         "guardCandidates": [],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
+        "path": "frontend/scripts/verify-framework-security-patch.mjs",
+        "source": "frontend/scripts/verify-framework-security-patch.mjs:1",
+        "kind": "verification/profiling tool",
+        "lines": 62,
+        "sha256": "dfca74a21d7ef2b552d84fffb89951e6d2fdf0d1056a818905b56ba3b00141b8",
+        "effects": [
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "frontend/scripts/verify-framework-security-patch.mjs:50"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "frontend/scripts/verify-framework-security-patch.mjs:54"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "frontend/scripts/verify-framework-security-patch.mjs:61"
+          }
+        ],
+        "guardCandidates": [
+          "frontend/scripts/verify-framework-security-patch.mjs:39",
+          "frontend/scripts/verify-framework-security-patch.mjs:40",
+          "frontend/scripts/verify-framework-security-patch.mjs:55"
+        ],
         "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
         "change": "Mapped; no runtime change",
         "before": "N/A: source coverage only",
@@ -19523,7 +19554,7 @@
         "source": "package-lock.json:1",
         "kind": "maintenance/operator script; inspect before execution",
         "lines": 9792,
-        "sha256": "ed0d925c0a99137aeb197afa44381bb196353f0a9cb3333093450f8de4c4084e",
+        "sha256": "5fd0b4eab35d4c0d52afed4beaccf3e0b19df0e25b9538803b9cdd9f0d98ea34",
         "effects": [
           {
             "kind": "database candidate",
@@ -22336,98 +22367,105 @@
         "id": "frontend/package.json#dev",
         "command": "next dev",
         "source": "frontend/package.json:6",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#build",
         "command": "next build",
         "source": "frontend/package.json:7",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#start",
         "command": "next start",
         "source": "frontend/package.json:8",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#lint",
         "command": "eslint . --max-warnings=0",
         "source": "frontend/package.json:9",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#verify:client",
         "command": "tsx scripts/verify-client-api.ts",
         "source": "frontend/package.json:10",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#verify:financial-submission",
         "command": "tsx scripts/verify-financial-submission.ts",
         "source": "frontend/package.json:11",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#verify:pdf",
         "command": "tsx --tsconfig tsconfig.json scripts/verify-pdf.ts",
         "source": "frontend/package.json:12",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#verify:ui",
         "command": "tsx --tsconfig scripts/tsconfig.json scripts/verify-ui.tsx",
         "source": "frontend/package.json:13",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#verify:design",
         "command": "tsx scripts/verify-design.ts",
         "source": "frontend/package.json:14",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#verify:security-policy",
         "command": "tsx scripts/verify-browser-policy.ts",
         "source": "frontend/package.json:15",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#verify:development-origins",
         "command": "tsx scripts/verify-development-origins.ts",
         "source": "frontend/package.json:16",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#verify:framework-logging",
         "command": "tsx scripts/verify-framework-logging.ts",
         "source": "frontend/package.json:17",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
+        "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
+      },
+      {
+        "id": "frontend/package.json#verify:framework-security-patch",
+        "command": "node scripts/verify-framework-security-patch.mjs",
+        "source": "frontend/package.json:18",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#verify:reset-token",
         "command": "tsx scripts/verify-reset-token.ts",
-        "source": "frontend/package.json:18",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "source": "frontend/package.json:19",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "frontend/package.json#verify:security-browser",
         "command": "tsx scripts/verify-security-browser.ts",
-        "source": "frontend/package.json:19",
-        "manifestHash": "37b91b7879b9cb58f9fac3522ef29fe45fdfb7897cfd87be78e95312f74d4e5f",
+        "source": "frontend/package.json:20",
+        "manifestHash": "2d06ab84626bf12a3db3afe973e5f0bcc6df4514a0bfd3637d2fcb9131cc58bc",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       }
     ],

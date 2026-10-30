@@ -2,6 +2,8 @@
 
 Status: **in progress**, not phase acceptance. Main and the owner's data/configuration/MFA remain unchanged. This report records local evidence; it does not certify deployment, 50k users or completion of later phases.
 
+2026-10-30: [Next-only verification](next-security-patch-review.md) has a fresh exact npm-ci install,12frontend gates and real Edge CSP15/workspace1135/MFA74. Same-feed baseline7entries/1critical becomes Next-only6entries/0critical; nonzero audit exits and remaining backend entries stay visible. A separate complete patched draft audits0 and passes106constructor controls,635-input/174-output build and24/24 suites with0boundary violations. Neither graph certifies Linux/native images, real antivirus/email, shared outage/recovery or user capacity. The cyclic-model control rejects on both versions and demonstrates no new DoS gain. Historical audit figures below belong to their recorded graph/feed.
+
 Legacy Prisma's generated schema dotenv path escapes a fresh child cwd: protected controls block2 original-env reads and synthetic substitution proves import. The corrected public-source/materialized-dependency tools now pass constructor106, read/module/native runtime96, independent81 and a wholly fresh exclusive24-suite pre-quota baseline, all observed boundary counters0. This closes the reviewed loader path without modifying generated code or reading owner private bytes. It is a trusted-source read tripwire, not an OS sandbox; read [scope and reproduction](prisma-verifier-isolation-review.md). New quota application acceptance remains separate.
 
 | Concern | Evidence | Remaining gate |

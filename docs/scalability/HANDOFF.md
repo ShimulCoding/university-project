@@ -1,5 +1,19 @@
 # Scalability continuation handoff
 
+## Current continuation point:2026-10-30
+
+The user paused application work to install skills, then explicitly selected **local-only manual Claude-Mem memory without automatic capture or external AI calls**. That installation is prepared for use; read [local-manual-memory-review.md](local-manual-memory-review.md) and its completed plan before changing the tooling. Synthetic MCP8/repeated isolation34/installed-launcher40 pass. The final store is empty, save approval and a four-tool allowlist are configured, and interactive filtering/prompt observation is still pending a Codex reload. Retrieved notes enter the ordinary conversation/model context. No private app data/owner dotenv/MFA files were inputs; no application code was changed for this concern.
+
+Superpowers15, Impeccable4.8.0/native0.1.18, GSD1.19.0/23skills/22agent definitions and Claude-Mem15.7.0 are installed at user scope. GSD did not initialize the app; its own update-check hook is distinct from disabled Claude-Mem capture. No additional MCP/service beyond this explicitly approved manual connection is authorized by installation alone.
+
+Latest application commit is845c95e (Shimul), with origin/perf aligned at task start. This documentation/tooling concern is Nayem's turn; next contribution is Shimul after its commit. Main/originmain remain816d7d6. Recheck actual Git status/history and the installed verification reports on resume. Historical branch/author and pending-ENV2 statements below are retained as historical evidence and superseded by this paragraph; ENV2 is committed. Phase1 is not accepted and phases2-9/capacity remain unmeasured.
+
+Preserve all uncommitted quota, dependency and native-image work. Resume by reading those draft reviews and identifying their actual latest source/manifests/results, then select the smallest fully verified concern. Older copied workspaces preserve different source/dependency sets; never infer that one passed result certifies another. The original-workspace Prisma restriction still applies. This tooling task did not rerun the application suites or classify the previously open frontend/shared-workspace failures.
+
+Manual-memory operations: installed launcher/profile/private backups are under the user's `.codex/tools/claude-mem-manual`; do not publish backups. The synthetic test container is stopped with its volume preserved. Both task-owned temporary WSL keepers were stopped. Actual daemon-cold-start4 passes with all40 checks while a normal MCP session holds WSL lifetime, without a custom keeper. Windows reboot, interactive client approval observation and encrypted note backup/restore are not verified. Preserve the notes volume on rollback; no capture/provider fallback is allowed.
+
+The following2026-10-19 handoff is retained for earlier reproducible commands and limitations; its statements about uncommitted ENV2/tip authors are historical.
+
 Updated2026-10-19. Work remains active and **Phase1 is not accepted**. This file records interruption recovery; it is not a completion or capacity report.
 
 ## Branch and safety

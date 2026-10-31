@@ -45,7 +45,8 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:studio": "prisma studio",
-    "verify:security-body-parser": "tsx scripts/verify-security-body-parser.ts"
+    "verify:security-body-parser": "tsx scripts/verify-security-body-parser.ts",
+    "verify:security-multipart-parser": "tsx scripts/verify-security-multipart-parser.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",

@@ -12,8 +12,8 @@
     "recurringSchedulers": 1,
     "timers": 9,
     "inputSinkCandidates": 224,
-    "operatorSources": 125,
-    "npmCommands": 66
+    "operatorSources": 126,
+    "npmCommands": 67
   },
   "coverage": {
     "scope": [
@@ -14495,8 +14495,8 @@
         "path": "backend/package.json",
         "source": "backend/package.json:1",
         "kind": "maintenance/operator script; inspect before execution",
-        "lines": 82,
-        "sha256": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "lines": 83,
+        "sha256": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "effects": [
           {
             "kind": "database candidate",
@@ -14524,11 +14524,11 @@
           },
           {
             "kind": "database candidate",
-            "source": "backend/package.json:52"
+            "source": "backend/package.json:53"
           },
           {
             "kind": "database candidate",
-            "source": "backend/package.json:77"
+            "source": "backend/package.json:78"
           }
         ],
         "guardCandidates": [],
@@ -18206,6 +18206,57 @@
         "evidenceCommit": "415a869"
       },
       {
+        "path": "backend/scripts/verify-security-mail-parser.ts",
+        "source": "backend/scripts/verify-security-mail-parser.ts:1",
+        "kind": "verification/profiling tool",
+        "lines": 55,
+        "sha256": "5366e4ff61ba8794c8c2e7181812ee6ac01e5a30ccd79fa78b148ff98717020d",
+        "effects": [
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-mail-parser.ts:24"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-mail-parser.ts:30"
+          },
+          {
+            "kind": "network candidate",
+            "source": "backend/scripts/verify-security-mail-parser.ts:35"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-mail-parser.ts:38"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-mail-parser.ts:40"
+          },
+          {
+            "kind": "subprocess candidate; inspect argument/environment boundaries",
+            "source": "backend/scripts/verify-security-mail-parser.ts:46"
+          },
+          {
+            "kind": "output candidate; inspect PII/capabilities",
+            "source": "backend/scripts/verify-security-mail-parser.ts:54"
+          }
+        ],
+        "guardCandidates": [
+          "backend/scripts/verify-security-mail-parser.ts:8",
+          "backend/scripts/verify-security-mail-parser.ts:10",
+          "backend/scripts/verify-security-mail-parser.ts:24",
+          "backend/scripts/verify-security-mail-parser.ts:35",
+          "backend/scripts/verify-security-mail-parser.ts:40",
+          "backend/scripts/verify-security-mail-parser.ts:46",
+          "backend/scripts/verify-security-mail-parser.ts:50"
+        ],
+        "trustBoundary": "Explicit operator/CI execution; lexical candidates do not prove guard enforcement or safe execution. Never executed by this generator.",
+        "change": "Mapped; no runtime change",
+        "before": "N/A: source coverage only",
+        "after": "N/A: no application change",
+        "evidenceCommit": "415a869"
+      },
+      {
         "path": "backend/scripts/verify-security-mail-transport.ts",
         "source": "backend/scripts/verify-security-mail-transport.ts:1",
         "kind": "verification/profiling tool",
@@ -19680,7 +19731,7 @@
         "source": "package-lock.json:1",
         "kind": "maintenance/operator script; inspect before execution",
         "lines": 9792,
-        "sha256": "26463c49cd04864b98a564a41915d05c54afd0a9403f22e73ea0ea4ca36905a6",
+        "sha256": "451a4dae6626a3ce2889fe7d66d1b95691fc07fd14d6e37d53d5fd11dd0185d6",
         "effects": [
           {
             "kind": "database candidate",
@@ -22199,308 +22250,315 @@
         "id": "backend/package.json#dev",
         "command": "tsx watch src/server.ts",
         "source": "backend/package.json:6",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#build",
         "command": "tsc -p tsconfig.json",
         "source": "backend/package.json:7",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#start",
         "command": "node dist/server.js",
         "source": "backend/package.json:8",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:flows",
         "command": "tsx scripts/verify-events-payments-slice.ts",
         "source": "backend/package.json:9",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:finance",
         "command": "tsx scripts/verify-finance-workflow-slice.ts",
         "source": "backend/package.json:10",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:governance",
         "command": "tsx scripts/verify-governance-closure-slice.ts",
         "source": "backend/package.json:11",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:event-scope",
         "command": "tsx scripts/verify-event-scope.ts",
         "source": "backend/package.json:12",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:event-workspaces",
         "command": "tsx scripts/verify-event-workspaces.ts",
         "source": "backend/package.json:13",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:project-audit",
         "command": "tsx scripts/verify-project-audit.ts",
         "source": "backend/package.json:14",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-logging",
         "command": "tsx scripts/verify-security-logging.ts",
         "source": "backend/package.json:15",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-cors",
         "command": "tsx scripts/verify-security-cors.ts",
         "source": "backend/package.json:16",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-seed",
         "command": "tsx scripts/verify-security-seed.ts",
         "source": "backend/package.json:17",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-scanner",
         "command": "tsx scripts/verify-security-scanner.ts",
         "source": "backend/package.json:18",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-financial-replay",
         "command": "tsx scripts/verify-security-financial-replay.ts",
         "source": "backend/package.json:19",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-mail-transport",
         "command": "tsx scripts/verify-security-mail-transport.ts",
         "source": "backend/package.json:20",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-admission-lifecycle",
         "command": "tsx scripts/verify-security-admission-lifecycle.ts",
         "source": "backend/package.json:21",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-action-limits",
         "command": "tsx scripts/verify-security-action-limits.ts",
         "source": "backend/package.json:22",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:seed-types",
         "command": "tsc -p scripts/tsconfig.seed.json",
         "source": "backend/package.json:23",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:types",
         "command": "tsc -p scripts/tsconfig.verification.json",
         "source": "backend/package.json:24",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-audit-metadata",
         "command": "tsx scripts/verify-security-audit-metadata.ts",
         "source": "backend/package.json:25",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-uploads",
         "command": "tsx scripts/verify-security-uploads.ts",
         "source": "backend/package.json:26",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-mfa",
         "command": "tsx scripts/verify-security-mfa.ts",
         "source": "backend/package.json:27",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-mfa-crypto",
         "command": "tsx scripts/verify-security-mfa-crypto.ts",
         "source": "backend/package.json:28",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-email",
         "command": "tsx scripts/verify-security-email.ts",
         "source": "backend/package.json:29",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-login",
         "command": "tsx scripts/verify-security-login.ts",
         "source": "backend/package.json:30",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-session-boundary",
         "command": "tsx scripts/verify-security-session-boundary.ts",
         "source": "backend/package.json:31",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-bootstrap",
         "command": "tsx scripts/verify-security-bootstrap.ts",
         "source": "backend/package.json:32",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-document-audit",
         "command": "tsx scripts/verify-security-document-audit.ts",
         "source": "backend/package.json:33",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-mfa-browser",
         "command": "tsx scripts/verify-security-mfa-browser.ts",
         "source": "backend/package.json:34",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-reset-browser",
         "command": "tsx scripts/verify-security-reset-browser.ts",
         "source": "backend/package.json:35",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:network-sign-in",
         "command": "tsx scripts/verify-network-sign-in.ts",
         "source": "backend/package.json:36",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#mfa:authorize-enrollment",
         "command": "tsx scripts/authorize-mfa-enrollment.ts",
         "source": "backend/package.json:37",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:demo:runtime",
         "command": "tsx scripts/verify-demo-runtime.ts",
         "source": "backend/package.json:38",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:demo:mfa-contract",
         "command": "tsx scripts/verify-demo-mfa-contract.ts",
         "source": "backend/package.json:39",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#seed:demo:flows",
         "command": "tsx scripts/seed-events-payments-demo.ts",
         "source": "backend/package.json:40",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#seed:demo:runtime",
         "command": "tsx scripts/seed-demo-runtime-data.ts",
         "source": "backend/package.json:41",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:validate",
         "command": "prisma validate",
         "source": "backend/package.json:42",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:format",
         "command": "prisma format",
         "source": "backend/package.json:43",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:generate",
         "command": "prisma generate",
         "source": "backend/package.json:44",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:migrate:dev",
         "command": "prisma migrate dev",
         "source": "backend/package.json:45",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:seed",
         "command": "tsx prisma/seed.ts",
         "source": "backend/package.json:46",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#prisma:studio",
         "command": "prisma studio",
         "source": "backend/package.json:47",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-body-parser",
         "command": "tsx scripts/verify-security-body-parser.ts",
         "source": "backend/package.json:48",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {
         "id": "backend/package.json#verify:security-multipart-parser",
         "command": "tsx scripts/verify-security-multipart-parser.ts",
         "source": "backend/package.json:49",
-        "manifestHash": "238acb963c68bbead787d1fa8f30794e5a5431ae68aff02bbe4ae098dedb44d9",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
+        "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
+      },
+      {
+        "id": "backend/package.json#verify:security-mail-parser",
+        "command": "tsx scripts/verify-security-mail-parser.ts",
+        "source": "backend/package.json:50",
+        "manifestHash": "ce3a052de46df6a026d9e811182a160a4272bcb5e6fed7dda75d465632fe1846",
         "trustBoundary": "Operator/build/test command; trace imported and external effects before execution."
       },
       {

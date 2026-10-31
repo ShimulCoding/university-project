@@ -47,7 +47,8 @@
     "prisma:studio": "prisma studio",
     "verify:security-body-parser": "tsx scripts/verify-security-body-parser.ts",
     "verify:security-multipart-parser": "tsx scripts/verify-security-multipart-parser.ts",
-    "verify:security-mail-parser": "tsx scripts/verify-security-mail-parser.ts"
+    "verify:security-mail-parser": "tsx scripts/verify-security-mail-parser.ts",
+    "verify:security-ip-parser": "tsx scripts/verify-security-ip-parser.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",
